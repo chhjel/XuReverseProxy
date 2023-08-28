@@ -1,0 +1,45 @@
+﻿@using Microsoft.Extensions.Options;
+@using XuReverseProxy.Core.Models.Config;
+@inject IOptionsMonitor<ServerConfig> serverConfig
+@{
+    var title = string.IsNullOrWhiteSpace(serverConfig.CurrentValue.Name) ? "XuReverseProxy" : serverConfig.CurrentValue.Name;
+    var isAdminInterface = Context.Items.TryGetValue("IsAdminPage", out var val) && val is bool valBool && valBool == true;
+    if (!string.IsNullOrWhiteSpace(@ViewBag.PageTitle))
+    {
+        title = $"{ViewBag.PageTitle} | {title}";
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="none" />
+    <title>@title</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat|Material+Icons" crossorigin="anonymous" />
+    @if (isAdminInterface != true)
+    {
+        <link rel="stylesheet" href="/dist/serverui.css" asp-append-version="true" />
+    } else
+    {
+        <link rel="stylesheet" href="/dist/serverui-admin.css" asp-append-version="true" />
+    }
+    @await RenderSectionAsync("Head", required: false)
+    <!-- Version @XuReverseProxy.Core.Utils.AssemblyUtility.GetVersion().ToString() -->
+</head>
+<body>
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    
+    @if (isAdminInterface != true)
+    {
+        <script defer src="/dist/serverui.js" asp-append-version="true"></script>
+    } else
+    {
+        <script defer src="/dist/serverui-admin.js" asp-append-version="true"></script>
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

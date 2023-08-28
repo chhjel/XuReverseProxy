@@ -1,0 +1,15 @@
+bin
+obj
+.vs
+
+/XuReverseProxy/*.user
+/XuReverseProxy/Properties/PublishProfiles/*.user
+/XuReverseProxy/Properties/PublishProfiles/*.pubxml
+publish
+/build
+XuReverseProxy/appsettings.user.json
+XuReverseProxy/wwwroot/dist/
+
+Scripts/swap/bin-swap-old/
+Scripts/swap/data/
+Scripts/swap/bin-swap/

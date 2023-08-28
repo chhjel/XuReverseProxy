@@ -1,0 +1,69 @@
+version: "3.3"
+name: xureverseproxy-dev
+
+# docker-compose up -d
+# docker-compose up -d --force-recreate --no-deps --build adminer
+# docker-compose up -d --force-recreate --no-deps --build frontend-watcher
+
+services:
+  # Backend build
+  backend:
+    # image: backend
+    # restart: unless-stopped
+    build:
+      context: .
+      dockerfile: XuReverseProxy/Dockerfile
+    environment:
+      - ConnectionStrings__ToDo=etc
+      - Logging__LogLevel__Default=Information
+    ports:
+      - "7878:80"
+    depends_on:
+      - db
+  
+  # Frontend build watcher for dev
+  frontend-watcher:
+    # restart: unless-stopped
+    profiles: ["dev"]
+    build:
+      context: .
+      dockerfile: XuReverseProxy.Frontend/Dockerfile
+    volumes:
+      - ./XuReverseProxy.Frontend/src:/frontend/src
+      - ./XuReverseProxy/wwwroot/dist:/XuReverseProxy/wwwroot/dist
+
+  # Database
+  db:
+    # restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    build:
+      context: Docker/db
+      dockerfile: Dockerfile
+    user: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  # Database UI
+  adminer:
+    # restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles: ["dev"]
+    image: adminer
+    ports:
+      - 8090:8080
+    depends_on:
+      db:
+        condition: service_healthy

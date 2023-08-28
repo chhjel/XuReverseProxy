@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "XuReverseProxy.Core": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:14619;http://localhost:14620"
+    }
+  }
+}
