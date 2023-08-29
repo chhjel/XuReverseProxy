@@ -343,6 +343,9 @@ namespace XuReverseProxy.Core.Migrations
                     b.Property<DateTime>("LastAttemptedAccessedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
+
                     b.Property<string>("UserAgent")
                         .HasColumnType("text");
 

@@ -14,12 +14,13 @@ public class ProxyChallengeInvokeContext
     public Guid SolvedId => AuthenticationData.SolvedId;
 
     private readonly IProxyClientIdentityService _proxyClientIdentityService;
+    private readonly IProxyChallengeService _proxyChallengeService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ApplicationDbContext _dbContext;
 
     public ProxyChallengeInvokeContext(HttpContext httpContext, ProxyAuthenticationData authenticationData,
         ProxyConfig proxyConfig, ProxyClientIdentity clientIdentity, IProxyClientIdentityService proxyClientIdentityService,
-        ApplicationDbContext dbContext, IServiceProvider serviceProvider)
+        ApplicationDbContext dbContext, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
     {
         HttpContext = httpContext;
         AuthenticationData = authenticationData;
@@ -28,10 +29,11 @@ public class ProxyChallengeInvokeContext
         _proxyClientIdentityService = proxyClientIdentityService;
         _dbContext = dbContext;
         _serviceProvider = serviceProvider;
+        _proxyChallengeService = proxyChallengeService;
     }
 
     public async Task<bool> SetChallengeSolvedAsync()
-        => await _proxyClientIdentityService.SetChallengeSolvedAsync(ClientIdentity.Id, AuthenticationData.Id, SolvedId);
+        => await _proxyChallengeService.SetChallengeSolvedAsync(ClientIdentity.Id, AuthenticationData.Id, SolvedId);
 
     public T GetService<T>() where T : class
         => (_serviceProvider.GetService(typeof(T)) as T)!;

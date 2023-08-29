@@ -18,16 +18,19 @@ public class ServerConfig
         public string? AdminSubdomain { get; set; }
 
         public string GetFullAdminDomain()
-        {
-            var portPart = (Port == 80 || Port == 443) ? string.Empty : $":{Port}";
-            if (string.IsNullOrWhiteSpace(AdminSubdomain)) return $"{Scheme}{Domain}{portPart}";
-            else return $"{Scheme}{AdminSubdomain}.{Domain}{portPart}";
-        }
+            => GetDomain(AdminSubdomain);
 
         public string GetFullDomain()
         {
             var portPart = (Port == 80 || Port == 443) ? string.Empty : $":{Port}";
             return $"{Scheme}{Domain}{portPart}";
+        }
+
+        public string GetDomain(string? subdomain)
+        {
+            var portPart = (Port == 80 || Port == 443) ? string.Empty : $":{Port}";
+            if (string.IsNullOrWhiteSpace(subdomain)) return $"{Scheme}{Domain}{portPart}";
+            else return $"{Scheme}{subdomain}.{Domain}{portPart}";
         }
     }
 }

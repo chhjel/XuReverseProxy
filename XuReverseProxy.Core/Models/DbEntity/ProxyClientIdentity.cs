@@ -8,6 +8,8 @@ public class ProxyClientIdentity : IProvidesPlaceholders
 
     public string? IP { get; set; }
     public string? UserAgent { get; set; }
+    public string? Note { get; set; }
+
     public DateTime CreatedAtUtc { get; set; }
     public DateTime LastAttemptedAccessedAtUtc { get; set; }
     public DateTime? LastAccessedAtUtc { get; set; }

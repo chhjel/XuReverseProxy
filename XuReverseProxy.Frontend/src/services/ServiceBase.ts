@@ -2,6 +2,20 @@ export default class ServiceBase {
     public static simulatedDelay: number = 0;
     public status: LoadStatus = new LoadStatus();
 
+    protected fetchExt(url: string, method: string, payload: any | null = null): Promise<Response>
+    {
+        let payloadJson = (payload == null) ? null : JSON.stringify(payload);
+        return fetch(url, {
+            credentials: 'include',
+            method: method,
+            body: payloadJson,
+            headers: new Headers({
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+            })
+        })
+    }
+
     protected async awaitWithStatusNoResult(
         promise: Promise<Response>,
         status: LoadStatus | null = null
@@ -66,20 +80,6 @@ export default class ServiceBase {
                 reject(reason);
             }
         });
-    }
-
-    protected fetchExt(url: string, method: string, payload: any | null = null): Promise<Response>
-    {
-        let payloadJson = (payload == null) ? null : JSON.stringify(payload);
-        return fetch(url, {
-            credentials: 'include',
-            method: method,
-            body: payloadJson,
-            headers: new Headers({
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-            })
-        })
     }
 }
 

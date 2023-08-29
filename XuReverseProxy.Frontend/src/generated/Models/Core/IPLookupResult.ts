@@ -2,11 +2,14 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-export interface ChallengeDataFrontendModel
+export interface IPLookupResult
 {
-	type: string;
-	solvedDuration: any;
-	solved: boolean;
-	solvedAtUtc: Date;
-	conditionsNotMet: boolean;
+	success: boolean;
+	ip: string;
+	continent: string;
+	country: string;
+	city: string;
+	latitude: number;
+	longitude: number;
+	flagUrl: string;
 }

@@ -2,10 +2,13 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
+import { IPLookupResult } from '../Core/IPLookupResult';
+
 export interface ClientDataFrontendModel
 {
 	id: string;
 	ip: string;
+	ipLocation: IPLookupResult;
 	userAgent: string;
 	blocked: boolean;
 	blockedAtUtc: Date;
@@ -13,4 +16,5 @@ export interface ClientDataFrontendModel
 	lastAttemptedAccessedAtUtc: Date;
 	createdAtUtc: Date;
 	lastAccessedAtUtc: Date;
+	note: string;
 }

@@ -1,0 +1,118 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using XuReverseProxy.Core.Models.Config;
+using XuReverseProxy.Core.Models.DbEntity;
+using static XuReverseProxy.Core.Models.DbEntity.ProxyAuthenticationCondition;
+
+namespace XuReverseProxy.Core.Services;
+
+public interface IProxyChallengeService
+{
+    (ProxyAuthenticationConditionType Type, string Summary, bool Passed)[] GetChallengeRequirementData(Guid authenticationDataId);
+    Task<bool> SetChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId);
+    Task<bool> SetChallengeUnsolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId);
+    Task<bool> IsChallengeSolvedAsync(Guid identityId, ProxyAuthenticationData auth);
+    Task<bool> IsChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration);
+    Task<ProxyClientIdentitySolvedChallengeData?> GetSolvedChallengeSolvedDataAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration);
+}
+
+public class ProxyChallengeService : IProxyChallengeService
+{
+    private const string _cookieName = "___xupid";
+    private readonly IOptionsMonitor<ServerConfig> _serverConfig;
+    private readonly ApplicationDbContext _dbContext;
+    private readonly IProxyAuthenticationConditionChecker _proxyAuthenticationConditionChecker;
+    private readonly IProxyClientIdentityService _proxyClientIdentityService;
+
+    public ProxyChallengeService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext,
+        IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker, IProxyClientIdentityService proxyClientIdentityService)
+    {
+        _serverConfig = serverConfig;
+        _dbContext = dbContext;
+        _proxyAuthenticationConditionChecker = proxyAuthenticationConditionChecker;
+        _proxyClientIdentityService = proxyClientIdentityService;
+    }
+
+    public async Task<bool> IsChallengeSolvedAsync(Guid identityId, ProxyAuthenticationData auth)
+        => await IsChallengeSolvedAsync(identityId, auth.Id, auth.SolvedId, auth.SolvedDuration);
+
+    public async Task<bool> IsChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration)
+        => await _dbContext.ProxyClientIdentitySolvedChallengeDatas.AnyAsync(x =>
+                x.IdentityId == identityId
+                && x.AuthenticationId == authenticationId
+                && x.SolvedId == solvedId
+                && (solvedDuration == null || (DateTime.UtcNow - x.SolvedAtUtc) < solvedDuration)
+        );
+
+    public async Task<ProxyClientIdentitySolvedChallengeData?> GetSolvedChallengeSolvedDataAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration)
+        => await _dbContext.ProxyClientIdentitySolvedChallengeDatas.FirstOrDefaultAsync(x =>
+                x.IdentityId == identityId
+                && x.AuthenticationId == authenticationId
+                && x.SolvedId == solvedId
+                && (solvedDuration == null || (DateTime.UtcNow - x.SolvedAtUtc) < solvedDuration)
+        );
+
+    public (ProxyAuthenticationConditionType Type, string Summary, bool Passed)[] GetChallengeRequirementData(Guid authenticationDataId)
+    {
+        var conditions = _dbContext.ProxyAuthenticationConditions.Where(x => x.AuthenticationDataId == authenticationDataId);
+        return conditions.AsEnumerable()
+            .Select(c => (
+                Type: c.ConditionType,
+                Summary: c.CreateSummary(),
+                Passed: _proxyAuthenticationConditionChecker.ConditionPassed(c)
+            ))
+            .ToArray();
+    }
+
+    public async Task<bool> SetChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId)
+    {
+        var identity = await _proxyClientIdentityService.GetProxyClientIdentityAsync(identityId);
+        if (identity == null) return false;
+
+        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
+        if (auth == null) return false;
+
+        var data = await _dbContext.ProxyClientIdentitySolvedChallengeDatas.FirstOrDefaultAsync(x =>
+            x.IdentityId == identityId
+            && x.AuthenticationId == authenticationId
+        );
+        if (data != null)
+        {
+            data.SolvedId = solvedId;
+            data.SolvedAtUtc = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+        }
+        else
+        {
+            await _dbContext.ProxyClientIdentitySolvedChallengeDatas.AddAsync(new ProxyClientIdentitySolvedChallengeData
+            {
+                IdentityId = identityId,
+                AuthenticationId = authenticationId,
+                SolvedId = solvedId,
+                SolvedAtUtc = DateTime.UtcNow
+            });
+            await _dbContext.SaveChangesAsync();
+        }
+
+        return true;
+    }
+
+    public async Task<bool> SetChallengeUnsolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId)
+    {
+        var identity = await _proxyClientIdentityService.GetProxyClientIdentityAsync(identityId);
+        if (identity == null) return false;
+
+        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
+        if (auth == null) return false;
+
+        var data = await _dbContext.ProxyClientIdentitySolvedChallengeDatas.FirstOrDefaultAsync(x =>
+            x.IdentityId == identityId
+            && x.AuthenticationId == authenticationId
+        );
+        if (data == null) return false;
+
+        _dbContext.Remove(data);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+}

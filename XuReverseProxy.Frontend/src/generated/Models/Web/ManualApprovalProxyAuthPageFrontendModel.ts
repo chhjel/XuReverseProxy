@@ -16,4 +16,6 @@ export interface ManualApprovalProxyAuthPageFrontendModel
 	currentChallengeData: CurrentChallengeDataFrontendModel;
 	allChallengeData: ChallengeDataFrontendModel[];
 	proxyConfig: ProxyConfigFrontendModel;
+	isApproved: boolean;
+	url: string;
 }

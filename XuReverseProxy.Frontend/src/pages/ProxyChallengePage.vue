@@ -140,7 +140,6 @@ export default class ProxyChallengePage extends Vue {
     max-width: 600px;
     margin: auto;
 	padding: 40px;
-	/* text-align: center; */
 	@media (max-width: 600px) {
 		padding: 10px;
 	}

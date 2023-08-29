@@ -19,8 +19,11 @@ public static class ServiceCollectionExtensions
         // Services
         services.AddScoped<IProxyConfigService, ProxyConfigService>();
         services.AddScoped<IProxyClientIdentityService, ProxyClientIdentityService>();
+        services.AddScoped<IProxyChallengeService, ProxyChallengeService>();
         services.AddScoped<IProxyAuthenticationChallengeFactory, ProxyAuthenticationChallengeFactory>();
         services.AddScoped<IProxyAuthenticationConditionChecker, ProxyAuthenticationConditionChecker>();
+
+        services.AddSingleton<IIPLookupService, IPWhoIsIPLookupService>();
 
         return services;
     }
@@ -97,7 +100,7 @@ public static class ServiceCollectionExtensions
                 });
 
         // Misc
-        //services.AddRazorPages();
+        services.AddMemoryCache();
         services.AddControllersWithViews();
         services.AddMvc();
         services.AddAntiforgery(opts => opts.Cookie.Name = "_xurp_antiforgery");

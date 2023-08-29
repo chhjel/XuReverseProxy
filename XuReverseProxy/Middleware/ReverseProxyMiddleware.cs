@@ -32,7 +32,7 @@ public class ReverseProxyMiddleware
         ApplicationDbContext applicationDbContext,
         IServiceProvider serviceProvider,
         RuntimeServerConfig runtimeServerConfig,
-        IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker)
+        IProxyChallengeService proxyChallengeService)
     {
         var host = context.Request.Host.Host;
         var hostParts = host.Split('.');
@@ -80,7 +80,8 @@ public class ReverseProxyMiddleware
 
         if (clientIdentity?.Blocked == true)
         {
-            var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.ClientBlockedHtml, clientIdentity);
+            var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.ClientBlockedHtml, clientIdentity)
+                .Replace("{{blocked_message}}", clientIdentity.BlockedMessage, StringComparison.OrdinalIgnoreCase);
             await SetResponse(context, html);
             return;
         }
@@ -88,7 +89,8 @@ public class ReverseProxyMiddleware
         // Process authentications if any
         if (requiresAuthentication && clientIdentity != null)
         {
-            var handled = await TryHandleProxyAuthAPIAsync(context, authChallengeFactory, proxyClientIdentityService, applicationDbContext, serviceProvider, proxyConfig, clientIdentity);
+            var handled = await TryHandleProxyAuthAPIAsync(context, authChallengeFactory, proxyClientIdentityService, applicationDbContext,
+                serviceProvider, proxyConfig, clientIdentity, proxyChallengeService);
             if (handled) return;
 
             var allChallengesSolved = true;
@@ -99,9 +101,9 @@ public class ReverseProxyMiddleware
             };
             foreach (var auth in authentications)
             {
-                var solved = await ProcessAuthenticationCheckAsync(auth, clientIdentity, proxyConfig, context, pageModel, applicationDbContext,
-                    proxyAuthenticationConditionChecker, authChallengeFactory, proxyClientIdentityService, serviceProvider);
-                if (!solved) allChallengesSolved = false;
+                var authResult = await ProcessAuthenticationCheckAsync(auth, clientIdentity, proxyConfig, context, pageModel, applicationDbContext,
+                    authChallengeFactory, proxyClientIdentityService, serviceProvider, proxyChallengeService);
+                if (authResult == AuthCheckResult.NotSolved) allChallengesSolved = false;
             }
             pageModel.ChallengeModels = pageModel.ChallengeModels.OrderBy(x => x.Order).ToList();
 
@@ -121,59 +123,62 @@ public class ReverseProxyMiddleware
         }
     }
 
-    private static async Task<bool> ProcessAuthenticationCheckAsync(ProxyAuthenticationData auth, ProxyClientIdentity clientIdentity,
-        ProxyConfig proxyConfig, HttpContext context, ProxyChallengePageFrontendModel pageModel, ApplicationDbContext applicationDbContext,
-        IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker, IProxyAuthenticationChallengeFactory authChallengeFactory,
-        IProxyClientIdentityService proxyClientIdentityService, IServiceProvider serviceProvider)
+    private enum AuthCheckResult
     {
-        var conditions = applicationDbContext.ProxyAuthenticationConditions.Where(x => x.AuthenticationDataId == auth.Id);
-        var conditionResults = conditions.AsEnumerable().Select(c => new
-        {
-            Type = c.ConditionType,
-            Summary = c.CreateSummary(),
-            Passed = proxyAuthenticationConditionChecker.ConditionPassed(c)
-        }).ToArray();
-        if (!conditionResults.All(c => c.Passed) && proxyConfig.ShowChallengesWithUnmetRequirements)
+        NotSolved = 0,
+        Solved,
+        ConditionsNotMet,
+        Invalid
+    }
+    private static async Task<AuthCheckResult> ProcessAuthenticationCheckAsync(ProxyAuthenticationData auth, ProxyClientIdentity clientIdentity,
+        ProxyConfig proxyConfig, HttpContext context, ProxyChallengePageFrontendModel pageModel, ApplicationDbContext applicationDbContext,
+        IProxyAuthenticationChallengeFactory authChallengeFactory,
+        IProxyClientIdentityService proxyClientIdentityService, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
+    {
+        var challengeData = proxyChallengeService.GetChallengeRequirementData(auth.Id);
+        if (!challengeData.All(c => c.Passed) && proxyConfig.ShowChallengesWithUnmetRequirements)
         {
             // Update viewmodel
             pageModel.AuthsWithUnfulfilledConditions.Add(new(auth.ChallengeTypeId!,
-                conditionResults.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
-            return false;
+                challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
+            return AuthCheckResult.ConditionsNotMet;
         }
 
         var challenge = authChallengeFactory.CreateProxyAuthenticationChallenge(auth.ChallengeTypeId, auth.ChallengeJson);
 
         // Auth type not found => skip
         if (challenge == null)
-            return false;
+            return AuthCheckResult.Invalid;
 
         var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig, clientIdentity,
-            proxyClientIdentityService, applicationDbContext, serviceProvider);
+            proxyClientIdentityService, applicationDbContext, serviceProvider, proxyChallengeService);
 
         // Check if challenge is auto-solved on load
         var isAutoSolved = challenge.AutoCheckSolvedOnLoad(challengeContext);
         if (isAutoSolved)
         {
-            await proxyClientIdentityService.SetChallengeSolvedAsync(clientIdentity.Id, auth.Id, auth.SolvedId);
+            await proxyChallengeService.SetChallengeSolvedAsync(clientIdentity.Id, auth.Id, auth.SolvedId);
         }
 
         // Create challenge data for frontend
         var frontendModel = await challenge.CreateFrontendChallengeModelAsync(challengeContext);
-        var solved = isAutoSolved || await proxyClientIdentityService.IsChallengeSolvedAsync(clientIdentity.Id, auth);
+        var solved = isAutoSolved || await proxyChallengeService.IsChallengeSolvedAsync(clientIdentity.Id, auth);
 
         // Update viewmodel
         if (proxyConfig.ShowCompletedChallenges || !solved)
         {
             pageModel.ChallengeModels.Add(
                 new(auth.Id, auth.ChallengeTypeId!, auth.Order, solved, frontendModel,
-                    conditionResults.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
+                    challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
         }
 
-        return solved;
+        return solved ? AuthCheckResult.Solved : AuthCheckResult.NotSolved;
     }
 
     #region Proxy auth challenge api
-    private static async Task<bool> TryHandleProxyAuthAPIAsync(HttpContext context, IProxyAuthenticationChallengeFactory authChallengeFactory, IProxyClientIdentityService proxyClientIdentityService, ApplicationDbContext applicationDbContext, IServiceProvider serviceProvider, ProxyConfig? proxyConfig, ProxyClientIdentity? clientIdentity)
+    private static async Task<bool> TryHandleProxyAuthAPIAsync(HttpContext context, IProxyAuthenticationChallengeFactory authChallengeFactory,
+        IProxyClientIdentityService proxyClientIdentityService, ApplicationDbContext applicationDbContext, IServiceProvider serviceProvider,
+        ProxyConfig? proxyConfig, ProxyClientIdentity? clientIdentity, IProxyChallengeService proxyChallengeService)
     {
         if (proxyConfig == null || clientIdentity == null) return false;
 
@@ -199,7 +204,7 @@ public class ReverseProxyMiddleware
 
         var jsonPayload = await context.Request.ReadBodyAsStringAsync();
         var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig!, clientIdentity,
-            proxyClientIdentityService, applicationDbContext, serviceProvider);
+            proxyClientIdentityService, applicationDbContext, serviceProvider, proxyChallengeService);
         var result = await InvokableProxyAuthMethodUtils.InvokeMethodAsync(challenge, methodName, jsonPayload, challengeContext);
         await ReturnJsonAsync(context, result);
 

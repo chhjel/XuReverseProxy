@@ -23,21 +23,6 @@ public class ProxyChallengeTypeLogin : ProxyChallengeTypeBase
     [GenerateFrontendModel]
     public record ProxyChallengeTypeLoginFrontendModel(bool IsIdentity, bool TOTPRequired, string? Description);
 
-    /*
-    fetch('/proxyAuth/api/ProxyChallengeTypeLogin/VerifyLoginAsync', {
-        method: 'POST',
-        credentials: "same-origin",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            Username: "test",
-            Password: "test",
-            TOTP: ""
-        })
-      });
-     */
     [InvokableProxyAuthMethod]
     public async Task<VerifyLoginResponseModel> VerifyLoginAsync(ProxyChallengeInvokeContext context, VerifyLoginRequestModel request)
     {

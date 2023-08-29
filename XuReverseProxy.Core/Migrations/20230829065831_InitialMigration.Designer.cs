@@ -12,7 +12,7 @@ using XuReverseProxy.Core.Models.DbEntity;
 namespace XuReverseProxy.Core.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230828194419_InitialMigration")]
+    [Migration("20230829065831_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -345,6 +345,9 @@ namespace XuReverseProxy.Core.Migrations
 
                     b.Property<DateTime>("LastAttemptedAccessedAtUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
 
                     b.Property<string>("UserAgent")
                         .HasColumnType("text");

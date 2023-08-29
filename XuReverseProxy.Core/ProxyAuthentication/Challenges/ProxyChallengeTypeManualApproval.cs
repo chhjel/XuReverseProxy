@@ -41,17 +41,6 @@ public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
         return code;
     }
 
-    /*
-    fetch('/proxyAuth/api/ProxyChallengeTypeManualApproval/RequestApprovalAsync', {
-        method: 'POST',
-        credentials: "same-origin",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({})
-      });
-     */
     [InvokableProxyAuthMethod]
     public async Task<RequestApprovalResponseModel> RequestApprovalAsync(ProxyChallengeInvokeContext context, RequestApprovalRequestModel _)
     {

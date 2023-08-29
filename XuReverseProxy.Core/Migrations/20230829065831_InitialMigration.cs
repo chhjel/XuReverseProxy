@@ -60,6 +60,7 @@ namespace XuReverseProxy.Core.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     IP = table.Column<string>(type: "text", nullable: true),
                     UserAgent = table.Column<string>(type: "text", nullable: true),
+                    Note = table.Column<string>(type: "text", nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastAttemptedAccessedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastAccessedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),

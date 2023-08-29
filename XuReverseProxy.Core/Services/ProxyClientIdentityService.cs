@@ -5,7 +5,6 @@ using QoDL.Toolkit.Core.Util;
 using QoDL.Toolkit.Web.Core.Utils;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
-using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.Services;
 
@@ -13,14 +12,11 @@ public interface IProxyClientIdentityService
 {
     Task<ProxyClientIdentity?> GetProxyClientIdentityAsync(Guid id);
     Task<ProxyClientIdentity?> GetCurrentProxyClientIdentityAsync(HttpContext context);
-    Task<bool> SetChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId);
-    Task<bool> SetChallengeUnsolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId);
-    Task<bool> IsChallengeSolvedAsync(Guid identityId, ProxyAuthenticationData auth);
-    Task<bool> IsChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration);
-    Task<ProxyClientIdentitySolvedChallengeData?> GetSolvedChallengeSolvedDataAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration);
+
     Task TryUpdateLastAccessedAtAsync(Guid id);
-    Task BlockIdentityAsync(Guid identityId, string message);
-    Task UnBlockIdentityAsync(Guid identityId);
+    Task<bool> BlockIdentityAsync(Guid identityId, string message);
+    Task<bool> UnBlockIdentityAsync(Guid identityId);
+    Task<bool> SetClientNoteAsync(Guid identityId, string note);
 
     //public async Task<>
     // todo: job that deletes the following:
@@ -33,11 +29,14 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
     private const string _cookieName = "___xupid";
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IProxyAuthenticationConditionChecker _proxyAuthenticationConditionChecker;
 
-    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext)
+    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext,
+        IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker)
     {
         _serverConfig = serverConfig;
         _dbContext = dbContext;
+        _proxyAuthenticationConditionChecker = proxyAuthenticationConditionChecker;
     }
 
     public async Task<ProxyClientIdentity?> GetProxyClientIdentityAsync(Guid id)
@@ -68,7 +67,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         var rawIp = TKRequestUtils.GetIPAddress(context);
         var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
         var ip = ipData.IP;
-        var userAgent = CleanUserAgent(context.Request.Headers.UserAgent);
+        var userAgent = context.Request.Headers.UserAgent; // CleanUserAgent(context.Request.Headers.UserAgent);
 
         // Get or create identity
         var identity = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
@@ -112,99 +111,41 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         return identity;
     }
 
-    public async Task<bool> IsChallengeSolvedAsync(Guid identityId, ProxyAuthenticationData auth)
-        => await IsChallengeSolvedAsync(identityId, auth.Id, auth.SolvedId, auth.SolvedDuration);
-
-    public async Task<bool> IsChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration)
-        => await _dbContext.ProxyClientIdentitySolvedChallengeDatas.AnyAsync(x =>
-                x.IdentityId == identityId
-                && x.AuthenticationId == authenticationId
-                && x.SolvedId == solvedId
-                && (solvedDuration == null || (DateTime.UtcNow - x.SolvedAtUtc) < solvedDuration)
-        );
-
-    public async Task<ProxyClientIdentitySolvedChallengeData?> GetSolvedChallengeSolvedDataAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration)
-        => await _dbContext.ProxyClientIdentitySolvedChallengeDatas.FirstOrDefaultAsync(x =>
-                x.IdentityId == identityId
-                && x.AuthenticationId == authenticationId
-                && x.SolvedId == solvedId
-                && (solvedDuration == null || (DateTime.UtcNow - x.SolvedAtUtc) < solvedDuration)
-        );
-
-    public async Task<bool> SetChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId)
-    {
-        var identity = await GetProxyClientIdentityAsync(identityId);
-        if (identity == null) return false;
-
-        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
-        if (auth == null) return false;
-
-        var data = await _dbContext.ProxyClientIdentitySolvedChallengeDatas.FirstOrDefaultAsync(x =>
-            x.IdentityId == identityId
-            && x.AuthenticationId == authenticationId
-        );
-        if (data != null)
-        {
-            data.SolvedId = solvedId;
-            data.SolvedAtUtc = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync();
-        }
-        else
-        {
-            await _dbContext.ProxyClientIdentitySolvedChallengeDatas.AddAsync(new ProxyClientIdentitySolvedChallengeData
-            {
-                IdentityId = identityId,
-                AuthenticationId = authenticationId,
-                SolvedId = solvedId,
-                SolvedAtUtc = DateTime.UtcNow
-            });
-            await _dbContext.SaveChangesAsync();
-        }
-
-        return true;
-    }
-
-    public async Task<bool> SetChallengeUnsolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId)
-    {
-        var identity = await GetProxyClientIdentityAsync(identityId);
-        if (identity == null) return false;
-
-        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
-        if (auth == null) return false;
-
-        var data = await _dbContext.ProxyClientIdentitySolvedChallengeDatas.FirstOrDefaultAsync(x =>
-            x.IdentityId == identityId
-            && x.AuthenticationId == authenticationId
-        );
-        if (data == null) return false;
-
-        _dbContext.Remove(data);
-        await _dbContext.SaveChangesAsync();
-        return true;
-    }
-    
-    public async Task BlockIdentityAsync(Guid identityId, string message)
+    public async Task<bool> BlockIdentityAsync(Guid identityId, string message)
     {
         var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
-        if (data == null) return;
+        if (data == null) return false;
 
         data.Blocked = true;
         data.BlockedMessage = message;
         data.BlockedAtUtc = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
+        return true;
     }
 
-    public async Task UnBlockIdentityAsync(Guid identityId)
+    public async Task<bool> UnBlockIdentityAsync(Guid identityId)
     {
         var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
-        if (data == null) return;
+        if (data == null) return false;
 
         data.Blocked = false;
         data.BlockedMessage = null;
         data.BlockedAtUtc = null;
 
         await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> SetClientNoteAsync(Guid identityId, string note)
+    {
+        var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
+        if (data == null) return false;
+
+        data.Note = note;
+
+        await _dbContext.SaveChangesAsync();
+        return true;
     }
 
     public async Task TryUpdateLastAccessedAtAsync(Guid identityId)
@@ -217,15 +158,5 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
 
         data.LastAccessedAtUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
-    }
-
-    private static string CleanUserAgent(string? raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw)) return "(unknown user agent)";
-
-        var match = RegexPatterns.CleanUserAgentRegex.Match(raw);
-        if (match.Success) return match.Groups["name"].Value;
-        else if (raw?.Length > 10) return raw;
-        else return raw ?? string.Empty;
     }
 }

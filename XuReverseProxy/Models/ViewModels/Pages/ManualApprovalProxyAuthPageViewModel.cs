@@ -1,4 +1,5 @@
 ﻿using XuReverseProxy.Core.Attributes;
+using XuReverseProxy.Core.Services;
 
 namespace XuReverseProxy.Models.ViewModels.Pages;
 
@@ -16,12 +17,15 @@ public class ManualApprovalProxyAuthPageViewModel
         public required CurrentChallengeDataFrontendModel CurrentChallengeData { get; set; }
         public required List<ChallengeDataFrontendModel> AllChallengeData { get; set; }
         public required ProxyConfigFrontendModel ProxyConfig { get; set; }
+        public required bool IsApproved { get; set; }
+        public required string Url { get; set; }
 
         [GenerateFrontendModel]
         public class ClientDataFrontendModel
         {
             public required Guid Id { get; set; }
             public required string? IP { get; set; }
+            public required IPLookupResult? IPLocation { get; set; }
             public required string? UserAgent { get; set; }
             public required bool Blocked { get; set; }
             public required DateTime? BlockedAtUtc { get; set; }
@@ -29,6 +33,7 @@ public class ManualApprovalProxyAuthPageViewModel
             public required DateTime LastAttemptedAccessedAtUtc { get; set; }
             public required DateTime CreatedAtUtc { get; set; }
             public required DateTime? LastAccessedAtUtc { get; set; }
+            public required string? Note { get; set; }
         }
 
         [GenerateFrontendModel]
@@ -45,6 +50,7 @@ public class ManualApprovalProxyAuthPageViewModel
             public required TimeSpan? SolvedDuration { get; set; }
             public required bool Solved { get; set; }
             public required DateTime? SolvedAtUtc { get; set; }
+            public required bool ConditionsNotMet { get; set; }
         }
 
         [GenerateFrontendModel]
