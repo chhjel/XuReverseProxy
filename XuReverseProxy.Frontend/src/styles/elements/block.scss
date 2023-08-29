@@ -1,0 +1,25 @@
+.block {
+    padding: 20px;
+    border: 2px solid var(--color--panel-light);
+    background-color: var(--color--panel-dark);
+    position: relative;
+	@media (max-width: 600px) {
+		padding: 10px;
+	}
+
+    &.block--secondary {
+        border: 2px solid var(--color--secondary);
+    }
+    
+    &.block--dark {
+		color: #757575;
+		border: 2px solid var(--color--panel);
+        background-color: #121212;
+    }
+}
+
+.block__title {
+    font-size: 22px;
+    color: var(--color--text-dark);
+    margin-bottom: 5px;
+}

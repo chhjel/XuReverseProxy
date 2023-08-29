@@ -5,9 +5,10 @@
     label {
         margin-top: 2px;
         margin-bottom: 2px;
+        color: var(--color--text-dark);
     }
 
-    input {
+    input, textarea {
         flex-grow: 1;
         font-size: 1.2rem;
         line-height: 2.2rem;

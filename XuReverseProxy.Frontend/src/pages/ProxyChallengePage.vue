@@ -88,12 +88,12 @@ export default class ProxyChallengePage extends Vue {
 		</div>
 
 		<div class="challenges mt-4" v-if="uncompletedChallenges.length > 0">
-			<div v-for="challenge in uncompletedChallenges" class="challenges__item">
+			<div v-for="challenge in uncompletedChallenges" class="challenges__item block block--secondary">
 				<component :is="`${challenge.typeId}Component`" :options="challenge.frontendModel" @solved="onChallengeSolved(challenge)" />
 			</div>
 		</div>
 		
-		<div class="challenges-completed mt-4" v-if="completedChallenges.length > 0">
+		<div class="challenges-completed mt-4 block block--dark" v-if="completedChallenges.length > 0">
 			<div class="challenges-completed__title">Completed challenges</div>
 			<div v-for="challenge in completedChallenges" class="challenges-completed__item">
 				<div class="material-icons icon">done</div>
@@ -101,7 +101,7 @@ export default class ProxyChallengePage extends Vue {
 			</div>
 		</div>
 
-		<div class="challenges-unfulfilled mt-4" v-if="unfulfilledAuths.length > 0">
+		<div class="challenges-unfulfilled mt-4 block block--dark" v-if="unfulfilledAuths.length > 0">
 			<div class="challenges-unfulfilled__title">Challenges currently not required</div>
 			<div v-for="auth in unfulfilledAuths"
 				class="challenges-unfulfilled__item">
@@ -163,18 +163,11 @@ export default class ProxyChallengePage extends Vue {
 		}
 
 		&__item {
-			border: 2px solid var(--color--secondary);
-			padding: 15px 20px 15px 20px;
 			margin-top: 10px;
-			background-color: var(--color--panel);
 		}
 	}
 
 	.challenges-completed {
-		border: 2px solid var(--color--panel);
-		color: #757575;
-		padding: 20px;
-
 		&__title {
 			font-weight: 600;
     		font-size: 18px;
@@ -193,10 +186,6 @@ export default class ProxyChallengePage extends Vue {
 	}
 
 	.challenges-unfulfilled {
-		border: 2px solid var(--color--panel);
-		color: #757575;
-		padding: 20px;
-
 		&__title {
 			font-weight: 600;
     		font-size: 18px;

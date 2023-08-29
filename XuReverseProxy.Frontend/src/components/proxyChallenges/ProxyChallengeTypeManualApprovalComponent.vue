@@ -80,6 +80,10 @@ export default class ProxyChallengeTypeManualApprovalComponent extends Vue {
 		text-align: center;
 		background-color: #121212;
 		font-size: 22px;
+
+		.easycode {
+			font-size: calc(min(max(40px, 11vw),70px));
+		}
 	}
 
 	&__inputs {
@@ -95,10 +99,6 @@ export default class ProxyChallengeTypeManualApprovalComponent extends Vue {
 		&.error {
 			color: var(--color--danger-lighten);
 		}
-	}
-
-	.easycode {
-		font-size: 60px;
 	}
 	
 	.meta {
