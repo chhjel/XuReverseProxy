@@ -1,15 +1,24 @@
-import VueAppInitializer from "@utils/VueAppInitializer";
+import VueAppInitializer, { InitializableVueApp } from "@utils/VueAppInitializer";
 import ErrorPage from '@pages/ErrorPage.vue';
 import LoginPage from '@pages/LoginPage.vue';
-import DashboardPage from '@pages/DashboardPage.vue';
+import AdminApp from '@pages/admin/AdminApp.vue';
 import ManualApprovalProxyAuthPage from '@pages/ManualApprovalProxyAuthPage.vue';
+import { App } from "vue";
+import adminRouter from "./routers/admin-router";
 
-const pages = {
-    ErrorPage: ErrorPage,
-    LoginPage: LoginPage,
-    DashboardPage: DashboardPage,
-    ManualApprovalProxyAuthPage: ManualApprovalProxyAuthPage
+const initializableApps: {[key: string]: InitializableVueApp} = {
+    ErrorPage: { component: ErrorPage },
+    LoginPage: { component: LoginPage },
+    ManualApprovalProxyAuthPage: { component: ManualApprovalProxyAuthPage },
+    AdminApp: {
+        component: AdminApp,
+        onInit: (app) => adminRouterInitializer(app)
+    }
 };
 
 // Init any apps on the current page
-new VueAppInitializer().initAppFromElements(pages);
+new VueAppInitializer().initAppFromElements(initializableApps);
+
+function adminRouterInitializer(app: App<Element>) {
+    app.use(adminRouter);
+}

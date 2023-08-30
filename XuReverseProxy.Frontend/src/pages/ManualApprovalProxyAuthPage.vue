@@ -113,6 +113,13 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 		else if (this.isApproved) return 'Client is currently approved';
 		else return 'Client is waiting for approval';
 	}
+
+	get statusClass(): any {
+		let classes: any = {};
+		if (this.isBlocked) return 'blocked';
+		else if (this.isApproved) return 'approved';
+		return classes;
+	}
 }
 </script>
 
@@ -130,7 +137,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 			<div class="easycode">{{ formattedEasyCode }}</div>
 		</div>
 
-		<div class="status">{{ status }}</div>
+		<div class="status" :class="statusClass">{{ status }}</div>
 
 		<!-- Actions -->
 		<div class="actions">
@@ -142,7 +149,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 
 		<!-- Notes -->
 		<div class="client-note mb-4 pt-2 block">
-			<div class="block__title">Client note</div>
+			<div class="block-title">Client note</div>
 			<div class="input-wrapper">
 				<textarea id="clientNote" v-model="clientNote" @blur="updateClientNote"></textarea>
 			</div>
@@ -151,7 +158,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 		<div class="two-cols">
 			<!-- Client details -->
 			<div>
-				<div class="block__title">Details</div>
+				<div class="block-title">Details</div>
 				<div class="client-details block">
 					<div>
 						<div class="client-details-row">
@@ -195,7 +202,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 			</div>
 			<!-- Client location -->
 			<div>
-				<div class="block__title">
+				<div class="block-title">
 					<div class="ipdetails-location">
 						<div v-if="ipContinent" class="ipdetails-location__part">{{ ipContinent }}</div>
 						<div v-if="ipFlagUrl || ipCountry" class="ipdetails-location__part">
@@ -219,7 +226,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 		</div>
 
 		<div class="challenge-statuses">
-			<div class="block__title">Challenge statuses</div>
+			<div class="block-title">Challenge statuses</div>
 			<div class="block block--dark">
 				<div class="challenges" v-if="options.allChallengeData.length > 0">
 					<div v-for="challenge in options.allChallengeData" class="challenge" :title="getChallengeTooltip(challenge)">
@@ -239,6 +246,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 	padding: 40px;
 	@media (max-width: 800px) {
 		padding: 10px;
+		margin-top: 20px;
 	}
 
 	.header {
@@ -287,6 +295,14 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 		text-align: center;
 		padding: 10px;
 		color: var(--color--text-dark);
+
+		&.approved {
+			color: var(--color--success-base);
+		}
+
+		&.blocked {
+			color: var(--color--warning-base);
+		}
 	}
 
 	.actions {

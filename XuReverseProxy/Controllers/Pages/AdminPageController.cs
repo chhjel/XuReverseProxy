@@ -6,18 +6,18 @@ namespace XuReverseProxy.Controllers.Pages;
 
 [Authorize]
 [Route("[action]")]
-public class DashboardPageController : Controller
+public class AdminPageController : Controller
 {
     [HttpGet("/")]
     public IActionResult Index()
     {
-        ViewBag.PageTitle = "Dashboard";
+        ViewBag.PageTitle = "Admin";
 
-        var model = new DashboardPageViewModel
+        var model = new AdminPageViewModel
         {
-            FrontendModel = new DashboardPageViewModel.DashboardPageFrontendModel
+            FrontendModel = new AdminPageViewModel.AdminPageFrontendModel
             {
-
+                Etc = "asd"
             }
         };
         return View(model);

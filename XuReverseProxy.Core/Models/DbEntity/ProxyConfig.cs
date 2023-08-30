@@ -1,5 +1,8 @@
-﻿namespace XuReverseProxy.Core.Models.DbEntity;
+﻿using XuReverseProxy.Core.Attributes;
 
+namespace XuReverseProxy.Core.Models.DbEntity;
+
+[GenerateFrontendModel]
 public class ProxyConfig
 {
     public Guid Id { get; set; }

@@ -40,12 +40,9 @@ public static class RTConfig
 
     private static void IncludeAssembly(ConfigurationBuilder builder, Assembly assembly)
     {
-        var asd = assembly.GetExportedTypes()
-            .Where(x => x.GetCustomAttribute<GenerateFrontendModelAttribute>() != null);
-
         var types = assembly.GetExportedTypes()
             .Where(x => x.GetCustomAttribute<GenerateFrontendModelAttribute>() != null)
-            .Where(x => x.Namespace?.StartsWith("XuReverseProxy") == true && !x.IsGenericType)
+            .Where(x => x.Namespace?.StartsWith("XuReverseProxy") == true)
             .ToArray();
 
         builder.ExportAsEnums(types.Where(x => x.IsEnum),

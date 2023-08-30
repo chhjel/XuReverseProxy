@@ -127,6 +127,10 @@ public class ManualApprovalProxyAuthPageController : Controller
         });
     }
 
+    #region API
+    // This separate API is needed for manual approval to bypass auth if enabled,
+    // using the guid parameters as some security instead.
+
     [AuthorizeIfEnabled(nameof(RuntimeServerConfig.EnableManualApprovalPageAuthentication))]
     [HttpPost("/proxyAuth/approve/{clientIdentityId}/{authenticationId}/{solvedId}/setclientnote")]
     public async Task<IActionResult> SetClientNote([FromRoute] Guid clientIdentityId, [FromRoute] Guid authenticationId, [FromRoute] Guid solvedId,
@@ -181,4 +185,5 @@ public class ManualApprovalProxyAuthPageController : Controller
     }
     [GenerateFrontendModel]
     public record SetClientBlockedFromManualApprovalRequestMessage(bool Blocked, string Message);
+    #endregion
 }

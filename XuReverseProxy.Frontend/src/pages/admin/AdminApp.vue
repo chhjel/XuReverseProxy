@@ -1,23 +1,27 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
-import { Vue, Prop } from 'vue-property-decorator'
+import { Vue, Prop, Provide } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
-import { DashboardPageFrontendModel } from "@generated/Models/Web/DashboardPageFrontendModel";
+import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
+import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
 
 @Options({
 	components: {
 		TextInputComponent,
-		ButtonComponent
+		ButtonComponent,
+		AdminNavMenu
 	}
 })
 export default class DashboardPage extends Vue {
   	@Prop()
-	options: DashboardPageFrontendModel;
+	@Provide()
+	options: AdminPageFrontendModel;
 	
     // loginService: LoginService = new LoginService();
 
 	async mounted() {
+
 	}
 
 	// get isLoading(): boolean { return this.loginService.status.inProgress; }
@@ -25,15 +29,15 @@ export default class DashboardPage extends Vue {
 </script>
 
 <template>
-	<div class="dashboard-page">
-		<a href="/auth/logout">Logout</a>
-		
-		// ToDo: dashboard
+	<div class="admin-app">
+		<admin-nav-menu />
+
+  		<router-view :options="options"></router-view>
 	</div>
 </template>
 
 <style scoped lang="scss">
-.dashboard-page {
+.admin-app {
 
 }
 </style>
