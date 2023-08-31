@@ -1,6 +1,8 @@
-﻿namespace XuReverseProxy.Core.Models.DbEntity;
+﻿using XuReverseProxy.Core.Abstractions;
 
-public class ApplicationUserRecoveryCode
+namespace XuReverseProxy.Core.Models.DbEntity;
+
+public class ApplicationUserRecoveryCode : IHasId
 {
     public Guid Id { get; set; }
     public required string UserId { get; set; }

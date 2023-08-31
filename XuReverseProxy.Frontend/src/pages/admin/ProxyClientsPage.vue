@@ -5,8 +5,8 @@ import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
-import ProxyConfigService from "@services/ProxyConfigService";
-import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
+import ProxyClientIdentityService from "@services/ProxyClientIdentityService";
+import { ProxyClientIdentity } from "@generated/Models/Core/ProxyClientIdentity";
 
 @Options({
 	components: {
@@ -15,35 +15,36 @@ import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 		AdminNavMenu
 	}
 })
-export default class ProxyConfigsPage extends Vue {
+export default class ProxyClientsPage extends Vue {
   	@Inject()
 	readonly options!: AdminPageFrontendModel;
 	
-    proxyConfigService: ProxyConfigService = new ProxyConfigService();
-	proxyConfigs: Array<ProxyConfig> = [];
+    service: ProxyClientIdentityService = new ProxyClientIdentityService();
+	clients: Array<ProxyClientIdentity> = [];
 
 	async mounted() {
-		const result = await this.proxyConfigService.GetAllAsync();
+		const result = await this.service.GetAllAsync();
 		if (!result.success) {
 			console.error(result.message);
 		}
-		this.proxyConfigs = result.data || [];
+		this.clients = result.data || [];
 	}
 }
 </script>
 
 <template>
-	<div class="proxyconfigs-page">
-		<div v-for="config in proxyConfigs" :key="config.id">
-			<router-link :to="{ name: 'proxyconfig', params: { configId: config.id }}">
-				<code>{{ config }}</code>
-			</router-link>
-		</div>
+	<div class="proxyclients-page">
+		// Todo:
+		<ul>
+			<li>Get paged</li>
+			<li>Delete single/all/not used in a month/week/year</li>
+		</ul>
+		<code>{{ clients }}</code>
 	</div>
 </template>
 
 <style scoped lang="scss">
-.proxyconfigs-page {
+.proxyclients-page {
 
 }
 </style>

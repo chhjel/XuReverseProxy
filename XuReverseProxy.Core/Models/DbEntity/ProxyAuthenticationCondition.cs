@@ -1,13 +1,17 @@
 ﻿using QoDL.Toolkit.Core.Extensions;
 using QoDL.Toolkit.Core.Util;
+using System.Text.Json.Serialization;
+using XuReverseProxy.Core.Abstractions;
 using XuReverseProxy.Core.Attributes;
 
 namespace XuReverseProxy.Core.Models.DbEntity;
 
-public class ProxyAuthenticationCondition
+[GenerateFrontendModel]
+public class ProxyAuthenticationCondition : IHasId
 {
     public Guid Id { get; set; }
     public Guid AuthenticationDataId { get; set; }
+    [JsonIgnore]
     public ProxyAuthenticationData AuthenticationData { get; set; } = null!;
     public ProxyAuthenticationConditionType ConditionType { get; set; }
 

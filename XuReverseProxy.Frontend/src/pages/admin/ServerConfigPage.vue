@@ -5,8 +5,8 @@ import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
-import ProxyConfigService from "@services/ProxyConfigService";
-import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
+import ServerConfigService from "@services/ServerConfigService";
+import { RuntimeServerConfigItem } from "@generated/Models/Core/RuntimeServerConfigItem";
 
 @Options({
 	components: {
@@ -15,35 +15,37 @@ import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 		AdminNavMenu
 	}
 })
-export default class ProxyConfigsPage extends Vue {
+export default class ServerConfigPage extends Vue {
   	@Inject()
 	readonly options!: AdminPageFrontendModel;
 	
-    proxyConfigService: ProxyConfigService = new ProxyConfigService();
-	proxyConfigs: Array<ProxyConfig> = [];
+    service: ServerConfigService = new ServerConfigService();
+	runtimeConfigs: Array<RuntimeServerConfigItem> = [];
 
 	async mounted() {
-		const result = await this.proxyConfigService.GetAllAsync();
+		await this.loadConfig();
+	}
+
+	async loadConfig() {
+		const result = await this.service.GetAllAsync();
 		if (!result.success) {
 			console.error(result.message);
 		}
-		this.proxyConfigs = result.data || [];
+		this.runtimeConfigs = result.data || null;
 	}
+
+	get isLoading(): boolean { return this.service.status.inProgress; }
 }
 </script>
 
 <template>
-	<div class="proxyconfigs-page">
-		<div v-for="config in proxyConfigs" :key="config.id">
-			<router-link :to="{ name: 'proxyconfig', params: { configId: config.id }}">
-				<code>{{ config }}</code>
-			</router-link>
-		</div>
+	<div class="serverconfig-page">
+		<code>{{ runtimeConfigs }}</code>
 	</div>
 </template>
 
 <style scoped lang="scss">
-.proxyconfigs-page {
+.serverconfig-page {
 
 }
 </style>

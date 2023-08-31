@@ -16,7 +16,7 @@ export default class AdminNavMenu extends Vue {
 	<nav class="admin-nav">
 		<router-link to="/">Overview</router-link> |
 		<router-link to="/proxyconfigs">Proxies</router-link> |
-		<router-link to="/config">Config</router-link> |
+		<router-link to="/serverconfig">Config</router-link> |
 		<router-link to="/clients">Clients</router-link> |
 		<router-link to="/jobs">Jobs</router-link> |
 		<a href="/auth/logout">[Logout]</a>

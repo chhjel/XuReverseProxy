@@ -1,9 +1,16 @@
-﻿namespace XuReverseProxy.Core.Models.DbEntity;
+﻿using System.Text.Json.Serialization;
+using XuReverseProxy.Core.Abstractions;
+using XuReverseProxy.Core.Attributes;
 
-public class ProxyAuthenticationData
+namespace XuReverseProxy.Core.Models.DbEntity;
+
+[GenerateFrontendModel]
+[Serializable]
+public class ProxyAuthenticationData : IHasId
 {
     public Guid Id { get; set; }
     public Guid ProxyConfigId { get; set; }
+    [JsonIgnore]
     public ProxyConfig ProxyConfig { get; set; } = null!;
     public int Order { get; set; }
 

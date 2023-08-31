@@ -31,6 +31,11 @@ public static class ServiceCollectionExtensions
     public static WebApplication UseReverseProxy(this WebApplication app)
     {
         app.UseMiddleware<ReverseProxyMiddleware>();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            scope.ServiceProvider.GetService<RuntimeServerConfig>()?.EnsureDatabaseRows();
+        }
         return app;
     }
 

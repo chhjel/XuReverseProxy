@@ -5,6 +5,7 @@ import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
+import EventBus from "@utils/EventBus";
 
 @Options({
 	components: {
@@ -17,14 +18,22 @@ export default class DashboardPage extends Vue {
   	@Prop()
 	@Provide()
 	options: AdminPageFrontendModel;
-	
-    // loginService: LoginService = new LoginService();
 
 	async mounted() {
-
+        document.addEventListener('keyup', this.onDocumentKeyDownOrDown);
+        document.addEventListener('keydown', this.onDocumentKeyDownOrDown);
 	}
 
-	// get isLoading(): boolean { return this.loginService.status.inProgress; }
+    beforeUnmount(): void {
+        document.removeEventListener('keyup', this.onDocumentKeyDownOrDown);
+        document.removeEventListener('keydown', this.onDocumentKeyDownOrDown);
+    }
+	
+    onDocumentKeyDownOrDown(e: KeyboardEvent): void {
+        if (e.key == 'Escape') {
+            EventBus.notify("onEscapeClicked", e);
+        }
+    }
 }
 </script>
 

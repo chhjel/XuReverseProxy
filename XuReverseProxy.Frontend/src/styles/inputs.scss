@@ -10,8 +10,15 @@
 
     input, textarea {
         flex-grow: 1;
-        font-size: 1.2rem;
-        line-height: 2.2rem;
         padding: 5px 10px;
+    }
+
+    input {
+        line-height: 2.2rem;
+        font-size: 1.2rem;
+    }
+
+    textarea {
+        font-size: 0.9rem;
     }
 }

@@ -94,3 +94,6 @@ $util-margin-padding-list: (
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.spacer { flex: 1; }
+.spacer01 { flex: 0.1; }

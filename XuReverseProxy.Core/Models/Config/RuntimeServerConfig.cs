@@ -56,6 +56,19 @@ public class RuntimeServerConfig
         _httpContextAccessor = httpContextAccessor;
     }
 
+    /// <summary>
+    /// Since the db is not updated with default values until the configs are first changed,
+    /// ensure the db rows exist on startup so that we can read them on the admin config page.
+    /// </summary>
+    public void EnsureDatabaseRows()
+    {
+        EnableForwarding = EnableForwarding;
+        EnableManualApprovalPageAuthentication = EnableManualApprovalPageAuthentication;
+        NotFoundHtml = NotFoundHtml;
+        ClientBlockedHtml = ClientBlockedHtml;
+        ClientBlockedResponseCode = ClientBlockedResponseCode;
+    }
+
     private int GetConfigInt(string key, int defaultValue)
     {
         var rawValue = GetConfig(key, defaultValue.ToString());

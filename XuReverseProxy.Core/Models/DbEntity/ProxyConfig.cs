@@ -1,9 +1,10 @@
-﻿using XuReverseProxy.Core.Attributes;
+﻿using XuReverseProxy.Core.Abstractions;
+using XuReverseProxy.Core.Attributes;
 
 namespace XuReverseProxy.Core.Models.DbEntity;
 
 [GenerateFrontendModel]
-public class ProxyConfig
+public class ProxyConfig : IHasId
 {
     public Guid Id { get; set; }
     public bool Enabled { get; set; }

@@ -1,6 +1,10 @@
-﻿namespace XuReverseProxy.Core.Models.DbEntity;
+﻿using XuReverseProxy.Core.Abstractions;
+using XuReverseProxy.Core.Attributes;
 
-public class RuntimeServerConfigItem
+namespace XuReverseProxy.Core.Models.DbEntity;
+
+[GenerateFrontendModel]
+public class RuntimeServerConfigItem : IHasId
 {
     public Guid Id { get; set; }
     public DateTime LastUpdatedAtUtc { get; set; }

@@ -3,11 +3,15 @@ import Admin404Page from '@pages/admin/Admin404Page.vue';
 import AdminOverviewPage from '@pages/admin/AdminOverviewPage.vue';
 import ProxyConfigsPage from '@pages/admin/ProxyConfigsPage.vue';
 import ProxyConfigPage from '@pages/admin/ProxyConfigPage.vue';
+import ServerConfigPage from '@pages/admin/ServerConfigPage.vue';
+import ProxyClientsPage from '@pages/admin/ProxyClientsPage.vue';
 
 const routes: Readonly<RouteRecordRaw[]> = [
     { name: "/", path: "/", component: AdminOverviewPage },
     { name: "proxyconfigs", path: "/proxyconfigs", component: ProxyConfigsPage },
     { name: "proxyconfig", path: "/proxyconfigs/:configId", component: ProxyConfigPage },
+    { name: "serverconfig", path: "/serverconfig", component: ServerConfigPage },
+    { name: "clients", path: "/clients", component: ProxyClientsPage },
     { name: "404", path: "/:catchAll(.*)", component: Admin404Page },
 ]
 

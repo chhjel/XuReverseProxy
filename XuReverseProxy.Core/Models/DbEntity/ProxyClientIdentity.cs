@@ -1,8 +1,10 @@
 ﻿using XuReverseProxy.Core.Abstractions;
+using XuReverseProxy.Core.Attributes;
 
 namespace XuReverseProxy.Core.Models.DbEntity;
 
-public class ProxyClientIdentity : IProvidesPlaceholders
+[GenerateFrontendModel]
+public class ProxyClientIdentity : IProvidesPlaceholders, IHasId
 {
     public Guid Id { get; set; }
 
