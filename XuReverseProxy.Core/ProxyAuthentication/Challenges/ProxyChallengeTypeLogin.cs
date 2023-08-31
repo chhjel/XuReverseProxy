@@ -6,6 +6,7 @@ using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 
+[GenerateFrontendModel]
 public class ProxyChallengeTypeLogin : ProxyChallengeTypeBase
 {
     public string? Description { get; set; }

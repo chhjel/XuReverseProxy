@@ -106,7 +106,7 @@ public static class ServiceCollectionExtensions
 
         // Misc
         services.AddMemoryCache();
-        services.AddControllersWithViews();
+        services.AddControllersWithViews(options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true);
         services.AddMvc();
         services.AddAntiforgery(opts => opts.Cookie.Name = "_xurp_antiforgery");
         services.AddHttpClient();

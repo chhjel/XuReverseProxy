@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
+using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 
+[GenerateFrontendModel]
 public class ProxyChallengeTypeSecretQueryString : ProxyChallengeTypeBase
 {
     public string? Secret { get; set; }

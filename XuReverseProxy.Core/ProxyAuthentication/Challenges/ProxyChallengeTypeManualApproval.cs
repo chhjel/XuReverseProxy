@@ -6,6 +6,7 @@ using XuReverseProxy.Core.ProxyAuthentication.Attributes;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 
+[GenerateFrontendModel]
 public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
 {
     public string? WebHookUrl { get; set; }

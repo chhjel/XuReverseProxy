@@ -3,6 +3,7 @@ using XuReverseProxy.Core.ProxyAuthentication.Attributes;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 
+[GenerateFrontendModel]
 public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
 {
     public string? Description { get; set; }

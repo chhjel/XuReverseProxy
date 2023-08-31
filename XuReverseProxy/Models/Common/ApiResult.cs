@@ -16,7 +16,8 @@ public class GenericResult
     public static GenericResultData<TData> CreateError<TData>(string error) => new() { Message = error };
     public static GenericResultData<TData> CreateError<TData>(ModelStateDictionary modelState)
     {
-        var error = string.Join(". ", modelState.Select(x => $"{x.Key}: {x.Value}"));
+        var error = string.Join(". ", modelState
+            .Select(x => $"{x.Key}: {string.Join(", ", x.Value?.Errors?.Select(e => e.ErrorMessage) ?? Enumerable.Empty<string>())}"));
         return new() { Message = error };
     }
 }
