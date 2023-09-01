@@ -4,6 +4,7 @@ import { Vue, Prop, Watch } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import { ProxyChallengeTypeSecretQueryString } from "@generated/Models/Core/ProxyChallengeTypeSecretQueryString";
+import IdUtils from "@utils/IdUtils";
 
 @Options({
 	components: {
@@ -23,6 +24,10 @@ export default class ProxyChallengeTypeSecretQueryStringEditor extends Vue {
     mounted(): void {
         this.updateLocalValue();
         this.emitLocalValue();
+    }
+
+    generateNewSecret(): void {
+        this.localValue.secret = IdUtils.generateId();
     }
 
     /////////////////
@@ -50,8 +55,9 @@ export default class ProxyChallengeTypeSecretQueryStringEditor extends Vue {
 
 <template>
 	<div class="proxy-challenge-secretqs-edit" v-if="localValue">
+        <p>Requires the configured secret in the url: <code>?secret={{ localValue.secret }}</code>.</p>
 		<text-input-component label="Secret" v-model:value="localValue.secret" />
-        <p>Requires the given secret on the format <code>?secret={{ localValue.secret }}</code>.</p>
+        <span @click="generateNewSecret">// todo: gen secret</span>
 	</div>
 </template>
 

@@ -9,6 +9,6 @@ public class AdminPageViewModel
     [GenerateFrontendModel]
     public class AdminPageFrontendModel
     {
-        public string? Etc { get; set; }
+        public string? RootDomain { get; set; }
     }
 }

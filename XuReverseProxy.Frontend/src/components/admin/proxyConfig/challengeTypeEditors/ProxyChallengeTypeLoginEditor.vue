@@ -50,6 +50,7 @@ export default class ProxyChallengeTypeLoginEditor extends Vue {
 
 <template>
 	<div class="proxy-challenge-login-edit" v-if="localValue">
+        <p>Requires the user to login with the set details. All the fields are optional, you can e.g. only use username + TOTP if wanted.</p>
 		<div>Use admin login: <code>{{ localValue.useIdentity }}</code> // todo cb</div>
 		<text-input-component label="Description" v-model:value="localValue.description" />
 		<text-input-component label="Username" v-model:value="localValue.username" v-if="!localValue.useIdentity" />

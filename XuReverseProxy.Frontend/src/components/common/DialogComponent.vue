@@ -9,7 +9,7 @@
                     <slot name="header"></slot>
                     <div class="spacer01"></div>
                     <slot name="headerRight"></slot>
-                    <button-component @click="onClickClose" class="danger">
+                    <button-component @click="onClickClose" class="secondary">
                         <div class="dialog-component_modal_header__closer material-icons icon">close</div>
                     </button-component>
                 </div>

@@ -23,6 +23,7 @@ export default class ProxyChallengeTypeManualApprovalEditor extends Vue {
     mounted(): void {
         this.updateLocalValue();
         if (!this.localValue.webHookRequestMethod) this.localValue.webHookRequestMethod = 'GET';
+        if (!this.localValue.webHookUrl) this.localValue.webHookUrl = 'https://www.your-notification-service.com?url={{url}}';
         this.emitLocalValue();
     }
 
@@ -51,9 +52,10 @@ export default class ProxyChallengeTypeManualApprovalEditor extends Vue {
 
 <template>
 	<div class="proxy-challenge-manual-edit" v-if="localValue">
+        <p>When the user clicks the button to request access, a request is sent to the webhook url.</p>
 		<text-input-component label="WebHook request method" v-model:value="localValue.webHookRequestMethod" />
 		<text-input-component label="WebHook url" v-model:value="localValue.webHookUrl" />
-        <p>Use placeholder <code>&#123;&#123;url&#125;&#125;</code> for the generated url of the approval page.</p>
+        <p>Use placeholder <code>&#123;&#123;url&#125;&#125;</code> for the generated, escaped url of the page where you can approve the request.</p>
 	</div>
 </template>
 

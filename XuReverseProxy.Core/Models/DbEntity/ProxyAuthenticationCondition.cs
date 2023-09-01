@@ -40,6 +40,7 @@ public class ProxyAuthenticationCondition : IHasId
         else return $"Between {formatter(from!)} and {formatter(to!)}.";
     }
 
+    [GenerateFrontendModel]
     [Flags]
     public enum DayOfWeekFlags
     {

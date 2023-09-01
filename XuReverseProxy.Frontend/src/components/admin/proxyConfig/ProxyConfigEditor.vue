@@ -1,11 +1,12 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
-import { Vue, Prop, Watch } from 'vue-property-decorator'
+import { Vue, Prop, Watch, Inject } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
 import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import DialogComponent from "@components/common/DialogComponent.vue";
+import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
 
 @Options({
 	components: {
@@ -16,6 +17,9 @@ import DialogComponent from "@components/common/DialogComponent.vue";
 	}
 })
 export default class ProxyConfigEditor extends Vue {
+  	@Inject()
+	readonly options!: AdminPageFrontendModel;
+	
   	@Prop()
 	value: ProxyConfig;
 
@@ -49,6 +53,10 @@ export default class ProxyConfigEditor extends Vue {
 
 		this.$emit('update:value', this.localValue);
     }
+
+	get sudomainPlaceholder(): string {
+		return `None, using root domain: ${this.options.rootDomain}`;
+	}
 }
 </script>
 
@@ -57,7 +65,7 @@ export default class ProxyConfigEditor extends Vue {
 		<div>ID: <code>{{ localValue.id }}</code></div>
 		<div>Enabled: <code>{{ localValue.enabled }}</code> // todo cb</div>
 		<text-input-component label="Name" v-model:value="localValue.name" />
-		<text-input-component label="Subdomain" v-model:value="localValue.subdomain" />
+		<text-input-component label="Subdomain" v-model:value="localValue.subdomain" :placeholder="sudomainPlaceholder" />
 		<text-input-component label="Port" v-model:value="localValue.port"
 			type="number" :emptyIsNull="true" placeholder="Any" />
 		<text-input-component label="Destination prefix" v-model:value="localValue.destinationPrefix" />

@@ -6,7 +6,7 @@ import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import DialogComponent from "@components/common/DialogComponent.vue";
 import { ProxyAuthenticationData } from "@generated/Models/Core/ProxyAuthenticationData";
 import ProxyChallengeTypeLoginEditor from "./challengeTypeEditors/ProxyChallengeTypeLoginEditor.vue";
-import { ProxyAuthChallengeTypes } from "@utils/Constants";
+import { ProxyAuthChallengeTypeOption, ProxyAuthChallengeTypeOptions } from "@utils/Constants";
 import ProxyChallengeTypeOTPEditor from "./challengeTypeEditors/ProxyChallengeTypeOTPEditor.vue";
 import ProxyChallengeTypeManualApprovalEditor from "./challengeTypeEditors/ProxyChallengeTypeManualApprovalEditor.vue";
 import ProxyChallengeTypeSecretQueryStringEditor from "./challengeTypeEditors/ProxyChallengeTypeSecretQueryStringEditor.vue";
@@ -30,7 +30,7 @@ export default class ProxyAuthenticationDataEditor extends Vue {
 	disabled: boolean;
 	
 	localValue: ProxyAuthenticationData | null = null;
-	challengeTypeOptions: Array<any> = ProxyAuthChallengeTypes;
+	challengeTypeOptions: Array<ProxyAuthChallengeTypeOption> = ProxyAuthChallengeTypeOptions;
 
     mounted(): void {
         this.updateLocalValue();

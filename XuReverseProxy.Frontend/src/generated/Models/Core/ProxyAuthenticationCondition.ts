@@ -4,6 +4,7 @@
 
 import { ProxyAuthenticationData } from './ProxyAuthenticationData';
 import { ProxyAuthenticationConditionType } from '../../Enums/Core/ProxyAuthenticationConditionType';
+import { DayOfWeekFlags } from '../../Enums/Core/DayOfWeekFlags';
 
 export interface ProxyAuthenticationCondition
 {
@@ -15,5 +16,5 @@ export interface ProxyAuthenticationCondition
 	dateTimeUtc2: Date;
 	timeOnlyUtc1: any;
 	timeOnlyUtc2: any;
-	daysOfWeekUtc: number;
+	daysOfWeekUtc: DayOfWeekFlags;
 }

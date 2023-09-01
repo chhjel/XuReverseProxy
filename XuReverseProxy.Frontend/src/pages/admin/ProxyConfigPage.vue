@@ -16,6 +16,10 @@ import ProxyConfigEditor from "@components/admin/proxyConfig/ProxyConfigEditor.v
 import ProxyAuthenticationDataEditor from "@components/admin/proxyConfig/ProxyAuthenticationDataEditor.vue";
 import ProxyAuthenticationConditionEditor from "@components/admin/proxyConfig/ProxyAuthenticationConditionEditor.vue";
 import { ProxyAuthenticationCondition } from "@generated/Models/Core/ProxyAuthenticationCondition";
+import { createProxyAuthenticationSummary } from "@utils/ProxyAuthenticationDataUtils";
+import { createProxyAuthenticationConditionSummary } from "@utils/ProxyAuthenticationConditionUtils";
+import IdUtils from "@utils/IdUtils";
+import { EmptyGuid, ProxyAuthChallengeTypeOptions, ProxyAuthConditionTypeOptions } from "@utils/Constants";
 
 @Options({
 	components: {
@@ -40,6 +44,9 @@ export default class ProxyConfigPage extends Vue {
 	notFound: boolean = false;
 	authDialogVisible: boolean = false;
 	authInDialog: ProxyAuthenticationData | null = null;
+	conditionDialogVisible: boolean = false;
+	conditionInDialog: ProxyAuthenticationCondition | null = null;
+	emptyGuid: string = EmptyGuid;
 
 	async mounted() {
 		await this.loadConfig();
@@ -81,22 +88,115 @@ export default class ProxyConfigPage extends Vue {
 		} else {
 			this.authInDialog = result.data;
 			this.authDialogVisible = false;
+			this.onAuthSaved(result.data);
 		}
 	}
 
 	async deleteAuth() {
-		alert("todo");
+		const result = await this.proxyAuthService.DeleteAsync(this.authInDialog.id);
+		if (!result.success) {
+			console.error(result.message);
+			alert(result.message);
+		} else {
+			const index = this.proxyConfig.authentications.findIndex(x => x.id == this.authInDialog.id);
+			if (index != -1) this.proxyConfig.authentications.splice(index, 1);
+			this.authDialogVisible = false;
+			this.authInDialog = null;
+		}
+	}
+	
+	async saveCondtion() {
+		const result = await this.proxyAuthConditionService.CreateOrUpdateAsync(this.conditionInDialog);
+		if (!result.success) {
+			console.error(result.message);
+			alert(result.message);
+		} else {
+			this.conditionInDialog = result.data;
+			this.conditionDialogVisible = false;
+			this.onConditionSaved(result.data);
+		}
 	}
 
+	async deleteCondition() {
+		const result = await this.proxyAuthConditionService.DeleteAsync(this.conditionInDialog.id);
+		if (!result.success) {
+			console.error(result.message);
+			alert(result.message);
+		} else {
+			const auth = this.proxyConfig.authentications.find(x => x.id == this.conditionInDialog.authenticationDataId);
+			if (auth != null) {
+				const index = auth.conditions.findIndex(x => x.id == this.conditionInDialog.id);
+				if (index != -1) auth.conditions.splice(index, 1);
+			}
+			this.conditionDialogVisible = false;
+			this.conditionInDialog = null;
+		}
+	}
+	
 	showAuthDialog(auth: ProxyAuthenticationData) {
 		this.authInDialog = auth;
 		this.authDialogVisible = true;
 	}
 
-	onConditionChanged(auth: ProxyAuthenticationData, cond: ProxyAuthenticationCondition) {
+	onAuthSaved(auth: ProxyAuthenticationData) {
+		const index = this.proxyConfig.authentications.findIndex(x => x.id == auth.id);
+		if (index == -1) 
+			this.proxyConfig.authentications.push(auth);
+		else
+			this.proxyConfig.authentications[index] = auth;
+	}
+
+	showConditionDialog(cond: ProxyAuthenticationCondition) {
+		this.conditionInDialog = cond;
+		this.conditionDialogVisible = true;
+	}
+
+	onConditionSaved(cond: ProxyAuthenticationCondition) {
+		const auth = this.proxyConfig.authentications.find(x => x.id == cond.authenticationDataId);
+		if (!auth) return;
 		const index = auth.conditions.findIndex(x => x.id == cond.id);
-		if (index == -1) return;
-		auth.conditions[index] = cond;
+		if (index == -1) 
+			auth.conditions.push(cond);
+		else
+			auth.conditions[index] = cond;
+	}
+
+	createAuthSummary(auth: ProxyAuthenticationData): string {
+		return createProxyAuthenticationSummary(auth);
+	}
+
+	createAuthCondSummary(cond: ProxyAuthenticationCondition): string {
+		return createProxyAuthenticationConditionSummary(cond);
+	}
+
+	async onAddAuthClicked(): Promise<any> {
+		const auth: ProxyAuthenticationData = {
+			id: EmptyGuid,
+			challengeTypeId: ProxyAuthChallengeTypeOptions[0].typeId,
+			challengeJson: '{}',
+			proxyConfig: null,
+			proxyConfigId: this.proxyConfig.id,
+			solvedDuration: null,
+			solvedId: IdUtils.generateId(),
+			order: 0,
+			conditions: [],
+		};
+		this.showAuthDialog(auth);
+	}
+
+	async onAddAuthConditionClicked(auth: ProxyAuthenticationData): Promise<any> {
+		const cond: ProxyAuthenticationCondition = {
+			id: EmptyGuid,
+			authenticationDataId: auth.id,
+			authenticationData: null,
+			conditionType: ProxyAuthConditionTypeOptions[0].value,
+			dateTimeUtc1: null,
+			dateTimeUtc2: null,
+			daysOfWeekUtc: null,
+			timeOnlyUtc1: null,
+			timeOnlyUtc2: null
+		};
+		this.showConditionDialog(cond);
 	}
 
 	get isLoading(): boolean { return this.proxyConfigService.status.inProgress; }
@@ -118,7 +218,7 @@ export default class ProxyConfigPage extends Vue {
 		<!-- Has config -->
 		<div v-if="proxyConfig">
 			<!-- Proxy config -->
-			<div class="mt-4 block">
+			<div class="block mt-4">
 				<div class="block-title">Proxy config</div>
 				<div class="input-wrapper">
 					<proxy-config-editor
@@ -130,28 +230,29 @@ export default class ProxyConfigPage extends Vue {
 			</div>
 
 			<!-- Auths -->
-			<div class="mt-4 block">
-				<div class="block-title">Proxy authentications</div>
-				<div v-for="auth in sortedAuths" :key="auth.id" @click="showAuthDialog(auth)">
-					<div>{{ auth.challengeTypeId }}</div>
+			<div class="block mt-4 mb-5">
+				<div class="block-title">Required authorizations</div>
+				<div v-if="sortedAuths.length == 0">No authorization challenges configuredm the proxy is open for all.</div>
+				<div v-for="auth in sortedAuths" :key="auth.id" class="block">
+					<div @click="showAuthDialog(auth)">{{ createAuthSummary(auth) }}</div>
 					<div v-for="cond in auth.conditions">
-						<div> * Condition: {{ cond.conditionType }}</div>
-						<proxy-authentication-condition-editor
-							:value="cond"
-							:disabled="isLoading"
-							@update:value="e => onConditionChanged(auth, e)" />
+						<div @click="showConditionDialog(cond)"> * Condition: {{ createAuthCondSummary(cond) }}</div>
 					</div>
+					<div @click="onAddAuthConditionClicked(auth)"> * [add condition]</div>
 				</div>
+				<div @click="onAddAuthClicked">[add authentication]</div>
 				(//todo: dragdrop order)
 			</div>
 
-			<!-- Dialogs -->
+			<!-- Auth Dialog -->
 			<dialog-component v-model:value="authDialogVisible" max-width="600" persistent>
 				<template #header>Proxy authentication</template>
 				<template #footer>
 					<button-component @click="saveAuth" class="primary ml-0">Save</button-component>
 					<button-component @click="authDialogVisible = false" class="secondary">Cancel</button-component>
-					<button-component @click="deleteAuth" :disabled="isLoading" class="danger">Delete</button-component>
+					<button-component @click="deleteAuth" :disabled="isLoading" class="danger"
+						v-if="authInDialog?.id != emptyGuid"
+						>Delete</button-component>
 				</template>
 				<proxy-authentication-data-editor
 					v-if="authInDialog"
@@ -160,15 +261,27 @@ export default class ProxyConfigPage extends Vue {
 					:disabled="isLoading" />
 			</dialog-component>
 
-			<hr class="mt-5 mb-5">
-			<code>{{ proxyConfig }}</code>
-			<hr>
+			<!-- Condition Dialog -->
+			<dialog-component v-model:value="conditionDialogVisible" max-width="600" persistent>
+				<template #header>Proxy authentication condition</template>
+				<template #footer>
+					<button-component @click="saveCondtion" class="primary ml-0">Save</button-component>
+					<button-component @click="conditionDialogVisible = false" class="secondary">Cancel</button-component>
+					<button-component @click="deleteCondition" :disabled="isLoading" class="danger"
+						v-if="conditionInDialog?.id != emptyGuid"
+						>Delete</button-component>
+				</template>
+				<proxy-authentication-condition-editor
+					v-if="conditionInDialog"
+					:key="conditionInDialog.id"
+					v-model:value="conditionInDialog"
+					:disabled="isLoading" />
+			</dialog-component>
 		</div>
 	</div>
 </template>
 
 <style scoped lang="scss">
-.proxyconfig-page {
-
-}
+/* .proxyconfig-page {
+} */
 </style>

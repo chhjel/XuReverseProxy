@@ -4,5 +4,5 @@
 
 export interface AdminPageFrontendModel
 {
-	etc: string;
+	rootDomain: string;
 }

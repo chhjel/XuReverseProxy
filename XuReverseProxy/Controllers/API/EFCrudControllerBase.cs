@@ -33,8 +33,7 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
     [HttpPost]
     public async Task<GenericResultData<TEntity>> CreateOrUpdateEntityAsync([FromBody] TEntity entity)
     {
-        if (entity == null) return GenericResult.CreateError<TEntity>($"Input entity is null.");
-        else if (!ModelState.IsValid) return GenericResult.CreateError<TEntity>(ModelState);
+        if (!ModelState.IsValid) return GenericResult.CreateError<TEntity>(ModelState);
 
         try
         {

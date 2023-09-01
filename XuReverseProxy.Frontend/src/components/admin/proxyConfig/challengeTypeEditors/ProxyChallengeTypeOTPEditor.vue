@@ -51,6 +51,7 @@ export default class ProxyChallengeTypeOTPEditor extends Vue {
 
 <template>
 	<div class="proxy-challenge-otp-edit" v-if="localValue">
+        <p>When the user clicks the button to send a one-time code a request is sent to the webhook url.</p>
 		<text-input-component label="Description" v-model:value="localValue.description" />
 		<text-input-component label="WebHook request method" v-model:value="localValue.webHookRequestMethod" />
 		<text-input-component label="WebHook url" v-model:value="localValue.webHookUrl" />

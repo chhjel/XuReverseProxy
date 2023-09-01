@@ -4,6 +4,7 @@ using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication;
 using XuReverseProxy.Core.Services;
+using XuReverseProxy.Core.Utils;
 using XuReverseProxy.Middleware;
 
 namespace XuReverseProxy.Extensions;
@@ -106,7 +107,11 @@ public static class ServiceCollectionExtensions
 
         // Misc
         services.AddMemoryCache();
-        services.AddControllersWithViews(options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true);
+        services.AddControllersWithViews(options =>
+        {
+            // Supressed since we send EF entities to frontend and some refer to parents that are null.
+            options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+        }).AddJsonOptions(options => JsonConfig.ApplyDefaultOptions(options.JsonSerializerOptions));
         services.AddMvc();
         services.AddAntiforgery(opts => opts.Cookie.Name = "_xurp_antiforgery");
         services.AddHttpClient();

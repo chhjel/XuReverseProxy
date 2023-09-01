@@ -35,7 +35,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 	
 	async onApproveClicked(): Promise<any> { await this.approve(); }
 	async onUnApproveClicked(): Promise<any> { await this.unApprove();}
-	async onBlockClicked(): Promise<any> { await this.setClientBlocked(true, 'Blocked!')};
+	async onBlockClicked(): Promise<any> { await this.setClientBlocked(true, prompt('Blocked message', 'You have been blocked'))};
 	async onUnBlockClicked(): Promise<any> { await this.setClientBlocked(false, '')};
 	async updateClientNote(): Promise<any> { await this.setClientNote(this.clientNote)};
 
@@ -120,14 +120,23 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 		else if (this.isApproved) return 'approved';
 		return classes;
 	}
+
+	get title(): string {
+		return this.options.proxyConfig.challengeTitle || this.options.proxyConfig.name || 'a service';
+	}
+
+	get showAka(): boolean {
+		return this.options.proxyConfig.challengeTitle
+			&& this.options.proxyConfig.challengeTitle != this.options.proxyConfig.name;
+	}
 }
 </script>
 
 <template>
 	<div class="manual-approval-page">
 		<div class="header">
-			<h1 class="title">Client requests access to <div>{{ options.proxyConfig.challengeTitle }}</div></h1>
-			<div class="aka">(aka <span>{{ options.proxyConfig.name }}</span>)</div>
+			<h1 class="title">Client requests access to <div>{{ title }}</div></h1>
+			<div class="aka" v-if="showAka">(aka <span>{{ options.proxyConfig.name }}</span>)</div>
 			<div class="link">on url <a :href="options.url">{{ options.url }}</a></div>
 		</div>
 		

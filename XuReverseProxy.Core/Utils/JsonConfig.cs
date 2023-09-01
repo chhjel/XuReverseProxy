@@ -5,9 +5,25 @@ namespace XuReverseProxy.Core.Utils;
 
 public static class JsonConfig
 {
-    public static readonly JsonSerializerOptions DefaultOptions = new()
+    private static JsonSerializerOptions? _jsonSerializerOptionsCache;
+
+    public static JsonSerializerOptions DefaultOptions
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = { new JsonStringEnumConverter() }
-    };
+        get
+        {
+            if (_jsonSerializerOptionsCache == null)
+            {
+                _jsonSerializerOptionsCache = new JsonSerializerOptions();
+                ApplyDefaultOptions(_jsonSerializerOptionsCache);
+            }
+            return _jsonSerializerOptionsCache;
+        }
+    }
+
+    public static JsonSerializerOptions ApplyDefaultOptions(JsonSerializerOptions options)
+    {
+        options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.Converters.Add(new JsonStringEnumConverter());
+        return options;
+    }
 }

@@ -40,13 +40,12 @@ export default class DashboardPage extends Vue {
 <template>
 	<div class="admin-app">
 		<admin-nav-menu />
-
   		<router-view :options="options"></router-view>
 	</div>
 </template>
 
 <style scoped lang="scss">
 .admin-app {
-
+	padding-bottom: 48px;
 }
 </style>

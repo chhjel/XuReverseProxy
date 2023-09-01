@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
@@ -32,7 +33,8 @@ public class ReverseProxyMiddleware
         ApplicationDbContext applicationDbContext,
         IServiceProvider serviceProvider,
         RuntimeServerConfig runtimeServerConfig,
-        IProxyChallengeService proxyChallengeService)
+        IProxyChallengeService proxyChallengeService,
+        IMemoryCache memoryCache)
     {
         var host = context.Request.Host.Host;
         var hostParts = host.Split('.');
@@ -78,11 +80,19 @@ public class ReverseProxyMiddleware
             }
         }
 
+        // Check blocked
         if (clientIdentity?.Blocked == true)
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.ClientBlockedHtml, clientIdentity)
                 .Replace("{{blocked_message}}", clientIdentity.BlockedMessage, StringComparison.OrdinalIgnoreCase);
-            await SetResponse(context, html);
+            await SetResponse(context, html, runtimeServerConfig.ClientBlockedResponseCode);
+            return;
+        }
+
+        // Check cached approval, access allowed is cached for 5 seconds
+        if (memoryCache.TryGetValue($"__client_allowed_{proxyConfig.Id}", out _))
+        {
+            await forwardRequest(context, forwarder, proxyClientIdentityService, proxyConfig, clientIdentity);
             return;
         }
 
@@ -115,8 +125,12 @@ public class ReverseProxyMiddleware
             }
         }
 
+        // Allowed => update cache & forward
+        memoryCache.Set($"__client_allowed_{proxyConfig.Id}", true, DateTimeOffset.Now + TimeSpan.FromSeconds(5));
         await forwardRequest(context, forwarder, proxyClientIdentityService, proxyConfig, clientIdentity);
-        static async Task forwardRequest(HttpContext context, IHttpForwarder forwarder, IProxyClientIdentityService proxyClientIdentityService, ProxyConfig proxyConfig, ProxyClientIdentity? clientIdentity)
+
+        static async Task forwardRequest(HttpContext context, IHttpForwarder forwarder, 
+            IProxyClientIdentityService proxyClientIdentityService, ProxyConfig proxyConfig, ProxyClientIdentity? clientIdentity)
         {
             if (clientIdentity != null) await proxyClientIdentityService.TryUpdateLastAccessedAtAsync(clientIdentity.Id);
             await ForwardRequestAsync(context, forwarder, proxyConfig);
