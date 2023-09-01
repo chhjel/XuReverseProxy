@@ -7,13 +7,15 @@ import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
 import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import DialogComponent from "@components/common/DialogComponent.vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
+import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
 		AdminNavMenu,
-		DialogComponent
+		DialogComponent,
+		CheckboxComponent
 	}
 })
 export default class ProxyConfigEditor extends Vue {
@@ -63,7 +65,8 @@ export default class ProxyConfigEditor extends Vue {
 <template>
 	<div class="proxyconfig-edit" v-if="localValue">
 		<div>ID: <code>{{ localValue.id }}</code></div>
-		<div>Enabled: <code>{{ localValue.enabled }}</code> // todo cb</div>
+		<checkbox-component label="Enabled" offLabel="Disabled" v-model:value="localValue.enabled" class="mt-1 mb-1" 
+				:disabled="disabled" />
 		<text-input-component label="Name" v-model:value="localValue.name" />
 		<text-input-component label="Subdomain" v-model:value="localValue.subdomain" :placeholder="sudomainPlaceholder" />
 		<text-input-component label="Port" v-model:value="localValue.port"
@@ -77,8 +80,16 @@ export default class ProxyConfigEditor extends Vue {
 				<label>Description</label>
 				<textarea id="challengeDescription" v-model="localValue.challengeDescription"></textarea>
 			</div>
-			<div>showCompletedChallenges: <code>{{ localValue.showCompletedChallenges }}</code> // todo cb</div>
-			<div>showChallengesWithUnmetRequirements: <code>{{ localValue.showChallengesWithUnmetRequirements }}</code> // todo cb</div>
+			<checkbox-component 
+				label="Show completed challenges"
+				offLabel="Hide completed challenges"
+				:disabled="disabled"
+				v-model:value="localValue.showCompletedChallenges" class="mt-2 mb-2" />
+			<checkbox-component 
+				label="Show challenges with unmet requirements"
+				offLabel="Hide challenges with unmet requirements"
+				:disabled="disabled"
+				v-model:value="localValue.showChallengesWithUnmetRequirements" class="mt-2" />
 		</div>
 	</div>
 </template>

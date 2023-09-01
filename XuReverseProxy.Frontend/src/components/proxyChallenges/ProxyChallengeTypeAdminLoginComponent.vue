@@ -3,7 +3,7 @@ import { Options } from "vue-class-component";
 import { Vue, Prop } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
-import { ProxyChallengeTypeLoginFrontendModel } from "@generated/Models/Core/ProxyChallengeTypeLoginFrontendModel";
+import { ProxyChallengeTypeAdminLoginFrontendModel } from "@generated/Models/Core/ProxyChallengeTypeAdminLoginFrontendModel";
 import { VerifyLoginRequestModel } from "@generated/Models/Core/VerifyLoginRequestModel";
 import ProxyAuthService from "@services/ProxyAuthService";
 import { VerifyLoginResponseModel } from "@generated/Models/Core/VerifyLoginResponseModel";
@@ -14,11 +14,11 @@ import { VerifyLoginResponseModel } from "@generated/Models/Core/VerifyLoginResp
 		ButtonComponent
 	}
 })
-export default class ProxyChallengeTypeLoginComponent extends Vue {
+export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
   	@Prop()
-	options: ProxyChallengeTypeLoginFrontendModel;
+	options: ProxyChallengeTypeAdminLoginFrontendModel;
 	
-    service: ProxyAuthService = new ProxyAuthService('ProxyChallengeTypeLogin');
+    service: ProxyAuthService = new ProxyAuthService('ProxyChallengeTypeAdminLogin');
 	username: string = '';
 	password: string = '';
 	totp: string = '';
@@ -60,7 +60,7 @@ export default class ProxyChallengeTypeLoginComponent extends Vue {
 </script>
 
 <template>
-	<div class="challenge-login">
+	<div class="challenge-admin-login">
 		<div class="challenge-header">
 			<div class="material-icons icon">key</div>
 			<div class="challenge-title">Login</div>
@@ -72,14 +72,12 @@ export default class ProxyChallengeTypeLoginComponent extends Vue {
 
 		<div class="challenge-login__inputs">
 			<text-input-component
-				v-if="options.usernameRequired"
 				v-model:value="username"
 				placeholder="Username"
 				:disabled="isLoading"
 				@keydown.enter="onLoginClicked"
 				/>
 			<text-input-component
-				v-if="options.passwordRequired"
 				v-model:value="password"
 				type="password"
 				placeholder="Password"
@@ -87,7 +85,6 @@ export default class ProxyChallengeTypeLoginComponent extends Vue {
 				@keydown.enter="onLoginClicked"
 				/>
 			<text-input-component
-				v-if="options.totpRequired"
 				v-model:value="totp"
 				placeholder="One-time code"
 				:disabled="isLoading"
@@ -104,7 +101,7 @@ export default class ProxyChallengeTypeLoginComponent extends Vue {
 </template>
 
 <style scoped lang="scss">
-.challenge-login {
+.challenge-admin-login {
 	&__description {
 		color: var(--color--text-dark);
 		text-align: center;

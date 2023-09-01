@@ -406,6 +406,11 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 
 		.challenge {
 			margin-bottom: 5px;
+			
+			.icon {
+				width: 24px;
+				margin-right: 4px;
+			}
 		}
 	}
 

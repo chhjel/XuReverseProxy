@@ -20,11 +20,13 @@ import { createProxyAuthenticationSummary } from "@utils/ProxyAuthenticationData
 import { createProxyAuthenticationConditionSummary } from "@utils/ProxyAuthenticationConditionUtils";
 import IdUtils from "@utils/IdUtils";
 import { EmptyGuid, ProxyAuthChallengeTypeOptions, ProxyAuthConditionTypeOptions } from "@utils/Constants";
+import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
+		CheckboxComponent,
 		AdminNavMenu,
 		DialogComponent,
 		ProxyConfigEditor,
@@ -77,7 +79,15 @@ export default class ProxyConfigPage extends Vue {
 	}
 
 	async deleteConfig() {
-		alert("todo");
+		if (!confirm('Delete this proxy config?')) return;
+
+		const result = await this.proxyConfigService.DeleteAsync(this.proxyConfig.id);
+		if (!result.success) {
+			console.error(result.message);
+			alert(result.message);
+		} else {
+			this.$router.push({ name: 'proxyconfigs' });
+		}
 	}
 	
 	async saveAuth() {
@@ -220,13 +230,14 @@ export default class ProxyConfigPage extends Vue {
 			<!-- Proxy config -->
 			<div class="block mt-4">
 				<div class="block-title">Proxy config</div>
-				<div class="input-wrapper">
-					<proxy-config-editor
-						v-model:value="proxyConfig"
-						:disabled="isLoading" />
+				<proxy-config-editor
+					v-model:value="proxyConfig"
+					:disabled="isLoading" />
+
+				<div class="mt-1">
+					<button-component @click="saveConfig" :disabled="isLoading" class="ml-0">Save</button-component>
+					<button-component @click="deleteConfig" :disabled="isLoading" class="danger">Delete</button-component>
 				</div>
-				<button-component @click="saveConfig" :disabled="isLoading">Save</button-component>
-				<button-component @click="deleteConfig" :disabled="isLoading" class="danger">Delete</button-component>
 			</div>
 
 			<!-- Auths -->

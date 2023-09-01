@@ -12,6 +12,10 @@ export const ProxyAuthChallengeTypeOptions: Array<ProxyAuthChallengeTypeOption> 
         name: 'Login',
     },
     {
+        typeId: 'ProxyChallengeTypeAdminLogin',
+        name: 'Admin login',
+    },
+    {
         typeId: 'ProxyChallengeTypeManualApproval',
         name: 'Manual approval',
     },

@@ -122,6 +122,7 @@ export default class ProxyChallengeTypeOTPComponent extends Vue {
 .challenge-otp {
 	&__description {
 		color: var(--color--text-dark);
+		text-align: center;
 	}
 
 	&__inputs {

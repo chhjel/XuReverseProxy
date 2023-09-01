@@ -25,6 +25,7 @@ public class ProxyAuthenticationChallengeFactory : IProxyAuthenticationChallenge
     private static readonly Dictionary<string, Type> _challengeTypes = new()
     {
         { nameof(ProxyChallengeTypeLogin), typeof(ProxyChallengeTypeLogin) },
+        { nameof(ProxyChallengeTypeAdminLogin), typeof(ProxyChallengeTypeAdminLogin) },
         { nameof(ProxyChallengeTypeOTP), typeof(ProxyChallengeTypeOTP) },
         { nameof(ProxyChallengeTypeManualApproval), typeof(ProxyChallengeTypeManualApproval) },
         { nameof(ProxyChallengeTypeSecretQueryString), typeof(ProxyChallengeTypeSecretQueryString) }

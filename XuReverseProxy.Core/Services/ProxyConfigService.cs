@@ -71,6 +71,17 @@ public class ProxyConfigService : IProxyConfigService
             }, JsonConfig.DefaultOptions)
         };
 
+        var adminLoginAuth = new ProxyAuthenticationData
+        {
+            SolvedId = Guid.NewGuid(),
+            ChallengeTypeId = nameof(ProxyChallengeTypeAdminLogin),
+            //SolvedDuration = TimeSpan.FromMinutes(5),
+            ChallengeJson = JsonSerializer.Serialize(new ProxyChallengeTypeAdminLogin
+            {
+                Description = "Admin login used here."
+            }, JsonConfig.DefaultOptions)
+        };
+
         var loginAuthWithConditions = new ProxyAuthenticationData
         {
             SolvedId = Guid.NewGuid(),
@@ -147,6 +158,7 @@ public class ProxyConfigService : IProxyConfigService
             secretAuth2,
             loginAuthWithConditions,
             loginAuth,
+            adminLoginAuth,
             otpAuth,
             manualAuth
         };

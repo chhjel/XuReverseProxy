@@ -5,8 +5,9 @@ import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import DialogComponent from "@components/common/DialogComponent.vue";
 import { ProxyAuthenticationData } from "@generated/Models/Core/ProxyAuthenticationData";
-import ProxyChallengeTypeLoginEditor from "./challengeTypeEditors/ProxyChallengeTypeLoginEditor.vue";
 import { ProxyAuthChallengeTypeOption, ProxyAuthChallengeTypeOptions } from "@utils/Constants";
+import ProxyChallengeTypeLoginEditor from "./challengeTypeEditors/ProxyChallengeTypeLoginEditor.vue";
+import ProxyChallengeTypeAdminLoginEditor from "./challengeTypeEditors/ProxyChallengeTypeAdminLoginEditor.vue";
 import ProxyChallengeTypeOTPEditor from "./challengeTypeEditors/ProxyChallengeTypeOTPEditor.vue";
 import ProxyChallengeTypeManualApprovalEditor from "./challengeTypeEditors/ProxyChallengeTypeManualApprovalEditor.vue";
 import ProxyChallengeTypeSecretQueryStringEditor from "./challengeTypeEditors/ProxyChallengeTypeSecretQueryStringEditor.vue";
@@ -17,6 +18,7 @@ import ProxyChallengeTypeSecretQueryStringEditor from "./challengeTypeEditors/Pr
 		ButtonComponent,
 		DialogComponent,
 		ProxyChallengeTypeLoginEditor,
+		ProxyChallengeTypeAdminLoginEditor,
 		ProxyChallengeTypeOTPEditor,
 		ProxyChallengeTypeManualApprovalEditor,
 		ProxyChallengeTypeSecretQueryStringEditor

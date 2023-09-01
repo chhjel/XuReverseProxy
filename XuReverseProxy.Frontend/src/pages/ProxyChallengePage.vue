@@ -8,8 +8,10 @@ import { ProxyChallengePageFrontendModel } from "@generated/Models/Web/ProxyChal
 import { ChallengeModel } from "@generated/Models/Web/ChallengeModel";
 import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
 import ProxyChallengeTypeLoginComponent from "@components/proxyChallenges/ProxyChallengeTypeLoginComponent.vue";
+import ProxyChallengeTypeAdminLoginComponent from "@components/proxyChallenges/ProxyChallengeTypeAdminLoginComponent.vue";
 import ProxyChallengeTypeOTPComponent from "@components/proxyChallenges/ProxyChallengeTypeOTPComponent.vue";
 import ProxyChallengeTypeSecretQueryStringComponent from "@components/proxyChallenges/ProxyChallengeTypeSecretQueryStringComponent.vue";
+import { ProxyAuthChallengeTypeOptions } from "@utils/Constants";
 
 interface AuthWithUnfulfilledConditions {
 	name: string;
@@ -27,6 +29,7 @@ interface MaybeUnfulfilledCondition {
 		ButtonComponent,
 		ProxyChallengeTypeManualApprovalComponent,
 		ProxyChallengeTypeLoginComponent,
+		ProxyChallengeTypeAdminLoginComponent,
 		ProxyChallengeTypeOTPComponent,
 		ProxyChallengeTypeSecretQueryStringComponent
 	}
@@ -50,7 +53,7 @@ export default class ProxyChallengePage extends Vue {
 
 	get unfulfilledAuths(): Array<AuthWithUnfulfilledConditions> {
 		return this.options.authsWithUnfulfilledConditions.map(x => ({
-			name: x.typeId.replace('ProxyChallengeType', ''),
+			name: this.getChallengeTypeIdName(x.typeId),
 			fulfilledConditions: x.conditions.filter(c => c.passed).map(c => ({
 				name: c.type,
 				summary: c.summary
@@ -70,7 +73,8 @@ export default class ProxyChallengePage extends Vue {
 	}
 
 	getChallengeTypeIdName(typeId: string): string {
-		return typeId.replace('ProxyChallengeType', '');
+		return ProxyAuthChallengeTypeOptions.find(x => x.typeId == typeId)?.name
+			|| typeId.replace('ProxyChallengeType', '');
 	}
 		
 	onChallengeSolved(challenge: ChallengeModel) {

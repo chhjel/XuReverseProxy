@@ -5,7 +5,6 @@
 export interface ProxyChallengeTypeLogin
 {
 	description: string;
-	useIdentity: boolean;
 	username: string;
 	password: string;
 	totpSecret: string;

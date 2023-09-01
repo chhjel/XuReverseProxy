@@ -58,7 +58,7 @@ public class ReverseProxyMiddleware
 
         // Prevent forwarding if no proxy is configured for the current subdomain
         var proxyConfig = await proxyConfigService.GetProxyConfigAsync(subdomain, port);
-        if (proxyConfig == null)
+        if (proxyConfig?.Enabled != true)
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
             await SetResponse(context, html, StatusCodes.Status404NotFound);
@@ -150,11 +150,14 @@ public class ReverseProxyMiddleware
         IProxyClientIdentityService proxyClientIdentityService, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
     {
         var challengeData = proxyChallengeService.GetChallengeRequirementData(auth.Id);
-        if (!challengeData.All(c => c.Passed) && proxyConfig.ShowChallengesWithUnmetRequirements)
+        if (!challengeData.All(c => c.Passed))
         {
             // Update viewmodel
-            pageModel.AuthsWithUnfulfilledConditions.Add(new(auth.ChallengeTypeId!,
-                challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
+            if (proxyConfig.ShowChallengesWithUnmetRequirements)
+            {
+                pageModel.AuthsWithUnfulfilledConditions.Add(new(auth.ChallengeTypeId!,
+                    challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
+            }
             return AuthCheckResult.ConditionsNotMet;
         }
 

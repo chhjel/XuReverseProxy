@@ -2,10 +2,8 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-export interface ProxyChallengeTypeLoginFrontendModel
+export interface VerifyAdminLoginResponseModel
 {
-	description: string;
-	totpRequired: boolean;
-	usernameRequired: boolean;
-	passwordRequired: boolean;
+	success: boolean;
+	error: string;
 }

@@ -33,7 +33,7 @@ export default class ServiceBase {
             statuses.setInProgress();
             try {
                 const response = await promise;
-                const data = json ? await response.json() as T : response;
+                const data = json ? await response.json() as T : response.text();
                 let result: FetchResult<T> = {
                     success: true,
                     errorMessage: '',

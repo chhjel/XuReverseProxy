@@ -4,6 +4,7 @@ import { Vue, Prop, Watch } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import { ProxyChallengeTypeLogin } from "@generated/Models/Core/ProxyChallengeTypeLogin";
+import Base32UtilService from "@services/Base32UtilService";
 
 @Options({
 	components: {
@@ -19,6 +20,8 @@ export default class ProxyChallengeTypeLoginEditor extends Vue {
 	disabled: boolean;
 	
 	localValue: ProxyChallengeTypeLogin | null= null;
+
+    base32Service: Base32UtilService = new Base32UtilService();
 
     mounted(): void {
         this.updateLocalValue();
@@ -45,22 +48,27 @@ export default class ProxyChallengeTypeLoginEditor extends Vue {
 
 		this.$emit('update:value', JSON.stringify(this.localValue));
     }
+
+    async generateSecret() {
+        const result = await this.base32Service.CreateSecretAsync();
+        this.localValue.totpSecret = result;
+    }
 }
 </script>
 
 <template>
 	<div class="proxy-challenge-login-edit" v-if="localValue">
         <p>Requires the user to login with the set details. All the fields are optional, you can e.g. only use username + TOTP if wanted.</p>
-		<div>Use admin login: <code>{{ localValue.useIdentity }}</code> // todo cb</div>
 		<text-input-component label="Description" v-model:value="localValue.description" />
-		<text-input-component label="Username" v-model:value="localValue.username" v-if="!localValue.useIdentity" />
-		<text-input-component label="Password" v-model:value="localValue.password" v-if="!localValue.useIdentity" />
-		<text-input-component label="TOTP Secret" v-model:value="localValue.totpSecret" v-if="!localValue.useIdentity" />
+		<text-input-component label="Username" v-model:value="localValue.username" />
+		<text-input-component label="Password" v-model:value="localValue.password" />
+		<text-input-component label="TOTP Secret" v-model:value="localValue.totpSecret" />
+        <div @click="generateSecret">[generate secret]</div>
 	</div>
 </template>
 
 <style scoped lang="scss">
-.proxy-challenge-login-edit {
+/* .proxy-challenge-login-edit {
 
-}
+} */
 </style>

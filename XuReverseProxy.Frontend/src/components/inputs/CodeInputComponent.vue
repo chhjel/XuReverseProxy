@@ -129,7 +129,8 @@ export default class CodeInputComponent extends Vue {
                 switch (label)
                 {
                     case 'editorWorkerService': return "/editor.worker.js";
-                    case 'json': return "/json.worker.js";
+                    case 'json': return "/dist/json.worker.js";
+                    case 'html': return "/dist/html.worker.js";
                 }
                 return `/unknown/monaco/worker/${label}.js`;
             }

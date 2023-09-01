@@ -3,8 +3,7 @@ import { Options } from "vue-class-component";
 import { Vue, Prop, Watch } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
-import { ProxyChallengeTypeSecretQueryString } from "@generated/Models/Core/ProxyChallengeTypeSecretQueryString";
-import IdUtils from "@utils/IdUtils";
+import { ProxyChallengeTypeAdminLogin } from "@generated/Models/Core/ProxyChallengeTypeAdminLogin";
 
 @Options({
 	components: {
@@ -12,22 +11,18 @@ import IdUtils from "@utils/IdUtils";
 		ButtonComponent
 	}
 })
-export default class ProxyChallengeTypeSecretQueryStringEditor extends Vue {
+export default class ProxyChallengeTypeAdminLoginEditor extends Vue {
   	@Prop()
 	value: string;
 
   	@Prop({ required: false, default: false})
 	disabled: boolean;
 	
-	localValue: ProxyChallengeTypeSecretQueryString | null= null;
+	localValue: ProxyChallengeTypeAdminLogin | null= null;
 
     mounted(): void {
         this.updateLocalValue();
         this.emitLocalValue();
-    }
-
-    generateNewSecret(): void {
-        this.localValue.secret = IdUtils.generateId();
     }
 
     /////////////////
@@ -54,15 +49,14 @@ export default class ProxyChallengeTypeSecretQueryStringEditor extends Vue {
 </script>
 
 <template>
-	<div class="proxy-challenge-secretqs-edit" v-if="localValue">
-        <p>Requires the configured secret in the url: <code>?secret={{ localValue.secret }}</code>.</p>
-		<text-input-component label="Secret" v-model:value="localValue.secret" />
-        <span @click="generateNewSecret">[generate secret]</span>
+	<div class="proxy-challenge-admin-login-edit" v-if="localValue">
+        <p>Requires the user to login admin credentials.</p>
+		<text-input-component label="Description" v-model:value="localValue.description" />
 	</div>
 </template>
 
 <style scoped lang="scss">
-.proxy-challenge-secretqs-edit {
+/* .proxy-challenge-login-edit {
 
-}
+} */
 </style>

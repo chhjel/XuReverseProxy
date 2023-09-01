@@ -12,6 +12,9 @@ export function createProxyAuthenticationSummary(auth: ProxyAuthenticationData):
         if (data.totpSecret != null && data.totpSecret.trim().length > 0) parts.push('TOTP');
         return `Require login (${parts.join(', ')})`;
     }
+    else if (auth.challengeTypeId == 'ProxyChallengeTypeAdminLogin') {
+        return `Require admin login`;
+    }
     else if (auth.challengeTypeId == 'ProxyChallengeTypeOTP') return `Require one-time password`;
     else if (auth.challengeTypeId == 'ProxyChallengeTypeManualApproval') return `Require manual approval`;
     else return auth.challengeTypeId;
