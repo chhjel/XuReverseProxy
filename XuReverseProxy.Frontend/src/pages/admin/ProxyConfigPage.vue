@@ -243,15 +243,24 @@ export default class ProxyConfigPage extends Vue {
 			<!-- Auths -->
 			<div class="block mt-4 mb-5">
 				<div class="block-title">Required authorizations</div>
-				<div v-if="sortedAuths.length == 0">No authorization challenges configuredm the proxy is open for all.</div>
-				<div v-for="auth in sortedAuths" :key="auth.id" class="block">
-					<div @click="showAuthDialog(auth)">{{ createAuthSummary(auth) }}</div>
-					<div v-for="cond in auth.conditions">
-						<div @click="showConditionDialog(cond)"> * Condition: {{ createAuthCondSummary(cond) }}</div>
+				<div v-if="sortedAuths.length == 0">No authorization challenges configured - the proxy is open for all.</div>
+				<div v-for="auth in sortedAuths" :key="auth.id" class="authorization">
+					<div class="auth-item" @click="showAuthDialog(auth)">
+						<div class="material-icons icon">key</div>
+						<div>{{ createAuthSummary(auth) }}</div>
 					</div>
-					<div @click="onAddAuthConditionClicked(auth)"> * [add condition]</div>
+					<div v-for="cond in auth.conditions">
+						<div class="auth-condition-item" @click="showConditionDialog(cond)">
+							<div>&gt; Condition: {{ createAuthCondSummary(cond) }}</div>
+						</div>
+					</div>
+					<div>
+						<button-component @click="onAddAuthConditionClicked(auth)" small secondary class="add-cond-button ml-0" icon="add">Add condition</button-component>
+					</div>
 				</div>
-				<div @click="onAddAuthClicked">[add authentication]</div>
+				<div>
+					<button-component @click="onAddAuthClicked" small secondary class="add-auth-button ml-0" icon="add">Add authorizations</button-component>
+				</div>
 				(//todo: dragdrop order)
 			</div>
 
@@ -293,6 +302,44 @@ export default class ProxyConfigPage extends Vue {
 </template>
 
 <style scoped lang="scss">
-/* .proxyconfig-page {
-} */
+.proxyconfig-page {
+	.authorization{
+		border-bottom: 2px solid var(--color--panel-light);
+    	padding-bottom: 8px;
+	}
+
+	.auth-item {
+		display: inline-flex;
+		align-items: center;
+		cursor: pointer;
+		padding: 10px 5px;
+
+		&:hover {
+			text-decoration: none;
+			background-color: var(--color--hover-bg);
+		}
+
+		.icon {
+			margin-right: 5px;
+		}
+	}
+	.add-auth-button {
+		margin-top: 20px !important;
+	}
+
+	.auth-condition-item {
+		display: inline-flex;
+		cursor: pointer;
+		padding: 10px 5px;
+		margin-left: 20px;
+
+		&:hover {
+			text-decoration: none;
+			background-color: var(--color--hover-bg);
+		}
+	}
+	.add-cond-button {
+		margin-left: 20px !important;
+	}
+}
 </style>

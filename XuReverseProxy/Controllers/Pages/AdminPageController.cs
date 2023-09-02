@@ -26,7 +26,10 @@ public class AdminPageController : Controller
         {
             FrontendModel = new AdminPageViewModel.AdminPageFrontendModel
             {
-                RootDomain = _serverConfig.CurrentValue.Domain.GetFullDomain()
+                RootDomain = _serverConfig.CurrentValue.Domain.GetFullDomain(),
+                ServerScheme = _serverConfig.CurrentValue.Domain.Scheme,
+                ServerPort = _serverConfig.CurrentValue.Domain.Port,
+                ServerDomain = _serverConfig.CurrentValue.Domain.Domain
             }
         };
         return View(model);

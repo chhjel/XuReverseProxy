@@ -13,11 +13,17 @@ export default class ButtonComponent extends Vue {
     @Prop({ required: false, default: '' })
     href: string;
 
+    @Prop({ required: false, default: '' })
+    icon: string;
+
     @Prop({ required: false, default: false })
     secondary: boolean;
 
     @Prop({ required: false, default: false })
     danger: boolean;
+
+    @Prop({ required: false, default: false })
+    small: boolean;
     
     localValue: string = "";
 
@@ -25,6 +31,7 @@ export default class ButtonComponent extends Vue {
     }
 
     get isDisabled(): boolean { return ValueUtils.IsToggleTrue(this.disabled); }
+    get isSmall(): boolean { return ValueUtils.IsToggleTrue(this.small); }
     get isSecondary(): boolean { return ValueUtils.IsToggleTrue(this.secondary); }
     get isDanger(): boolean { return ValueUtils.IsToggleTrue(this.danger); }
 
@@ -32,7 +39,8 @@ export default class ButtonComponent extends Vue {
         let classes: any = {
             'disabled': this.isDisabled,
             'secondary': this.isSecondary,
-            'danger': this.isDanger
+            'danger': this.isDanger,
+            'small': this.isSmall
         };
         return classes;
     }
@@ -44,7 +52,8 @@ export default class ButtonComponent extends Vue {
 </script>
 
 <template>
-  <div class="button" :class="rootClasses" @click.stop.prevent="onClick">
+  <div class="button" :class="rootClasses" @click.stop.prevent="onClick" tabindex="0">
+    <div class="material-icons icon" v-if="icon">{{ icon }}</div>
     <slot></slot>
   </div>
 </template>
@@ -70,29 +79,7 @@ export default class ButtonComponent extends Vue {
     transition: 0.2s;
     background-color: var(--color--primary);
     padding: 0 5px;
-
-    &:not(.flat) {
-        box-shadow: 0 3px 1px -2px rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12);
-    }
-
-    a {
-        color: var(--color--text);
-        text-decoration: none;
-        &:hover { text-decoration: none; }
-        &:visited { color: var(--color--text); }
-    }
-
-    &__contents {
-        display: flex;
-        align-content: center;
-        justify-content: flex-start;
-        align-items: center;
-        flex-direction: row;
-        white-space: nowrap;
-        padding: 5px 10px;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
+    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12);
 
     &:hover {
         background-color: var(--color--primary-lighten);
@@ -118,17 +105,16 @@ export default class ButtonComponent extends Vue {
             background-color: var(--color--danger-lighten);
         }
     }
+    
+    &.small {
+        font-size: 12px;
+        font-weight: 400;
+        min-width: 48px;
+        min-height: 26px;
 
-    // Styles
-    &.outline {
-        box-shadow: none !important;
-    }
-    &.round {
-        border-radius: 50vh;
-    }
-    &.flat {
-        background-color: transparent;
-        box-shadow: none !important;
+        .icon {
+            font-size: 18px;
+        }
     }
 }
 </style>

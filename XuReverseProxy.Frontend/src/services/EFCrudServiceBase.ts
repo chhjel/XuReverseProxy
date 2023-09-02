@@ -19,8 +19,22 @@ export default class EFCrudServiceBase<TEntity> extends ServiceBase {
         return result.data;
     }
 
+    public async GetAllFullAsync(status: LoadStatus | null = null): Promise<GenericResultData<Array<TEntity>>> {
+        const url = `${this._baseUrl}/full`;
+        const request = this.fetchExt(url, "GET", null);
+        const result = await this.awaitWithStatus<GenericResultData<Array<TEntity>>>(request, status);
+        return result.data;
+    }
+
     public async GetAsync(entityId: string, status: LoadStatus | null = null): Promise<GenericResultData<TEntity>> {
         const url = `${this._baseUrl}/${entityId}`;
+        const request = this.fetchExt(url, "GET", null);
+        const result = await this.awaitWithStatus<GenericResultData<TEntity>>(request, status);
+        return result.data;
+    }
+
+    public async GetFullAsync(entityId: string, status: LoadStatus | null = null): Promise<GenericResultData<TEntity>> {
+        const url = `${this._baseUrl}/${entityId}/full`;
         const request = this.fetchExt(url, "GET", null);
         const result = await this.awaitWithStatus<GenericResultData<TEntity>>(request, status);
         return result.data;

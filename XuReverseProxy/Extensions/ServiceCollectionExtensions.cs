@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RuntimeServerConfig>();
 
         // Services
-        services.AddScoped<IProxyConfigService, ProxyConfigService>();
+        services.AddScoped<IDevDataSeeder, DevDataSeederService>();
         services.AddScoped<IProxyClientIdentityService, ProxyClientIdentityService>();
         services.AddScoped<IProxyChallengeService, ProxyChallengeService>();
         services.AddScoped<IProxyAuthenticationChallengeFactory, ProxyAuthenticationChallengeFactory>();
@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
         using (var scope = app.Services.CreateScope())
         {
             scope.ServiceProvider.GetService<RuntimeServerConfig>()?.EnsureDatabaseRows();
+            scope.ServiceProvider.GetService<IDevDataSeeder>()?.EnsureDemoData();            
         }
         return app;
     }

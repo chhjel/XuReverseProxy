@@ -64,9 +64,8 @@ export default class ProxyAuthenticationDataEditor extends Vue {
 
 <template>
 	<div class="proxyconfigauth-edit" v-if="localValue">
-		<div>ID: <code>{{ localValue.id }}</code></div>
-		<div>SolvedId: <code>{{ localValue.solvedId }}</code></div>
-		<div>SolvedDuration: <code>{{ localValue.solvedDuration }}</code></div>
+		<!-- todo: -->
+		<!-- <div>SolvedDuration: <code>{{ localValue.solvedDuration }}</code></div> -->
 
 		<select v-model="localValue.challengeTypeId" class="mb-2 mt-2">
 			<option v-for="challengeType in challengeTypeOptions" 

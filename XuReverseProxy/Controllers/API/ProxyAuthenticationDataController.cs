@@ -12,9 +12,6 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
     {
     }
 
-    protected override IQueryable<ProxyAuthenticationData> OnGetSingle(DbSet<ProxyAuthenticationData> entities)
-        => entities.Include(i => i.Conditions);
-
     [HttpGet("fromConfig/{configId}")]
     public async Task<GenericResultData<List<ProxyAuthenticationData>>> GetFromConfigAsync([FromRoute] Guid configId)
     {
@@ -31,4 +28,13 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
             return GenericResult.CreateError<List<ProxyAuthenticationData>>(ex.Message);
         }
     }
+
+    protected override IQueryable<ProxyAuthenticationData> OnGetSingle(DbSet<ProxyAuthenticationData> entities)
+        => entities.Include(i => i.Conditions);
+
+    protected override IQueryable<ProxyAuthenticationData> OnGetAllFull(DbSet<ProxyAuthenticationData> entities)
+        => entities.Include(i => i.Conditions);
+
+    protected override IQueryable<ProxyAuthenticationData> OnGetSingleFull(DbSet<ProxyAuthenticationData> entities)
+        => entities.Include(i => i.Conditions);
 }

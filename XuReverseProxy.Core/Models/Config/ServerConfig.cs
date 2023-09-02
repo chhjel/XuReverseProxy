@@ -26,9 +26,10 @@ public class ServerConfig
             return $"{Scheme}{Domain}{portPart}";
         }
 
-        public string GetDomain(string? subdomain)
+        public string GetDomain(string? subdomain, int? port = null)
         {
-            var portPart = (Port == 80 || Port == 443) ? string.Empty : $":{Port}";
+            var resolvedPort = port ?? Port;
+            var portPart = (resolvedPort == 80 || resolvedPort == 443) ? string.Empty : $":{resolvedPort}";
             if (string.IsNullOrWhiteSpace(subdomain)) return $"{Scheme}{Domain}{portPart}";
             else return $"{Scheme}{subdomain}.{Domain}{portPart}";
         }

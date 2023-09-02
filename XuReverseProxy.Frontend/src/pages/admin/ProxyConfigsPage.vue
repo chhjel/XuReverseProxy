@@ -8,6 +8,7 @@ import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendM
 import ProxyConfigService from "@services/ProxyConfigService";
 import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import { EmptyGuid } from "@utils/Constants";
+import { createProxyConfigResultingProxyUrl } from "@utils/ProxyConfigUtils";
 
 @Options({
 	components: {
@@ -24,7 +25,7 @@ export default class ProxyConfigsPage extends Vue {
 	proxyConfigs: Array<ProxyConfig> = [];
 
 	async mounted() {
-		const result = await this.proxyConfigService.GetAllAsync();
+		const result = await this.proxyConfigService.GetAllFullAsync();
 		if (!result.success) {
 			console.error(result.message);
 		}
@@ -57,16 +58,50 @@ export default class ProxyConfigsPage extends Vue {
 	}
 
 	get sortedConfigs(): Array<ProxyConfig> {
-		return this.proxyConfigs.sort((a,b) => a.name?.localeCompare(b.name));
+		return this.proxyConfigs.sort((a,b) => 
+			(a.enabled ? -999 : 1)
+			|| a.name?.localeCompare(b.name)
+		);
+	}
+
+	getConfigStatus(config: ProxyConfig): string {
+		if (!config.enabled) return '(disabled)';
+		else '';
+	}
+
+	getConfigIcon(config: ProxyConfig): any {
+		if (!config.enabled) return 'do_disturb_on';
+		else if (config.authentications.length > 0) return 'vpn_lock';
+		else return 'public';
+	}
+
+	getConfigIconClasses(config: ProxyConfig): any {
+		let classes: any = {};
+		if (!config.enabled) classes['disabled'] = true;
+		if (config.authentications.length) classes['has-auth'] = true;
+		return classes;
+	}
+
+	getResultingProxyUrl(config: ProxyConfig): string {
+		return createProxyConfigResultingProxyUrl(config, this.options.serverScheme, this.options.serverPort, this.options.serverDomain);
 	}
 }
 </script>
 
 <template>
 	<div class="proxyconfigs-page">
+		<div v-if="sortedConfigs.length == 0">- No proxied configured yet -</div>
 		<div v-for="config in sortedConfigs" :key="config.id">
-			<router-link :to="{ name: 'proxyconfig', params: { configId: config.id }}">
-				<code>{{ config }}</code>
+			<router-link :to="{ name: 'proxyconfig', params: { configId: config.id }}" class="proxyconfig">
+				<div class="proxyconfig__header">
+					<div class="material-icons icon" :class="getConfigIconClasses(config)">{{ getConfigIcon(config) }}</div>
+					<div class="proxyconfig__name">{{ config.name }} <span class="proxyconfig__status">{{ getConfigStatus(config) }}</span></div>
+				</div>
+				<div class="proxyconfig__forwardsummary">
+					<code>{{ getResultingProxyUrl(config) }}</code>
+					<span class="ml-2 mr-2">forwards to</span>
+					<code>{{ config.destinationPrefix }}</code>
+				</div>
 			</router-link>
 		</div>
 		<button-component @click="addNewProxyConfig" class="primary ml-0">Add new config</button-component>
@@ -75,6 +110,46 @@ export default class ProxyConfigsPage extends Vue {
 
 <style scoped lang="scss">
 .proxyconfigs-page {
+	padding-top: 20px;
+	
+	.proxyconfig {
+		display: block;
+		padding: 5px;
+		margin: 5px 0;
 
+		&:hover {
+			text-decoration: none;
+			background-color: var(--color--hover-bg);
+		}
+
+		&__header {
+			display: flex;
+			align-items: center;
+		}
+
+		&__status {
+			font-size: 12px;
+			color: var(--color--text-darker);
+		}
+
+		&__forwardsummary {
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+			font-size: 12px;
+			color: var(--color--secondary);
+			margin-left: 31px;
+		}
+
+		.icon {
+			width: 24px;
+			margin-right: 5px;
+			color: var(--color--primary-lighten);
+
+			&.disabled {
+				color: var(--color--warning-base);
+			}
+		}
+	}
 }
 </style>

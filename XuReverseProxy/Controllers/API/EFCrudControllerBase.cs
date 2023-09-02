@@ -37,6 +37,9 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
 
         try
         {
+            var validationResult = await ValidateEntityAsync(entity);
+            if (!validationResult.Success) return validationResult;
+
             var result = _dbContext.Update(entity);
             await _dbContext.SaveChangesAsync();
 
@@ -71,14 +74,42 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
     }
 
     /// <summary>
+    /// Get all entities including child properties.
+    /// </summary>
+    [HttpGet("full")]
+    public async Task<GenericResultData<List<TEntity>>> GetAllEntitiesFullAsync()
+    {
+        try
+        {
+            var entities = await OnGetAllFull(_entities()).ToListAsync();
+            return GenericResult.CreateSuccess(entities);
+        }
+        catch (Exception ex)
+        {
+            return GenericResult.CreateError<List<TEntity>>(ex.Message);
+        }
+    }
+
+    /// <summary>
     /// Get single entity.
     /// </summary>
     [HttpGet("{entityId}")]
     public async Task<GenericResultData<TEntity>> GetEntityAsync([FromRoute] Guid entityId)
+        => await GetEntityInternalAsync(entityId, full: false);
+
+    /// <summary>
+    /// Get single entity.
+    /// </summary>
+    [HttpGet("{entityId}/full")]
+    public async Task<GenericResultData<TEntity>> GetEntityFullAsync([FromRoute] Guid entityId)
+        => await GetEntityInternalAsync(entityId, full: true);
+
+    private async Task<GenericResultData<TEntity>> GetEntityInternalAsync(Guid entityId, bool full)
     {
         try
         {
-            var entity = await OnGetSingle(_entities()).FirstOrDefaultAsync(x => x.Id == entityId);
+            var entity = await (full ? OnGetSingleFull(_entities()) : OnGetSingle(_entities()))
+                .FirstOrDefaultAsync(x => x.Id == entityId);
             return (entity != null)
                 ? GenericResult.CreateSuccess(entity)
                 : GenericResult.CreateError<TEntity>("Entity not found.");
@@ -108,6 +139,19 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
         }
     }
 
+    protected virtual Task<GenericResultData<TEntity>> ValidateEntityAsync(TEntity entity)
+        => Task.FromResult(GenericResult.CreateSuccess(entity));
+
     protected virtual IQueryable<TEntity> OnGetSingle(DbSet<TEntity> entities) => entities;
     protected virtual IQueryable<TEntity> OnGetAll(DbSet<TEntity> entities) => entities;
+
+    /// <summary>
+    /// Configure dbset to include all descendants.
+    /// </summary>
+    protected virtual IQueryable<TEntity> OnGetSingleFull(DbSet<TEntity> entities) => entities;
+
+    /// <summary>
+    /// Configure dbset to include all descendants.
+    /// </summary>
+    protected virtual IQueryable<TEntity> OnGetAllFull(DbSet<TEntity> entities) => entities;
 }

@@ -12,4 +12,10 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
 
     protected override IQueryable<ProxyClientIdentity> OnGetSingle(DbSet<ProxyClientIdentity> entities)
         => entities.Include(i => i.SolvedChallenges).Include(i => i.Data);
+
+    protected override IQueryable<ProxyClientIdentity> OnGetAllFull(DbSet<ProxyClientIdentity> entities)
+        => entities.Include(i => i.SolvedChallenges).Include(i => i.Data);
+
+    protected override IQueryable<ProxyClientIdentity> OnGetSingleFull(DbSet<ProxyClientIdentity> entities)
+        => entities.Include(i => i.SolvedChallenges).Include(i => i.Data);
 }

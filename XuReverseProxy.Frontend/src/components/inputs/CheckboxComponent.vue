@@ -21,6 +21,9 @@ export default class CheckboxComponent extends Vue {
     @Prop({ required: false, default: false })
     disabled: boolean;
 
+    @Prop({ required: false, default: false })
+    warnColorOff: boolean;
+    
     localValue: boolean = false;
 
     mounted(): void {
@@ -30,12 +33,14 @@ export default class CheckboxComponent extends Vue {
 
     get wrapperClasses(): any {
         let classes: any = {
-            disabled: this.isDisabled
+            disabled: this.isDisabled,
+            warn: !this.localValue && this.isWarnColorOff
         };
         return classes;
     }
 
     get isDisabled(): boolean { return ValueUtils.IsToggleTrue(this.disabled); }
+    get isWarnColorOff(): boolean { return ValueUtils.IsToggleTrue(this.warnColorOff); }
 
     get currentLabel(): string {
       if (!this.offLabel) return this.label;
@@ -152,5 +157,15 @@ label .toggler-knob {
 	left: 3px;
 	top: 3px;
 	background-color: #b3b3b3;
+}
+
+.warn {
+  label input[type="checkbox"]+.toggler-slider {
+	  background-color: var(--color--dialog);
+    border-color: var(--color--warning-base);
+  }
+  label input[type="checkbox"]+.toggler-slider .toggler-knob {
+    background-color: var(--color--warning-base);
+  }
 }
 </style>

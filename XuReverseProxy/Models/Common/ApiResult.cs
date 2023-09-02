@@ -3,8 +3,14 @@ using XuReverseProxy.Core.Attributes;
 
 namespace XuReverseProxy.Models.Common;
 
+public interface IGenericResult
+{
+    bool Success { get; set; }
+    string? Message { get; set; }
+}
+
 [GenerateFrontendModel]
-public class GenericResult
+public class GenericResult : IGenericResult
 {
     public bool Success { get; set; }
     public string? Message { get; set; }

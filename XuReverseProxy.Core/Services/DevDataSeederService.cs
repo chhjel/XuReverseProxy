@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
+﻿using System.Text.Json;
 using XuReverseProxy.Core.Extensions;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication.Challenges;
@@ -7,31 +6,22 @@ using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.Services;
 
-public interface IProxyConfigService
+// Todo: move to own project
+public interface IDevDataSeeder
 {
-    public Task<ProxyConfig?> GetProxyConfigAsync(string? subdomain, int? port);
+    public Task EnsureDemoData();
 }
 
-public class ProxyConfigService : IProxyConfigService
+public class DevDataSeederService : IDevDataSeeder
 {
     private readonly ApplicationDbContext _dbContext;
 
-    public ProxyConfigService(ApplicationDbContext dbContext)
+    public DevDataSeederService(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<ProxyConfig?> GetProxyConfigAsync(string? subdomain, int? port)
-    {
-        await EnsureDemoData();
-        var subdomainLower = subdomain?.ToLowerInvariant() ?? string.Empty;
-        return await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => 
-            x.Subdomain == subdomainLower
-            && (x.Port == null || x.Port == port)
-        );
-    }
-
-    private async Task EnsureDemoData()
+    public async Task EnsureDemoData()
     {
         if (_dbContext.ProxyConfigs.Any()) return;
 

@@ -46,6 +46,12 @@ export default class DashboardPage extends Vue {
 
 <style scoped lang="scss">
 .admin-app {
-	padding-bottom: 48px;
+    max-width: 800px;
+    margin: auto;
+	padding: 40px;
+	@media (max-width: 800px) {
+		padding: 10px;
+		margin-top: 20px;
+	}
 }
 </style>

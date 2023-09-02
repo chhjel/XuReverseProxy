@@ -308,7 +308,7 @@ export default class DialogComponent extends Vue {
                 align-items: center;
                 justify-content: space-between;
                 margin-top: -30px;
-                padding: 10px 30px;
+                padding: 10px 10px 10px 30px;
                 font-size: 30px;
                 font-weight: 600;
                 min-height: 18px;
@@ -324,6 +324,13 @@ export default class DialogComponent extends Vue {
                 }
                 &__closer {
                     font-size: 30px;
+                }
+
+                .button {
+                    width: 40px;
+                    height: 40px;
+                    min-width: 40px;
+                    min-height: 40px;
                 }
             }
             &_footer {

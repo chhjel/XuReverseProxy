@@ -5,4 +5,7 @@
 export interface AdminPageFrontendModel
 {
 	rootDomain: string;
+	serverScheme: string;
+	serverPort: number;
+	serverDomain: string;
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Net;
@@ -27,7 +28,7 @@ public class ReverseProxyMiddleware
     }
 
     public async Task Invoke(HttpContext context, IHttpForwarder forwarder, 
-        IProxyConfigService proxyConfigService, IOptionsMonitor<ServerConfig> serverConfig,
+        IDevDataSeeder proxyConfigService, IOptionsMonitor<ServerConfig> serverConfig,
         IProxyAuthenticationChallengeFactory authChallengeFactory,
         IProxyClientIdentityService proxyClientIdentityService,
         ApplicationDbContext applicationDbContext,
@@ -57,8 +58,10 @@ public class ReverseProxyMiddleware
         }
 
         // Prevent forwarding if no proxy is configured for the current subdomain
-        var proxyConfig = await proxyConfigService.GetProxyConfigAsync(subdomain, port);
-        if (proxyConfig?.Enabled != true)
+        var proxyConfig = await applicationDbContext.ProxyConfigs.FirstOrDefaultAsync(x =>
+            x.Enabled && x.Subdomain == subdomain && (x.Port == null || x.Port == port)
+        );
+        if (proxyConfig == null)
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
             await SetResponse(context, html, StatusCodes.Status404NotFound);
