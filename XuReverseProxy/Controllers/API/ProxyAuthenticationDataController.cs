@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Models.Common;
 
@@ -28,6 +29,29 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
             return GenericResult.CreateError<List<ProxyAuthenticationData>>(ex.Message);
         }
     }
+
+    [HttpPost("updateOrder")]
+    public async Task<GenericResult> UpdateAuthOrdersAsync([FromBody] IList<ProxyAuthenticationDataOrderData> items)
+    {
+        try
+        {
+            var orderById = items.ToDictionary(x => x.AuthId, x => x.Order);
+            var ids = items.Select(x => x.AuthId).ToHashSet();
+            var auths = _dbContext.ProxyAuthenticationDatas.Where(x => ids.Contains(x.Id));
+            foreach (var auth in auths)
+            {
+                auth.Order = orderById[auth.Id];
+            }
+            await _dbContext.SaveChangesAsync();
+            return GenericResult.CreateSuccess();
+        }
+        catch (Exception ex)
+        {
+            return GenericResult.CreateError(ex.Message);
+        }
+    }
+    [GenerateFrontendModel]
+    public record ProxyAuthenticationDataOrderData(Guid AuthId, int Order);
 
     protected override IQueryable<ProxyAuthenticationData> OnGetSingle(DbSet<ProxyAuthenticationData> entities)
         => entities.Include(i => i.Conditions);

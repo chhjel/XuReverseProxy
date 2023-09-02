@@ -21,6 +21,8 @@ import { createProxyAuthenticationConditionSummary } from "@utils/ProxyAuthentic
 import IdUtils from "@utils/IdUtils";
 import { EmptyGuid, ProxyAuthChallengeTypeOptions, ProxyAuthConditionTypeOptions } from "@utils/Constants";
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
+import draggable from 'vuedraggable'
+import { ProxyAuthenticationDataOrderData } from "@generated/Models/Web/ProxyAuthenticationDataOrderData";
 
 @Options({
 	components: {
@@ -31,7 +33,8 @@ import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 		DialogComponent,
 		ProxyConfigEditor,
 		ProxyAuthenticationDataEditor,
-		ProxyAuthenticationConditionEditor
+		ProxyAuthenticationConditionEditor,
+        draggable
 	}
 })
 export default class ProxyConfigPage extends Vue {
@@ -65,6 +68,7 @@ export default class ProxyConfigPage extends Vue {
 			alert(result.message);
 		}
 		this.proxyConfig = result.data || null;
+		if (this.proxyConfig) this.proxyConfig.authentications = this.proxyConfig.authentications.sort(({order:a}, {order:b}) => a-b)
 	}
 
 	// Note: only saves config itself, not auths etc
@@ -75,6 +79,7 @@ export default class ProxyConfigPage extends Vue {
 			alert(result.message);
 		} else {
 			this.proxyConfig = result.data;
+			if (this.proxyConfig) this.proxyConfig.authentications = this.proxyConfig.authentications.sort(({order:a}, {order:b}) => a-b)
 		}
 	}
 
@@ -211,8 +216,13 @@ export default class ProxyConfigPage extends Vue {
 
 	get isLoading(): boolean { return this.proxyConfigService.status.inProgress; }
 
-	get sortedAuths(): Array<ProxyAuthenticationData> {
-		return this.proxyConfig.authentications.sort(({order:a}, {order:b}) => a-b);
+	async onAuthDragEnd() {
+		const orders: Array<ProxyAuthenticationDataOrderData> = [];
+		this.proxyConfig.authentications.forEach((x,i) => {
+			x.order = i;
+			orders.push({ authId: x.id, order: x.order });
+		});
+		await this.proxyAuthService.UpdateAuthOrdersAsync(orders);
 	}
 }
 </script>
@@ -243,25 +253,32 @@ export default class ProxyConfigPage extends Vue {
 			<!-- Auths -->
 			<div class="block mt-4 mb-5">
 				<div class="block-title">Required authorizations</div>
-				<div v-if="sortedAuths.length == 0">No authorization challenges configured - the proxy is open for all.</div>
-				<div v-for="auth in sortedAuths" :key="auth.id" class="authorization">
-					<div class="auth-item" @click="showAuthDialog(auth)">
-						<div class="material-icons icon">key</div>
-						<div>{{ createAuthSummary(auth) }}</div>
-					</div>
-					<div v-for="cond in auth.conditions">
-						<div class="auth-condition-item" @click="showConditionDialog(cond)">
-							<div>&gt; Condition: {{ createAuthCondSummary(cond) }}</div>
+				<div v-if="proxyConfig.authentications.length == 0">No authorization challenges configured - the proxy is open for all.</div>
+				<draggable
+					v-if="proxyConfig"
+					v-model="proxyConfig.authentications"
+					item-key="id"
+        			handle=".handle"
+					class="authorization"
+					@end="onAuthDragEnd">
+					<template #item="{element}">
+						<div class="draggable-auth">
+							<div class="handle">HANDLE</div>
+							<div class="auth-item" @click="showAuthDialog(element)">
+								<div class="material-icons icon">key</div>
+								<div>{{ createAuthSummary(element) }}</div>
+							</div>
+							<div v-for="cond in element.conditions">
+								<div class="auth-condition-item" @click="showConditionDialog(cond)">
+									<div>&gt; Condition: {{ createAuthCondSummary(cond) }}</div>
+								</div>
+							</div>
+							<div>
+								<button-component @click="onAddAuthConditionClicked(element)" small secondary class="add-cond-button ml-0" icon="add">Add condition</button-component>
+							</div>
 						</div>
-					</div>
-					<div>
-						<button-component @click="onAddAuthConditionClicked(auth)" small secondary class="add-cond-button ml-0" icon="add">Add condition</button-component>
-					</div>
-				</div>
-				<div>
-					<button-component @click="onAddAuthClicked" small secondary class="add-auth-button ml-0" icon="add">Add authorizations</button-component>
-				</div>
-				(//todo: dragdrop order)
+					</template>
+				</draggable>
 			</div>
 
 			<!-- Auth Dialog -->
