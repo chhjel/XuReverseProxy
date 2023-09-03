@@ -12,6 +12,7 @@ import ProxyChallengeTypeAdminLoginComponent from "@components/proxyChallenges/P
 import ProxyChallengeTypeOTPComponent from "@components/proxyChallenges/ProxyChallengeTypeOTPComponent.vue";
 import ProxyChallengeTypeSecretQueryStringComponent from "@components/proxyChallenges/ProxyChallengeTypeSecretQueryStringComponent.vue";
 import { ProxyAuthChallengeTypeOptions } from "@utils/Constants";
+import { nextTick } from "vue";
 
 interface AuthWithUnfulfilledConditions {
 	name: string;
@@ -79,6 +80,14 @@ export default class ProxyChallengePage extends Vue {
 		
 	onChallengeSolved(challenge: ChallengeModel) {
 		this.solvedChallengeIds.add(challenge.authId);
+
+		nextTick(() => {
+			if (this.uncompletedChallenges.length == 0) {
+				setTimeout(() => {
+					window.location.reload();
+				}, 1000);
+			}
+		});
 	}
 }
 </script>
@@ -89,6 +98,10 @@ export default class ProxyChallengePage extends Vue {
 		<div class="header" v-if="options.title || options.description">
 			<h1 class="proxy-title" v-if="options.title">{{ options.title }}</h1>
 			<div class="proxy-description" v-if="options.description">{{ options.description }}</div>
+		</div>
+
+		<div v-if="uncompletedChallenges.length == 0" class="block" style="text-align: center;">
+			Access granted
 		</div>
 
 		<div class="challenges mt-4" v-if="uncompletedChallenges.length > 0">
