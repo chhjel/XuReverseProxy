@@ -66,6 +66,9 @@ public static class ServiceCollectionExtensions
         return app;
     }
 
+    public const string IdentityCookieName = "___xurp_identity";
+    public const string AuthCookieName = "___xurp_auth";
+    public const string AntiForgeryCookieName = "___xurp_antiforgery";
     public static void Add3rdPartyServices(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment environment)
     {
         if (environment.IsDevelopment())
@@ -84,7 +87,7 @@ public static class ServiceCollectionExtensions
             .AddDefaultTokenProviders();
         services.ConfigureApplicationCookie(options =>
         {
-            options.Cookie.Name = "_xurp_identity";
+            options.Cookie.Name = IdentityCookieName;
             options.Cookie.HttpOnly = true;
             options.ExpireTimeSpan = TimeSpan.FromDays(365) * 100;
             options.SlidingExpiration = true;
@@ -99,7 +102,7 @@ public static class ServiceCollectionExtensions
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
                 options =>
                 {
-                    options.Cookie = new CookieBuilder() { Name = "_xurp_auth" };
+                    options.Cookie = new CookieBuilder() { Name = AuthCookieName };
                     options.LoginPath = new PathString("/auth/login");
                     options.AccessDeniedPath = new PathString("/auth/denied");
                     options.ReturnUrlParameter = "return";
@@ -114,7 +117,7 @@ public static class ServiceCollectionExtensions
             options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
         }).AddJsonOptions(options => JsonConfig.ApplyDefaultOptions(options.JsonSerializerOptions));
         services.AddMvc();
-        services.AddAntiforgery(opts => opts.Cookie.Name = "_xurp_antiforgery");
+        services.AddAntiforgery(opts => opts.Cookie.Name = AuthCookieName);
         services.AddHttpClient();
         services.AddHttpForwarder();
         services.AddHttpContextAccessor();

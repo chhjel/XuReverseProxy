@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
 using static XuReverseProxy.Core.Models.DbEntity.ProxyAuthenticationCondition;
 
@@ -18,16 +16,13 @@ public interface IProxyChallengeService
 
 public class ProxyChallengeService : IProxyChallengeService
 {
-    private const string _cookieName = "___xupid";
-    private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ApplicationDbContext _dbContext;
     private readonly IProxyAuthenticationConditionChecker _proxyAuthenticationConditionChecker;
     private readonly IProxyClientIdentityService _proxyClientIdentityService;
 
-    public ProxyChallengeService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext,
+    public ProxyChallengeService(ApplicationDbContext dbContext,
         IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker, IProxyClientIdentityService proxyClientIdentityService)
     {
-        _serverConfig = serverConfig;
         _dbContext = dbContext;
         _proxyAuthenticationConditionChecker = proxyAuthenticationConditionChecker;
         _proxyClientIdentityService = proxyClientIdentityService;

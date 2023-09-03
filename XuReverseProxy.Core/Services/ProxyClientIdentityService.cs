@@ -26,7 +26,7 @@ public interface IProxyClientIdentityService
 
 public class ProxyClientIdentityService : IProxyClientIdentityService
 {
-    private const string _cookieName = "___xupid";
+    public const string ClientIdCookieName = "___xupid";
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ApplicationDbContext _dbContext;
     private readonly IProxyAuthenticationConditionChecker _proxyAuthenticationConditionChecker;
@@ -49,11 +49,11 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
             || context.Response == null
             || context.Response.Cookies == null) return null;
 
-        if (context.Request.Cookies?.TryGetValue(_cookieName, out string? idFromCookieRaw) != true
+        if (context.Request.Cookies?.TryGetValue(ClientIdCookieName, out string? idFromCookieRaw) != true
             || !Guid.TryParse(idFromCookieRaw, out Guid identityId))
         {
             identityId = Guid.NewGuid();
-            context.Response.Cookies.Append(_cookieName, identityId.ToString(),
+            context.Response.Cookies.Append(ClientIdCookieName, identityId.ToString(),
                 new CookieOptions()
                 {
                     Domain = $".{_serverConfig.CurrentValue.Domain.Domain}",

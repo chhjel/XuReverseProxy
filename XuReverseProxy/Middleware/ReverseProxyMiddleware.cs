@@ -10,6 +10,7 @@ using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication;
 using XuReverseProxy.Core.Services;
 using XuReverseProxy.Core.Utils;
+using XuReverseProxy.Extensions;
 using XuReverseProxy.Models.ViewModels.Special;
 using Yarp.ReverseProxy.Forwarder;
 
@@ -39,7 +40,7 @@ public class ReverseProxyMiddleware
     {
         var host = context.Request.Host.Host;
         var hostParts = host.Split('.');
-        var subdomain = hostParts.Length >= 3 ? hostParts[0] : null;
+        var subdomain = hostParts.Length >= 3 ? hostParts[0] : string.Empty;
         var port = context.Request.Host.Port;
 
         // Prevent forwarding admin interface
@@ -59,7 +60,9 @@ public class ReverseProxyMiddleware
 
         // Prevent forwarding if no proxy is configured for the current subdomain
         var proxyConfig = await applicationDbContext.ProxyConfigs.FirstOrDefaultAsync(x =>
-            x.Enabled && x.Subdomain == subdomain && (x.Port == null || x.Port == port)
+            x.Enabled
+            && x.Subdomain == subdomain
+            && (x.Port == null || x.Port == port)
         );
         if (proxyConfig == null)
         {
@@ -284,7 +287,7 @@ public class ReverseProxyMiddleware
         var destinationPrefix = proxyConfig.DestinationPrefix;
         if (string.IsNullOrWhiteSpace(destinationPrefix)) return;
 
-        var transformer = HttpTransformer.Default;
+        var transformer = XuHttpTransformer.Instance; //HttpTransformer.Default;
         var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
         var httpClient = new HttpMessageInvoker(new SocketsHttpHandler()
         {
@@ -299,6 +302,51 @@ public class ReverseProxyMiddleware
         if (error != ForwarderError.None)
         {
             // todo log. Add LastErrorAt & update if more than 5 min since last?
+        }
+    }
+
+    public class XuHttpTransformer : HttpTransformer
+    {
+        public static XuHttpTransformer Instance { get; } = new();
+        private readonly HttpTransformer _defaultTransformer;
+
+        public XuHttpTransformer()
+        {
+            _defaultTransformer = Default;
+        }
+
+        public override async ValueTask TransformRequestAsync(HttpContext httpContext, HttpRequestMessage proxyRequest, 
+            string destinationPrefix, CancellationToken cancellationToken)
+        {
+            if (!string.IsNullOrWhiteSpace(httpContext.Request.Headers.Cookie))
+            {
+                httpContext.Request.Headers.Cookie = RemoveInternalCookies(httpContext.Request.Headers.Cookie);
+            }
+            await _defaultTransformer.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
+        }
+
+        private static readonly HashSet<string> _internalCookieNames = new(new[] {
+            ProxyClientIdentityService.ClientIdCookieName,
+            ServiceCollectionExtensions.AuthCookieName,
+            ServiceCollectionExtensions.IdentityCookieName,
+            ServiceCollectionExtensions.AntiForgeryCookieName
+        });
+        private static string? RemoveInternalCookies(string? rawCookieHeader)
+        {
+            if (string.IsNullOrWhiteSpace(rawCookieHeader)) return rawCookieHeader;
+
+            static bool shouldRemoveCookie(string rawCookie)
+            {
+                var eqPos = rawCookie.IndexOf('=');
+                if (eqPos == -1) return false;
+
+                var name = rawCookie[..eqPos].Trim();
+                return _internalCookieNames.Contains(name);
+            }
+            
+            var partsToKeep = rawCookieHeader.Split(";")
+                .Where(x => !shouldRemoveCookie(x));
+            return string.Join(';', partsToKeep);
         }
     }
 }
