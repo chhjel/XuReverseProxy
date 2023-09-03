@@ -185,6 +185,10 @@ export default class ProxyConfigPage extends Vue {
 	}
 
 	async onAddAuthClicked(): Promise<any> {
+		let order = 0;
+		if (this.proxyConfig.authentications && this.proxyConfig.authentications.length > 0) {
+			order = this.proxyConfig.authentications.reduce((prev, cur) => Math.max(prev, cur.order), 0);
+		}
 		const auth: ProxyAuthenticationData = {
 			id: EmptyGuid,
 			challengeTypeId: ProxyAuthChallengeTypeOptions[0].typeId,
@@ -193,7 +197,7 @@ export default class ProxyConfigPage extends Vue {
 			proxyConfigId: this.proxyConfig.id,
 			solvedDuration: null,
 			solvedId: IdUtils.generateId(),
-			order: 0,
+			order: order,
 			conditions: [],
 		};
 		this.showAuthDialog(auth);
@@ -214,7 +218,11 @@ export default class ProxyConfigPage extends Vue {
 		this.showConditionDialog(cond);
 	}
 
-	get isLoading(): boolean { return this.proxyConfigService.status.inProgress; }
+	get isLoading(): boolean {
+		return this.proxyConfigService.status.inProgress
+			|| this.proxyAuthService.status.inProgress
+			|| this.proxyAuthConditionService.status.inProgress;
+	}
 
 	async onAuthDragEnd() {
 		const orders: Array<ProxyAuthenticationDataOrderData> = [];
@@ -260,13 +268,18 @@ export default class ProxyConfigPage extends Vue {
 					item-key="id"
         			handle=".handle"
 					class="authorization"
+					:disabled="isLoading"
 					@end="onAuthDragEnd">
 					<template #item="{element}">
 						<div class="draggable-auth">
-							<div class="handle">HANDLE</div>
-							<div class="auth-item" @click="showAuthDialog(element)">
-								<div class="material-icons icon">key</div>
-								<div>{{ createAuthSummary(element) }}</div>
+							<div class="auth-item-wrapper">
+								<div class="handle">
+									<div class="material-icons icon">drag_handle</div>
+								</div>
+								<div class="auth-item" @click="showAuthDialog(element)">
+									<!-- <div class="material-icons icon">key</div> -->
+									<div>{{ createAuthSummary(element) }}</div>
+								</div>
 							</div>
 							<div v-for="cond in element.conditions">
 								<div class="auth-condition-item" @click="showConditionDialog(cond)">
@@ -279,6 +292,7 @@ export default class ProxyConfigPage extends Vue {
 						</div>
 					</template>
 				</draggable>
+				<button-component @click="onAddAuthClicked" small secondary class="add-auth-button ml-0" icon="add">Add authorization</button-component>
 			</div>
 
 			<!-- Auth Dialog -->
@@ -320,6 +334,14 @@ export default class ProxyConfigPage extends Vue {
 
 <style scoped lang="scss">
 .proxyconfig-page {
+	.auth-item-wrapper {
+		display: flex;
+		align-items: center;
+		.handle {
+			cursor: grab;
+		}
+	}
+
 	.authorization{
 		border-bottom: 2px solid var(--color--panel-light);
     	padding-bottom: 8px;
@@ -356,7 +378,7 @@ export default class ProxyConfigPage extends Vue {
 		}
 	}
 	.add-cond-button {
-		margin-left: 20px !important;
+		margin-left: 30px !important;
 	}
 }
 </style>
