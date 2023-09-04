@@ -8,11 +8,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9FC2EFDC-0706-4D25-841C-5863CDA080DF}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		docker-compose.yaml = docker-compose.yaml
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XuReverseProxy.Core", "XuReverseProxy.Core\XuReverseProxy.Core.csproj", "{7519A4FE-1DE8-47B7-9AE8-827048EBB454}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XuReverseProxy.FrontendModelGeneration", "XuReverseProxy.FrontendModelGeneration\XuReverseProxy.FrontendModelGeneration.csproj", "{A96FABF7-6581-472E-A57C-57F62652ED61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XuReverseProxy.FrontendModelGeneration", "XuReverseProxy.FrontendModelGeneration\XuReverseProxy.FrontendModelGeneration.csproj", "{A96FABF7-6581-472E-A57C-57F62652ED61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

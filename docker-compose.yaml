@@ -1,40 +1,22 @@
 version: "3.3"
 name: xureverseproxy-dev
 
+###############################################
+# This compose is for use during development. #
+###############################################
+#
+# By default it only starts a database and a db admin interface.
 # docker-compose up -d
-# docker-compose up -d --force-recreate --no-deps --build adminer
-# docker-compose up -d --force-recreate --no-deps --build frontend-watcher
+#
+# Use profile "backend" if you want to run the backend from a container instead of from your IDE of choice:
+# docker-compose --profile backend up -d
+#
+# Use profile "frontend-watcher" if you want to build frontend from a container:
+# docker-compose --profile frontend-watcher up -d
 
 services:
-  # Backend build
-  backend:
-    # image: backend
-    # restart: unless-stopped
-    build:
-      context: .
-      dockerfile: XuReverseProxy/Dockerfile
-    environment:
-      - ConnectionStrings__ToDo=etc
-      - Logging__LogLevel__Default=Information
-    ports:
-      - "7878:80"
-    depends_on:
-      - db
-  
-  # Frontend build watcher for dev
-  frontend-watcher:
-    # restart: unless-stopped
-    profiles: ["dev"]
-    build:
-      context: .
-      dockerfile: XuReverseProxy.Frontend/Dockerfile
-    volumes:
-      - ./XuReverseProxy.Frontend/src:/frontend/src
-      - ./XuReverseProxy/wwwroot/dist:/XuReverseProxy/wwwroot/dist
-
   # Database
   db:
-    # restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
     build:
@@ -57,10 +39,8 @@ services:
 
   # Database UI
   adminer:
-    # restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    profiles: ["dev"]
     image: adminer
     ports:
       - 8090:8080
@@ -68,5 +48,33 @@ services:
       db:
         condition: service_healthy
 
+  # Backend
+  backend:
+    profiles: ["backend"]
+    build:
+      context: .
+      dockerfile: XuReverseProxy/Dockerfile
+    environment:
+      - ConnectionStrings__DbConnection=Host=host.docker.internal; Port=5432; Database=postgres; Username=postgres; Password=postgres
+      - Logging__LogLevel__Default=Information
+      - ServerConfig__Domain__Scheme=https://
+      - ServerConfig__Domain__Port=7272
+      - ServerConfig__Domain__Domain=localdev.test
+      - ServerConfig__Domain__AdminSubdomain=admin
+    ports:
+      - "7878:80"
+    depends_on:
+      - db
+
+  # Frontend build watcher
+  frontend-watcher:
+    profiles: ["frontend-watcher"]
+    build:
+      context: .
+      dockerfile: XuReverseProxy.Frontend/Dockerfile
+    volumes:
+      - ./XuReverseProxy.Frontend/src:/frontend/src
+      - ./XuReverseProxy/wwwroot/dist:/XuReverseProxy/wwwroot/dist
+
   # Todo: dev db data seed container
-  # Todo: certbot w/ DNS plugin
+

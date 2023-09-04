@@ -30,4 +30,6 @@ RUN dotnet publish "XuReverseProxy/XuReverseProxy.csproj" -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:7.0
 WORKDIR /app
 COPY --from=build-env /app/out .
+EXPOSE 80/TCP
+EXPOSE 80/UDP
 ENTRYPOINT ["dotnet", "XuReverseProxy.dll"]

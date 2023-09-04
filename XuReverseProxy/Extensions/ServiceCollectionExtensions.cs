@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication;
@@ -35,7 +36,14 @@ public static class ServiceCollectionExtensions
 
         using (var scope = app.Services.CreateScope())
         {
+            // Apply EF migrations
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.Database.Migrate();
+
+            // Ensure we have rows for all settings
             scope.ServiceProvider.GetService<RuntimeServerConfig>()?.EnsureDatabaseRows();
+
+            // todo: not here
             scope.ServiceProvider.GetService<IDevDataSeeder>()?.EnsureDemoData();            
         }
         return app;
@@ -89,6 +97,7 @@ public static class ServiceCollectionExtensions
         {
             options.Cookie.Name = IdentityCookieName;
             options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
             options.ExpireTimeSpan = TimeSpan.FromDays(365) * 100;
             options.SlidingExpiration = true;
             options.LoginPath = new PathString("/auth/login");
