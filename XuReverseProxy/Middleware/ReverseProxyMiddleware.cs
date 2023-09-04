@@ -3,6 +3,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using XuReverseProxy.Core.Extensions;
 using XuReverseProxy.Core.Models.Config;
@@ -289,14 +291,20 @@ public class ReverseProxyMiddleware
 
         var transformer = XuHttpTransformer.Instance; //HttpTransformer.Default;
         var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
-        var httpClient = new HttpMessageInvoker(new SocketsHttpHandler()
+        var socksHandler = new SocketsHttpHandler()
         {
             UseProxy = false,
             AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.None,
             UseCookies = false,
-            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current)
-        });
+            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current),
+            SslOptions = new SslClientAuthenticationOptions
+            {
+                // todo: server config for this
+                RemoteCertificateValidationCallback = (object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors) => true
+            }
+        };
+        var httpClient = new HttpMessageInvoker(socksHandler);
 
         var error = await forwarder.SendAsync(context, destinationPrefix, httpClient, requestOptions, transformer);
         if (error != ForwarderError.None)
