@@ -5,7 +5,14 @@ resources:
 - repo: self
 
 variables:
-  tag: '$(Build.BuildId)'
+- name: tag
+  value: '$(Build.BuildId)'
+- name: cleanSourceBranch
+  value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+- name: isMain
+  value: $[eq(variables['cleanSourceBranch'], 'main')]
+- name: shouldPublish
+  value: $[eq(variables['isMain'], 'true')]
 
 stages:
 - stage: Build
@@ -16,12 +23,25 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
+
     - task: Docker@2
-      displayName: Build Docker image
+      displayName: Build docker image
       inputs:
         command: 'build'
         Dockerfile: '$(Build.SourcesDirectory)/XuReverseProxy/Dockerfile'
         buildContext: '**/../'
+        tags: |
+          $(tag)
+          latest
+        # arguments: --label buildtype=nightly
+
+    - task: Docker@2
+      displayName: Push image to docker hub.docker.com
+      condition: and(succeeded(), eq(variables['shouldPublish'], 'true'))
+      inputs:
+        command: 'push'
+        containerRegistry: 'DockerHub - christianwut'
+        repository: 'xureverseproxy'
         tags: |
           $(tag)
           latest
