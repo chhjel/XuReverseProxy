@@ -29,14 +29,14 @@ public class RuntimeServerConfig
     /// <summary></summary>
     public string NotFoundHtml
     {
-        get => GetConfig(nameof(NotFoundHtml)) ?? string.Empty;
+        get => GetConfig(nameof(NotFoundHtml)) ?? "<html><head><title>404 | XuReverseProxy</title></head><body>404 / XuReverseProxy</body></html>";
         set => SetConfig(nameof(NotFoundHtml), value);
     }
 
     /// <summary></summary>
     public string ClientBlockedHtml
     {
-        get => GetConfig(nameof(ClientBlockedHtml)) ?? string.Empty;
+        get => GetConfig(nameof(ClientBlockedHtml)) ?? "<html><head><title>Blocked | XuReverseProxy</title></head><body>{{blocked_message}}</body></html>";
         set => SetConfig(nameof(ClientBlockedHtml), value);
     }
 

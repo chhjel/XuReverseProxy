@@ -6,7 +6,7 @@ using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.Services;
 
-// Todo: move to own project
+// Todo: move to own project & container
 public interface IDevDataSeeder
 {
     public Task EnsureDemoData();
@@ -28,8 +28,8 @@ public class DevDataSeederService : IDevDataSeeder
         var configX = new ProxyConfig
         {
             Enabled = true,
-            Name = "Root proxy test",
-            Subdomain = string.Empty,
+            Name = "Test1 proxy",
+            Subdomain = "test1",
             Port = null,
             DestinationPrefix = "https://www.mozilla.org"
         };
@@ -38,8 +38,8 @@ public class DevDataSeederService : IDevDataSeeder
         var config = new ProxyConfig
         {
             Enabled = true,
-            Name = "Subdomain proxy test",
-            Subdomain = "test1",
+            Name = "Test2 proxy",
+            Subdomain = "test2",
             Port = null,
             DestinationPrefix = "https://duckduckgo.com",
             ChallengeTitle = "Home Camera Server",
