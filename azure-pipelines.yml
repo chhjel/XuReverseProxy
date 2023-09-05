@@ -21,6 +21,7 @@ stages:
       inputs:
         command: 'build'
         Dockerfile: '$(Build.SourcesDirectory)/XuReverseProxy/Dockerfile'
+        buildContext: '**/../'
         tags: |
           $(tag)
           latest
