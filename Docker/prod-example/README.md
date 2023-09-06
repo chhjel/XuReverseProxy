@@ -1,22 +1,24 @@
 # Example server configuration
 
-This is an example of how you could configure XuReverseProxy on a windows server.
+This is an example of how you could configure XuReverseProxy on your server.
 
 ---
 
-## XuReverseProxy
+## 1. XuReverseProxy
 
-### Running in IIS
+### Setup
 
-`// ToDo`
+See example [docker-compose.yaml](docker-compose.yaml) for a server+db+dbadmin setup. The setup uses a self-signed certificate, use e.g. an additional reverse proxy (see Caddy below) for propper certs. Run `docker compose up -d` and you should have the server running.
 
-### Running in Docker
+On the first visit to the admin interface you must create the admin account. Enabling 2FA is highly recomended. Currently no ui exists to change password etc. Should you loose access to the account you can delete the user in the database from the db admin interface and create a new user again by visiting the admin interface.
 
-See example (docker-compose.yaml)[docker-compose.yaml].
+### Auto-update (optional)
+
+[Watchtower](https://containrrr.dev/watchtower) or other similar projects can be used to auto-update the containers.
 
 ---
 
-## Caddy (optional)
+## 2. Caddy (optional)
 
 Caddy can be used as a wrapper around the proxy to provide automatic SSL certificates.
 
@@ -45,11 +47,7 @@ http://*.your-domain.com:6666, http://your-domain.com:6666 {
 
 # Forward everything targeting your domain to XuReverseProxy running locally
 https://*.your-domain.com:7777, https://your-domain.com:7777 {
-  log {
-    level DEBUG
-  }
-
-  # Enable selected dns plugin
+  # Replace this section with your dns plugin config. This one is for https://gandi.net
   tls {
     dns gandi your_api_key
   }
@@ -67,4 +65,11 @@ https://*.your-domain.com:7777, https://your-domain.com:7777 {
 
 ```
 
-* Configure caddy to run as a service: `sc.exe create caddy start= auto binPath= "d:\path_to\caddy_windows_amd64_custom.exe run"`
+* Configure caddy to run as a service.
+  * E.g. on windows: `sc.exe create caddy start= auto binPath= "d:\path_to\caddy_windows_amd64_custom.exe run"`
+
+---
+
+## 3. Configure your domain
+
+Make sure your domain DNS records are configured to point both the root domain and wildcard subdomains to your server.
