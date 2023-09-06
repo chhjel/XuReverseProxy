@@ -1,7 +1,8 @@
 version: "3.3"
 name: xureverseproxy
 
-# docker-compose up -d
+volumes:
+  postgres-data:
 
 services:
   # Backend
@@ -13,7 +14,7 @@ services:
       - ServerConfig__Domain__Scheme=https://
       - ServerConfig__Domain__Port=443
       - ServerConfig__Domain__Domain=your-domain.com
-      - ServerConfig__Domain__AdminSubdomain=admin
+      - ServerConfig__Domain__AdminSubdomain=admin # causes admin interfaces to be available on admin.your-domain.com
       - ConnectionStrings__DbConnection=Host=db; Port=5432; Database=postgres; Username=postgres; Password=postgres
       - Logging__LogLevel__Default=Information
       - ASPNETCORE_URLS=https://+:443;http://+:80
@@ -21,9 +22,6 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     volumes:
       - ./cert:/https:ro
-    # expose:
-    #   - 80
-    #   - 443
     ports:
       - "5252:80"
       - "7878:443"
@@ -33,8 +31,6 @@ services:
   # Database
   db:
     restart: unless-stopped
-    # extra_hosts:
-    #   - "host.docker.internal:host-gateway"
     build:
       context: .
       dockerfile: Dockerfile.Database
@@ -45,8 +41,8 @@ services:
       POSTGRES_DB: postgres
       PGUSER: postgres
       PGPASSWORD: postgres
-    # ports:
-    #   - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready"]
       interval: 1s
