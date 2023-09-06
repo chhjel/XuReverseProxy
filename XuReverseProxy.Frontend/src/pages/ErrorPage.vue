@@ -49,7 +49,7 @@ export default class ErrorPage extends Vue {
 	}
 
 	&__code {
-		font-size: 12vw;
+		font-size: min(160px, 12vw);
 	}
 }
 </style>

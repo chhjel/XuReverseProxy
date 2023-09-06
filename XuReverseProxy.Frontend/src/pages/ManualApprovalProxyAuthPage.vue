@@ -7,6 +7,7 @@ import { ManualApprovalProxyAuthPageFrontendModel } from "@generated/Models/Web/
 import ManualApprovalService from "@services/ManualApprovalService";
 import MapComponent from "@components/common/MapComponent.vue";
 import { ChallengeDataFrontendModel } from "@generated/Models/Web/ChallengeDataFrontendModel";
+import { getProxyAuthenticationTypeName } from "@utils/ProxyAuthenticationDataUtils";
 
 @Options({
 	components: {
@@ -114,7 +115,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 	}
 
 	getChallengeTypeIdName(typeId: string): string {
-		return typeId.replace('ProxyChallengeType', '');
+		return getProxyAuthenticationTypeName(typeId);
 	}
 
 	getChallengeIcon(challenge: ChallengeDataFrontendModel): string {

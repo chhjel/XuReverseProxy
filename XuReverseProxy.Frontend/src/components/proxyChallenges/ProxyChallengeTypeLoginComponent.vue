@@ -113,7 +113,6 @@ export default class ProxyChallengeTypeLoginComponent extends Vue {
 	&__inputs {
 		max-width: 300px;
     	margin: 20px auto 0 auto;
-		/* text-align: center; */
 	}
 
 	&__status {

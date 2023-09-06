@@ -13,6 +13,7 @@ import ProxyChallengeTypeOTPComponent from "@components/proxyChallenges/ProxyCha
 import ProxyChallengeTypeSecretQueryStringComponent from "@components/proxyChallenges/ProxyChallengeTypeSecretQueryStringComponent.vue";
 import { ProxyAuthChallengeTypeOptions } from "@utils/Constants";
 import { nextTick } from "vue";
+import { getProxyAuthenticationTypeName } from "@utils/ProxyAuthenticationDataUtils";
 
 interface AuthWithUnfulfilledConditions {
 	name: string;
@@ -74,8 +75,7 @@ export default class ProxyChallengePage extends Vue {
 	}
 
 	getChallengeTypeIdName(typeId: string): string {
-		return ProxyAuthChallengeTypeOptions.find(x => x.typeId == typeId)?.name
-			|| typeId.replace('ProxyChallengeType', '');
+		return getProxyAuthenticationTypeName(typeId);
 	}
 		
 	onChallengeSolved(challenge: ChallengeModel) {
