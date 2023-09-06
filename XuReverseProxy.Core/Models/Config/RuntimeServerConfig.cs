@@ -47,6 +47,20 @@ public class RuntimeServerConfig
         set => SetConfigInt(nameof(ClientBlockedResponseCode), value);
     }
 
+    /// <summary></summary>
+    public string IPBlockedHtml
+    {
+        get => GetConfig(nameof(IPBlockedHtml)) ?? "<html><head><title>Blocked | XuReverseProxy</title></head><body>Nope</body></html>";
+        set => SetConfig(nameof(IPBlockedHtml), value);
+    }
+
+    /// <summary></summary>
+    public int IPBlockedResponseCode
+    {
+        get => GetConfigInt(nameof(IPBlockedResponseCode), 401);
+        set => SetConfigInt(nameof(IPBlockedResponseCode), value);
+    }
+
     private readonly ApplicationDbContext _dbContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -67,6 +81,8 @@ public class RuntimeServerConfig
         NotFoundHtml = NotFoundHtml;
         ClientBlockedHtml = ClientBlockedHtml;
         ClientBlockedResponseCode = ClientBlockedResponseCode;
+        IPBlockedHtml = IPBlockedHtml;
+        IPBlockedResponseCode = IPBlockedResponseCode;
     }
 
     private int GetConfigInt(string key, int defaultValue)

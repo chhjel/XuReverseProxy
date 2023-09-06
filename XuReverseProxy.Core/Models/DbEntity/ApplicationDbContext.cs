@@ -24,7 +24,8 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<ProxyClientIdentitySolvedChallengeData> ProxyClientIdentitySolvedChallengeDatas { get; set; }
     public DbSet<ProxyClientIdentityData> ProxyClientIdentityDatas { get; set; }
     public DbSet<RuntimeServerConfigItem> RuntimeServerConfigItems { get; set; }
-    public DbSet<ApplicationUserRecoveryCode> RecoveryCodes { get; set; }    
+    public DbSet<ApplicationUserRecoveryCode> RecoveryCodes { get; set; }
+    public DbSet<BlockedIpData> BlockedIpDatas { get; set; }
 
     protected readonly IConfiguration Configuration;
 

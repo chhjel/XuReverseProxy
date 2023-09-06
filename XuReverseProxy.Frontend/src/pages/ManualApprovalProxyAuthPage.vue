@@ -22,22 +22,49 @@ export default class ManualApprovalProxyAuthPage extends Vue {
     service: ManualApprovalService | null= null;
 	isApproved: boolean = false;
 	isBlocked: boolean = false;
+	isIpBlocked: boolean = false;
+	blockedIpId: string | null = null;
+	canUnblockIp: boolean = false;
 	clientNote: string = '';
 
 	async mounted() {
 		this.service = new ManualApprovalService(this.options.client.id, this.options.authenticationId, this.options.solvedId);
 		this.isBlocked = this.options.client.blocked;
 		this.isApproved = this.options.isApproved;
+		this.isIpBlocked = this.options.clientIPIsBlocked;
+		this.canUnblockIp = this.options.canUnblockIP;
+		this.blockedIpId = this.options.clientIPBlockId;
 		this.clientNote = this.options.client.note || '';
 	}
 
 	get isLoading(): boolean { return this.service?.status?.inProgress == true; }
 	
 	async onApproveClicked(): Promise<any> { await this.approve(); }
-	async onUnApproveClicked(): Promise<any> { await this.unApprove();}
-	async onBlockClicked(): Promise<any> { await this.setClientBlocked(true, prompt('Blocked message', 'You have been blocked'))};
-	async onUnBlockClicked(): Promise<any> { await this.setClientBlocked(false, '')};
-	async updateClientNote(): Promise<any> { await this.setClientNote(this.clientNote)};
+	async onUnApproveClicked(): Promise<any> { await this.unApprove(); }
+	async onBlockClicked(): Promise<any> { 
+		const message = prompt('Blocked message', 'You have been blocked');
+		if (message === null) return;
+		await this.setClientBlocked(true, message);
+	}
+	async onUnBlockClicked(): Promise<any> { await this.setClientBlocked(false, ''); }
+	async updateClientNote(): Promise<any> { await this.setClientNote(this.clientNote); }
+		
+	async onBlockIpClicked(): Promise<any> {
+		if (this.isLoading) return;
+
+		if (this.options.selfIP == this.options.client.ip && !confirm(`The IP is the same as your own (${this.options.client.ip}), sure you want to proceed? You will loose access to this interface.`)) return;
+		
+		if (!confirm(`Block IP "${this.options.client.ip}"?`)) return;
+		const note = prompt('Note', '');
+		if (note === null) return;
+		await this.blockClientIp(this.options.client.ip, note);
+	}
+
+	async onUnBlockIpClicked(): Promise<any> {
+		if (this.isLoading) return;
+		if (!confirm(`Unblock IP "${this.options.client.ip}"?`)) return;
+		await this.unblockClientIp(this.blockedIpId);
+	}
 
 	async approve(): Promise<any> {
 		const success = await this.service.ApproveAsync();
@@ -58,6 +85,21 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 		await this.service.SetClientNoteAsync({
 			note: note
 		});
+	}
+	async blockClientIp(ip: string, note: string): Promise<any> {
+		this.blockedIpId = await this.service.SetClientIPBlockedAsync({
+			ip: ip,
+			note: note
+		});
+		
+		this.isIpBlocked = true;
+		this.canUnblockIp = true;
+	}
+	async unblockClientIp(ipBlockId: string): Promise<any> {
+		await this.service.RemoveIpBlockAsync({
+			ipBlockId: ipBlockId
+		});
+		this.isIpBlocked = false;
 	}
 
 	get ipContinent(): string | null { return this.options.client.ipLocation?.continent || null; }
@@ -108,15 +150,17 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 	}
 
 	get status(): string {
-		if (this.isBlocked && this.isApproved) return 'Client is currently approved and blocked';
-		if (this.isBlocked) return 'Client is currently blocked';
+		if (this.isIpBlocked && this.isApproved) return 'Client is approved but its IP is currently blocked';
+		else if (this.isIpBlocked) return 'Client IP is currently blocked';
+		else if (this.isBlocked && this.isApproved) return 'Client is currently approved and blocked';
+		else if (this.isBlocked) return 'Client is currently blocked';
 		else if (this.isApproved) return 'Client is currently approved';
 		else return 'Client is waiting for approval';
 	}
 
 	get statusClass(): any {
 		let classes: any = {};
-		if (this.isBlocked) return 'blocked';
+		if (this.isBlocked || this.isIpBlocked) return 'blocked';
 		else if (this.isApproved) return 'approved';
 		return classes;
 	}
@@ -184,7 +228,11 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 						</div>
 						<div class="client-details-row">
 							<div>IP blocked</div>
-							<div>//todo</div>
+							<div>
+								{{ (isIpBlocked ? 'Yes' : 'No') }}
+								<a v-if="!isIpBlocked" @click.prevent.stop="onBlockIpClicked" href="#">[block]</a>
+								<a v-if="isIpBlocked && canUnblockIp" @click.prevent.stop="onUnBlockIpClicked" href="#">[unblock]</a>
+							</div>
 						</div>
 						<div class="client-details-row">
 							<div>UserAgent</div>

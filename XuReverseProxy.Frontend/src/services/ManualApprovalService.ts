@@ -1,3 +1,5 @@
+import { SetClientIPBlockedFromManualApprovalRequestMessage } from './../generated/Models/Web/SetClientIPBlockedFromManualApprovalRequestMessage';
+import { RemoveIPBlockFromManualApprovalRequestMessage } from './../generated/Models/Web/RemoveIPBlockFromManualApprovalRequestMessage';
 import { SetClientBlockedFromManualApprovalRequestMessage } from "@generated/Models/Web/SetClientBlockedFromManualApprovalRequestMessage";
 import ServiceBase, { LoadStatus } from "./ServiceBase";
 import { SetClientNoteFromManualApprovalRequestMessage } from "@generated/Models/Web/SetClientNoteFromManualApprovalRequestMessage";
@@ -39,6 +41,20 @@ export default class ManualApprovalService extends ServiceBase {
 
     public async SetClientNoteAsync(payload: SetClientNoteFromManualApprovalRequestMessage, status: LoadStatus | null = null): Promise<boolean> {
         const url = `${this._baseUrl}/setclientnote`;
+        const request = this.fetchExt(url, "POST", payload);
+        const result = await this.awaitWithStatus<boolean>(request, status);
+        return result.data;
+    }
+
+    public async SetClientIPBlockedAsync(payload: SetClientIPBlockedFromManualApprovalRequestMessage, status: LoadStatus | null = null): Promise<string> {
+        const url = `${this._baseUrl}/blockip`;
+        const request = this.fetchExt(url, "POST", payload);
+        const result = await this.awaitWithStatus<string>(request, status);
+        return result.data;
+    }
+
+    public async RemoveIpBlockAsync(payload: RemoveIPBlockFromManualApprovalRequestMessage, status: LoadStatus | null = null): Promise<boolean> {
+        const url = `${this._baseUrl}/removeipblock`;
         const request = this.fetchExt(url, "POST", payload);
         const result = await this.awaitWithStatus<boolean>(request, status);
         return result.data;

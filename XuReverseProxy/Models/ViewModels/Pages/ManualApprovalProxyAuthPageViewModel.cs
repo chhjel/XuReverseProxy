@@ -1,4 +1,5 @@
 ﻿using XuReverseProxy.Core.Attributes;
+using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.Services;
 
 namespace XuReverseProxy.Models.ViewModels.Pages;
@@ -13,12 +14,17 @@ public class ManualApprovalProxyAuthPageViewModel
         public required Guid AuthenticationId { get; set; }
         public required Guid SolvedId { get; set; }
         public required bool IsLoggedIn { get; set; }
+        public bool ClientIPIsBlocked { get; set; }
+        public Guid? ClientIPBlockId { get; set; }
+        public bool CanUnblockIP { get; set; }
+        public BlockedIpDataType IPBlockType { get; set; }
         public required ClientDataFrontendModel Client { get; set; }
         public required CurrentChallengeDataFrontendModel CurrentChallengeData { get; set; }
         public required List<ChallengeDataFrontendModel> AllChallengeData { get; set; }
         public required ProxyConfigFrontendModel ProxyConfig { get; set; }
         public required bool IsApproved { get; set; }
         public required string Url { get; set; }
+        public required string? SelfIP { get; set; }
 
         [GenerateFrontendModel]
         public class ClientDataFrontendModel
