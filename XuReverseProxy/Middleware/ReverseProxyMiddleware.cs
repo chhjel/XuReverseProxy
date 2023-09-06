@@ -94,7 +94,7 @@ public class ReverseProxyMiddleware
             clientIdentity = await proxyClientIdentityService.GetCurrentProxyClientIdentityAsync(context);
             if (clientIdentity == null)
             {
-                var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml, clientIdentity);
+                var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
                 await SetResponse(context, html, StatusCodes.Status404NotFound);
                 return;
             }
@@ -104,7 +104,7 @@ public class ReverseProxyMiddleware
         if (clientIdentity?.Blocked == true)
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.ClientBlockedHtml, clientIdentity)
-                .Replace("{{blocked_message}}", clientIdentity.BlockedMessage, StringComparison.OrdinalIgnoreCase);
+                ?.Replace("{{blocked_message}}", clientIdentity.BlockedMessage, StringComparison.OrdinalIgnoreCase);
             await SetResponse(context, html, runtimeServerConfig.ClientBlockedResponseCode);
             return;
         }
@@ -132,7 +132,7 @@ public class ReverseProxyMiddleware
             foreach (var auth in authentications)
             {
                 var authResult = await ProcessAuthenticationCheckAsync(auth, clientIdentity, proxyConfig, context, pageModel, applicationDbContext,
-                    authChallengeFactory, proxyClientIdentityService, serviceProvider, proxyChallengeService);
+                    authChallengeFactory, serviceProvider, proxyChallengeService);
                 if (authResult == AuthCheckResult.NotSolved) allChallengesSolved = false;
             }
             pageModel.ChallengeModels = pageModel.ChallengeModels.OrderBy(x => x.Order).ToList();
@@ -166,8 +166,7 @@ public class ReverseProxyMiddleware
     }
     private static async Task<AuthCheckResult> ProcessAuthenticationCheckAsync(ProxyAuthenticationData auth, ProxyClientIdentity clientIdentity,
         ProxyConfig proxyConfig, HttpContext context, ProxyChallengePageFrontendModel pageModel, ApplicationDbContext applicationDbContext,
-        IProxyAuthenticationChallengeFactory authChallengeFactory,
-        IProxyClientIdentityService proxyClientIdentityService, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
+        IProxyAuthenticationChallengeFactory authChallengeFactory, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
     {
         var challengeData = proxyChallengeService.GetChallengeRequirementData(auth.Id);
         if (!challengeData.All(c => c.Passed))
@@ -187,8 +186,7 @@ public class ReverseProxyMiddleware
         if (challenge == null)
             return AuthCheckResult.Invalid;
 
-        var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig, clientIdentity,
-            proxyClientIdentityService, applicationDbContext, serviceProvider, proxyChallengeService);
+        var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig, clientIdentity, applicationDbContext, serviceProvider, proxyChallengeService);
 
         // Check if challenge is auto-solved on load
         var isAutoSolved = challenge.AutoCheckSolvedOnLoad(challengeContext);
@@ -240,8 +238,7 @@ public class ReverseProxyMiddleware
 #endif
 
         var jsonPayload = await context.Request.ReadBodyAsStringAsync();
-        var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig!, clientIdentity,
-            proxyClientIdentityService, applicationDbContext, serviceProvider, proxyChallengeService);
+        var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig!, clientIdentity, applicationDbContext, serviceProvider, proxyChallengeService);
         var result = await InvokableProxyAuthMethodUtils.InvokeMethodAsync(challenge, methodName, jsonPayload, challengeContext);
         await ReturnJsonAsync(context, result);
 
@@ -290,10 +287,10 @@ public class ReverseProxyMiddleware
     }
     #endregion
 
-    private static async Task SetResponse(HttpContext context, string html, int statusCode = StatusCodes.Status200OK)
+    private static async Task SetResponse(HttpContext context, string? html, int statusCode = StatusCodes.Status200OK)
     {
         context.Response.StatusCode = statusCode;
-        await context.Response.WriteAsync(html);
+        await context.Response.WriteAsync(html ?? string.Empty);
     }
 
     private static async Task ForwardRequestAsync(HttpContext context, IHttpForwarder forwarder, ProxyConfig proxyConfig)

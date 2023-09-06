@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
-import { Prop, Vue, Watch } from 'vue-property-decorator'
+import { Prop, Ref, Vue, Watch } from 'vue-property-decorator'
 import ProgressbarComponent from "@components/common/ProgressbarComponent.vue";
 
 @Options({
@@ -31,6 +31,7 @@ export default class TextInputComponent extends Vue {
     @Prop({ required: false, default: 'var(--color--primary)' })
     progressColor: string;
 
+    @Ref() readonly inputElement!: HTMLInputElement;
     localValue: string = "";
 
     mounted(): void {
@@ -49,6 +50,16 @@ export default class TextInputComponent extends Vue {
         return this.progress !== null;
     }
     
+    onFocus(): void {
+        this.$emit('focus');
+    }
+
+    public insertText(val: string): void
+    {
+        const [start, end] = [this.inputElement.selectionStart, this.inputElement.selectionEnd];
+        this.inputElement.setRangeText(val, start, end, 'select');
+    }
+
     /////////////////
     //  WATCHERS  //
     ///////////////
@@ -90,7 +101,9 @@ export default class TextInputComponent extends Vue {
         :type="type"
         v-model="localValue"
         :placeholder="placeholder"
-        :disabled="disabled" />
+        :disabled="disabled"
+        @focus="onFocus"
+        ref="inputElement" />
 
     <progressbar-component
         v-if="showProgress"

@@ -296,7 +296,7 @@ export default class ProxyConfigPage extends Vue {
 			</div>
 
 			<!-- Auth Dialog -->
-			<dialog-component v-model:value="authDialogVisible" max-width="600" persistent>
+			<dialog-component v-model:value="authDialogVisible" max-width="800" persistent>
 				<template #header>Proxy authentication</template>
 				<template #footer>
 					<button-component @click="saveAuth" class="primary ml-0">Save</button-component>

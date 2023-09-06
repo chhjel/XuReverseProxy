@@ -12,7 +12,7 @@ namespace XuReverseProxy.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddReverseProxy(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment environment)
+    public static IServiceCollection AddReverseProxy(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment _)
     {
         // Config
         services.Configure<ServerConfig>(configuration.GetSection("ServerConfig"));
@@ -78,7 +78,7 @@ public static class ServiceCollectionExtensions
     public const string IdentityCookieName = "___xurp_identity";
     public const string AuthCookieName = "___xurp_auth";
     public const string AntiForgeryCookieName = "___xurp_antiforgery";
-    public static void Add3rdPartyServices(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment environment)
+    public static void Add3rdPartyServices(this IServiceCollection services, ConfigurationManager _, IWebHostEnvironment environment)
     {
         if (environment.IsDevelopment())
         {

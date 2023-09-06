@@ -27,8 +27,11 @@ public class ProxyChallengeTypeLogin : ProxyChallengeTypeBase
     [InvokableProxyAuthMethod]
     public async Task<VerifyLoginResponseModel> VerifyLoginAsync(ProxyChallengeInvokeContext context, VerifyLoginRequestModel request)
     {
-        var solved = request.Username?.Equals(Username, StringComparison.InvariantCulture) == true
-               && request.Password?.Equals(PlaceholderUtils.ResolveCommonPlaceholders(Password), StringComparison.InvariantCulture) == true;
+        var expectedUsername = PlaceholderUtils.ResolvePlaceholders(Username, context.ClientIdentity, context.ProxyConfig);
+        var expectedPassword = PlaceholderUtils.ResolvePlaceholders(Password, context.ClientIdentity, context.ProxyConfig);
+
+        var solved = request.Username?.Equals(expectedUsername, StringComparison.InvariantCulture) == true
+               && request.Password?.Equals(expectedPassword, StringComparison.InvariantCulture) == true;
         if (!solved) return new(false, "Wrong credentials");
 
         var totpRequired = !string.IsNullOrWhiteSpace(TOTPSecret);

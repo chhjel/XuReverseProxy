@@ -13,20 +13,18 @@ public class ProxyChallengeInvokeContext
     public ProxyClientIdentity ClientIdentity { get; }
     public Guid SolvedId => AuthenticationData.SolvedId;
 
-    private readonly IProxyClientIdentityService _proxyClientIdentityService;
     private readonly IProxyChallengeService _proxyChallengeService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ApplicationDbContext _dbContext;
 
     public ProxyChallengeInvokeContext(HttpContext httpContext, ProxyAuthenticationData authenticationData,
-        ProxyConfig proxyConfig, ProxyClientIdentity clientIdentity, IProxyClientIdentityService proxyClientIdentityService,
+        ProxyConfig proxyConfig, ProxyClientIdentity clientIdentity,
         ApplicationDbContext dbContext, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
     {
         HttpContext = httpContext;
         AuthenticationData = authenticationData;
         ProxyConfig = proxyConfig;
         ClientIdentity = clientIdentity;
-        _proxyClientIdentityService = proxyClientIdentityService;
         _dbContext = dbContext;
         _serviceProvider = serviceProvider;
         _proxyChallengeService = proxyChallengeService;

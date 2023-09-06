@@ -1,14 +1,21 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
-import { Vue, Prop, Watch } from 'vue-property-decorator'
+import { Vue, Prop, Watch, Ref } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import { ProxyChallengeTypeOTP } from "@generated/Models/Core/ProxyChallengeTypeOTP";
+import ExpandableComponent from "@components/common/ExpandableComponent.vue";
+import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponent.vue";
+import { PlaceholderInfo, PlaceholderGroupInfo, OTPRequestUrlPlaceholders } from "@utils/Constants";
+import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
-		ButtonComponent
+		ButtonComponent,
+        CodeInputComponent,
+		ExpandableComponent,
+		PlaceholderInfoComponent
 	}
 })
 export default class ProxyChallengeTypeOTPEditor extends Vue {
@@ -18,12 +25,22 @@ export default class ProxyChallengeTypeOTPEditor extends Vue {
   	@Prop({ required: false, default: false})
 	disabled: boolean;
 	
-	localValue: ProxyChallengeTypeOTP | null= null;
+	localValue: ProxyChallengeTypeOTP | null = null;
+    @Ref() readonly urlEditor!: any;
+    urlPlaceholdersExtra: Array<PlaceholderInfo> = [{
+		name: "code",
+		description: "Generated one-time code."
+	}];
+	urlPlaceholders: Array<PlaceholderGroupInfo> = OTPRequestUrlPlaceholders;
 
     mounted(): void {
         this.updateLocalValue();
         if (!this.localValue.webHookRequestMethod) this.localValue.webHookRequestMethod = 'GET';
         this.emitLocalValue();
+    }
+
+    insertUrlPlaceholder(val: string): void {
+        this.urlEditor.insertText(val);
     }
 
     /////////////////
@@ -53,9 +70,16 @@ export default class ProxyChallengeTypeOTPEditor extends Vue {
 	<div class="proxy-challenge-otp-edit" v-if="localValue">
         <p>When the user clicks the button to send a one-time code a request is sent to the webhook url.</p>
 		<text-input-component label="Description" v-model:value="localValue.description" />
-		<text-input-component label="WebHook request method" v-model:value="localValue.webHookRequestMethod" />
-		<text-input-component label="WebHook url" v-model:value="localValue.webHookUrl" />
-        <p>Use placeholder <code>&#123;&#123;code&#125;&#125;</code> for the generated code.</p>
+		<text-input-component label="WebHook request method" v-model:value="localValue.webHookRequestMethod" class="mt-2" />
+        <code-input-component v-model:value="localValue.webHookUrl" language="" class="mt-2"
+            height="100px" :wordWrap="true" label="WebHook url" ref="urlEditor" />
+        <expandable-component header="Supported placeholders">
+            <placeholder-info-component
+                urlPlaceholdersExtra
+                :placeholders="urlPlaceholders" 
+                :additionalPlaceholders="urlPlaceholdersExtra" 
+                @insertPlaceholder="insertUrlPlaceholder" />
+        </expandable-component>
 	</div>
 </template>
 

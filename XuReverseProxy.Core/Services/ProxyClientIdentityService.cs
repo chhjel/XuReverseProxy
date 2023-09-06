@@ -29,14 +29,11 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
     public const string ClientIdCookieName = "___xupid";
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ApplicationDbContext _dbContext;
-    private readonly IProxyAuthenticationConditionChecker _proxyAuthenticationConditionChecker;
 
-    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext,
-        IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker)
+    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext)
     {
         _serverConfig = serverConfig;
         _dbContext = dbContext;
-        _proxyAuthenticationConditionChecker = proxyAuthenticationConditionChecker;
     }
 
     public async Task<ProxyClientIdentity?> GetProxyClientIdentityAsync(Guid id)

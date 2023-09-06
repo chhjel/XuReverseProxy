@@ -1,5 +1,7 @@
-﻿using XuReverseProxy.Core.Attributes;
+﻿using System.Web;
+using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.ProxyAuthentication.Attributes;
+using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 
@@ -26,7 +28,7 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
     public record ProxyChallengeTypeOTPFrontendModel(bool HasSentCode, DateTime? CodeSentAt, string? Description);
 
     [InvokableProxyAuthMethod]
-    public async Task<TrySendOTPResponseModel> TrySendOTPAsync(ProxyChallengeInvokeContext context, TrySendOTPRequestModel request)
+    public async Task<TrySendOTPResponseModel> TrySendOTPAsync(ProxyChallengeInvokeContext context, TrySendOTPRequestModel _)
     {
         if (string.IsNullOrWhiteSpace(WebHookUrl)) return new(false, "Webhook not configured");
 
@@ -78,6 +80,7 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
         var httpClient = context.GetService<IHttpClientFactory>().CreateClient();
 
         var url = WebHookUrl?.Replace("{{code}}", code);
+        url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, context.ClientIdentity, context.ProxyConfig, context.AuthenticationData);
 
         var method = HttpMethod.Get;
         if (!string.IsNullOrWhiteSpace(WebHookRequestMethod)) method = new HttpMethod(WebHookRequestMethod);
