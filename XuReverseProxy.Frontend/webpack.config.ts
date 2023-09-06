@@ -24,8 +24,7 @@ const mode = process.env.NODE_ENV ?? "development";
 const isProduction = mode === "production";
 const isDevelopment = !isProduction;
 
-const forceAspBundle = process.env.FORCE_ASP_BUNDLE == "true";
-const useAspPaths = isProduction || forceAspBundle;
+const outputToProject = process.env.OUTPUT_TO_PROJECT == "true";
 
 const config: Configuration = {
   mode: isProduction ? "production" : "development",
@@ -51,10 +50,10 @@ const config: Configuration = {
     extensions: [".js", ".ts", ".vue", ".scss"],
   },
   output: {
-    path: useAspPaths
+    path: outputToProject
       ? path.resolve(__dirname, "../XuReverseProxy/wwwroot/dist")
-      : path.resolve(__dirname, "public/build"),
-    publicPath: useAspPaths ? "../XuReverseProxy/wwwroot/dist/" : "/build/",
+      : path.resolve(__dirname, "build"),
+    publicPath: outputToProject ? "../XuReverseProxy/wwwroot/dist/" : "/build/",
     filename: "[name].js",
     chunkFilename: "[name].[id].js",
   },

@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack",
-    "watch": "cross-env FORCE_ASP_BUNDLE=true webpack --watch --mode=development",
+    "watch": "cross-env OUTPUT_TO_PROJECT=true webpack --watch --mode=development",
     "start": "serve public --listen 8080"
   },
   "devDependencies": {

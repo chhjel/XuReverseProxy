@@ -1,3 +1,5 @@
+# docker build -f .\XuReverseProxy\Dockerfile . -t xureverseproxy-testbuild --progress=plain --no-cache#
+
 ##########################################################
 # Build frontend
 FROM node:16 as frontend-build
@@ -23,8 +25,8 @@ COPY XuReverseProxy.FrontendModelGeneration/*.csproj ./XuReverseProxy.FrontendMo
 RUN dotnet restore
 
 COPY ./ ./
-COPY --from=frontend-build /XuReverseProxy/wwwroot/dist/* /XuReverseProxy/wwwroot/dist/*
 RUN dotnet publish "XuReverseProxy/XuReverseProxy.csproj" -c Release -o out
+COPY --from=frontend-build /frontend/build/* /app/out/wwwroot/dist/
 
 # Start backend
 FROM mcr.microsoft.com/dotnet/aspnet:7.0

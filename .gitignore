@@ -13,3 +13,5 @@ XuReverseProxy/wwwroot/dist/
 Scripts/swap/bin-swap-old/
 Scripts/swap/data/
 Scripts/swap/bin-swap/
+
+XuReverseProxy.Frontend/build/
