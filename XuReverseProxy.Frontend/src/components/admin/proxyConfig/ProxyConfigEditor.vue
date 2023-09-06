@@ -113,6 +113,7 @@ export default class ProxyConfigEditor extends Vue {
 		font-size: 16px;
 		padding: 10px;
 		margin-top: 10px;
+		flex-wrap: wrap;
 
 		.icon {
 			color: var(--color--info-base);

@@ -63,14 +63,14 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
 	<div class="challenge-admin-login">
 		<div class="challenge-header">
 			<div class="material-icons icon">key</div>
-			<div class="challenge-title">Login</div>
+			<div class="challenge-title">Admin login</div>
 		</div>
 
-		<div v-if="options.description" class="challenge-login__description">
+		<div v-if="options.description" class="challenge-admin-login__description">
 			<p>{{ options.description }}</p>
 		</div>
 
-		<div class="challenge-login__inputs">
+		<div class="challenge-admin-login__inputs">
 			<text-input-component
 				v-model:value="username"
 				placeholder="Username"
@@ -94,7 +94,7 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
 			<button-component @click="onLoginClicked" :disabled="isLoading" class="ml-0 secondary">Login</button-component>
 		</div>
 		
-		<div v-if="statusMessage" class="challenge-login__status" :class="{ 'error': statusIsError }">
+		<div v-if="statusMessage" class="challenge-admin-login__status" :class="{ 'error': statusIsError }">
 			{{ statusMessage }}
 		</div>
 	</div>
@@ -110,7 +110,6 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
 	&__inputs {
 		max-width: 300px;
     	margin: 20px auto 0 auto;
-		/* text-align: center; */
 	}
 
 	&__status {

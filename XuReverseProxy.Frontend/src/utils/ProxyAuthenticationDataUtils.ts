@@ -1,4 +1,5 @@
 import { ProxyAuthenticationData } from "@generated/Models/Core/ProxyAuthenticationData";
+import { ProxyAuthChallengeTypeOptions } from "./Constants";
 
 export function createProxyAuthenticationSummary(auth: ProxyAuthenticationData): string {
     const data = JSON.parse(auth.challengeJson);
@@ -18,4 +19,8 @@ export function createProxyAuthenticationSummary(auth: ProxyAuthenticationData):
     else if (auth.challengeTypeId == 'ProxyChallengeTypeOTP') return `Require one-time password`;
     else if (auth.challengeTypeId == 'ProxyChallengeTypeManualApproval') return `Require manual approval`;
     else return auth.challengeTypeId;
+}
+
+export function getProxyAuthenticationTypeName(typeId: string): string {
+    return ProxyAuthChallengeTypeOptions.find(x => x.typeId == typeId)?.name || typeId;
 }
