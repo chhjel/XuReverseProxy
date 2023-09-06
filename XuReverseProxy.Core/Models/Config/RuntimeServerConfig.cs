@@ -76,6 +76,7 @@ public class RuntimeServerConfig
     /// </summary>
     public void EnsureDatabaseRows()
     {
+#pragma warning disable CA2245 // Do not assign a property to itself. Reason: setter updates db.
         EnableForwarding = EnableForwarding;
         EnableManualApprovalPageAuthentication = EnableManualApprovalPageAuthentication;
         NotFoundHtml = NotFoundHtml;
@@ -83,6 +84,7 @@ public class RuntimeServerConfig
         ClientBlockedResponseCode = ClientBlockedResponseCode;
         IPBlockedHtml = IPBlockedHtml;
         IPBlockedResponseCode = IPBlockedResponseCode;
+#pragma warning restore CA2245 // Do not assign a property to itself
     }
 
     private int GetConfigInt(string key, int defaultValue)

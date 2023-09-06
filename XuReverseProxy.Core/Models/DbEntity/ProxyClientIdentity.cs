@@ -24,11 +24,11 @@ public class ProxyClientIdentity : IProvidesPlaceholders, IHasId
     public ICollection<ProxyClientIdentitySolvedChallengeData> SolvedChallenges { get; } = new List<ProxyClientIdentitySolvedChallengeData>();
     public ICollection<ProxyClientIdentityData> Data { get; } = new List<ProxyClientIdentityData>();
 
-    public string ResolvePlaceholders(string template)
+    public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {
         return template
-            .Replace("{{Client.IP}}", IP, StringComparison.OrdinalIgnoreCase)
-            .Replace("{{Client.UserAgent}}", UserAgent, StringComparison.OrdinalIgnoreCase)
-            .Replace("{{Client.BlockedMessage}}", BlockedMessage, StringComparison.OrdinalIgnoreCase);
+            .Replace("{{Client.IP}}", transformer(IP), StringComparison.OrdinalIgnoreCase)
+            .Replace("{{Client.UserAgent}}", transformer(UserAgent), StringComparison.OrdinalIgnoreCase)
+            .Replace("{{Client.BlockedMessage}}", transformer(BlockedMessage), StringComparison.OrdinalIgnoreCase);
     }
 }

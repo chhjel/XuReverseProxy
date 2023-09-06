@@ -2,5 +2,5 @@
 
 public interface IProvidesPlaceholders
 {
-    string ResolvePlaceholders(string template);
+    string ResolvePlaceholders(string template, Func<string?, string?> transformer);
 }

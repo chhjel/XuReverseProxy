@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
-import { Vue, Inject } from 'vue-property-decorator'
+import { Vue, Inject, Ref } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
@@ -8,13 +8,18 @@ import ServerConfigService from "@services/ServerConfigService";
 import { RuntimeServerConfigItem } from "@generated/Models/Core/RuntimeServerConfigItem";
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
+import ExpandableComponent from "@components/common/ExpandableComponent.vue";
+import { ClientBlockedHtmlPlaceholders, PlaceholderGroupInfo, PlaceholderInfo } from "@utils/Constants";
+import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
 		CheckboxComponent,
-		CodeInputComponent
+		CodeInputComponent,
+		ExpandableComponent,
+		PlaceholderInfoComponent
 	}
 })
 export default class ServerConfigPage extends Vue {
@@ -24,6 +29,13 @@ export default class ServerConfigPage extends Vue {
     service: ServerConfigService = new ServerConfigService();
 	runtimeConfigs: Array<RuntimeServerConfigItem> = [];
 
+    @Ref() readonly clientBlockedHtmlEditor!: any;
+
+	clientBlockedHtmlPlaceholdersExtra: Array<PlaceholderInfo> = [{
+		name: "blocked_message",
+		description: "Can be used as a placeholder for the blocked message."
+	}];
+	clientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = ClientBlockedHtmlPlaceholders;
 	config_NotFoundHtml: string = '';
 	config_ClientBlockedHtml: string = '';
 	config_ClientBlockedResponseCode: string = '';
@@ -94,6 +106,10 @@ export default class ServerConfigPage extends Vue {
 		await this.saveConfig('IPBlockedHtml', this.config_IPBlockedHtml);
 		await this.saveConfig('IPBlockedResponseCode', this.config_IPBlockedResponseCode);
 	}
+
+	insertPlaceholderClientBlockedHtml(val: string): void {
+		this.clientBlockedHtmlEditor.insertText(val);
+	}
 }
 </script>
 
@@ -120,21 +136,28 @@ export default class ServerConfigPage extends Vue {
 
 			<div class="block-title mt-4">404 HTML</div>
 			<div class="block">
-				<code-input-component v-model:value="config_NotFoundHtml" :disabled="isLoading" language="html" style="height: 400px" />
+				<code-input-component v-model:value="config_NotFoundHtml" :disabled="isLoading" language="html" height="400px"/>
 				<button-component @click="saveConfig('NotFoundHtml', config_NotFoundHtml)" class="ml-0 mt-3">Save</button-component>
 			</div>
 
 			<div class="block-title mt-4">Client blocked HTML</div>
 			<div class="block">
-				<code-input-component v-model:value="config_ClientBlockedHtml" :disabled="isLoading" language="html" style="height: 400px" />
-        		<p><code>&#123;&#123;blocked_message&#125;&#125;</code> can be used as a placeholder for the blocked message.</p>
+				<code-input-component v-model:value="config_ClientBlockedHtml" :disabled="isLoading"
+					language="html" height="400px" ref="clientBlockedHtmlEditor" />
+				<expandable-component header="Supported placeholders">
+					<placeholder-info-component
+						:placeholders="clientBlockedHtmlPlaceholders"
+						:additionalPlaceholders="clientBlockedHtmlPlaceholdersExtra" 
+						@insertPlaceholder="insertPlaceholderClientBlockedHtml"
+						/>
+				</expandable-component>
 		    	<text-input-component label="Response code" v-model:value="config_ClientBlockedResponseCode" placeholder="401" class="blocked-response-code-input" />
 				<button-component @click="saveClientBlockedSection" class="ml-0 mt-3">Save</button-component>
 			</div>
 
 			<div class="block-title mt-4">IP blocked HTML</div>
 			<div class="block">
-				<code-input-component v-model:value="config_IPBlockedHtml" :disabled="isLoading" language="html" style="height: 400px" />
+				<code-input-component v-model:value="config_IPBlockedHtml" :disabled="isLoading" language="html" height="400px" />
 		    	<text-input-component label="Response code" v-model:value="config_IPBlockedResponseCode" placeholder="401" class="blocked-response-code-input" />
 				<button-component @click="saveIPBlockedSection" class="ml-0 mt-3">Save</button-component>
 			</div>

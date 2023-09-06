@@ -47,3 +47,44 @@ export const ProxyAuthConditionTypeOptions: Array<ProxyAuthConditionTypeOption> 
         name: 'Week days',
     }
 ];
+
+export interface PlaceholderGroupInfo {
+    name: string;
+    placeholders: Array<PlaceholderInfo>;
+}
+export interface PlaceholderInfo {
+    name: string;
+    description: string;
+}
+export const ProxyConfigPlaceholders: Array<PlaceholderInfo> = [
+    { name: 'ProxyConfig.Name', description: 'Name of the config.' },
+    { name: 'ProxyConfig.Subdomain', description: 'Subdomain where the proxy is configured, or empty if its using the root domain.' },
+    { name: 'ProxyConfig.Port', description: 'Port-number the proxy is configured to listen to, or empty for any port.' },
+    { name: 'ProxyConfig.ChallengeTitle', description: 'Name of the proxy config displayed on the challenge page.' },
+    { name: 'ProxyConfig.ChallengeDescription', description: 'Description of the proxy config displayed on the challenge page.' },
+    { name: 'ProxyConfig.DestinationPrefix', description: 'Proxy target.' }
+];
+export const AuthDataPlaceholders: Array<PlaceholderInfo> = [
+    { name: 'Auth.ChallengeTypeId', description: 'Id of the auth challenge type.' }
+];
+export const ClientIdentityPlaceholders: Array<PlaceholderInfo> = [
+    { name: 'Client.IP', description: 'IP of the client.' },
+    { name: 'Client.UserAgent', description: 'UserAgent value of the client.' },
+    { name: 'Client.BlockedMessage', description: 'Text entered when blocking the client if any.' }
+];
+
+export const ClientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: 'Blocked client', placeholders: ClientIdentityPlaceholders }
+];
+export const LoginUsernamePasswordPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: 'Client', placeholders: ClientIdentityPlaceholders },
+    { name: 'Proxy config', placeholders: ProxyConfigPlaceholders },
+];
+export const ManualApprovalUrlPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: 'Client', placeholders: ClientIdentityPlaceholders },
+    { name: 'Proxy config', placeholders: ProxyConfigPlaceholders }
+];
+export const OTPRequestUrlPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: 'Client', placeholders: ClientIdentityPlaceholders },
+    { name: 'Proxy config', placeholders: ProxyConfigPlaceholders }
+];

@@ -6,7 +6,7 @@ namespace XuReverseProxy.Core.Models.DbEntity;
 
 [GenerateFrontendModel]
 [Serializable]
-public class ProxyAuthenticationData : IHasId
+public class ProxyAuthenticationData : IHasId, IProvidesPlaceholders
 {
     public Guid Id { get; set; }
     public Guid ProxyConfigId { get; set; }
@@ -29,4 +29,10 @@ public class ProxyAuthenticationData : IHasId
 
     public TimeSpan? SolvedDuration { get; set; }
     public ICollection<ProxyAuthenticationCondition> Conditions { get; } = new List<ProxyAuthenticationCondition>();
+
+    public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
+    {
+        return template
+            .Replace("{{Auth.ChallengeTypeId}}", transformer(ChallengeTypeId), StringComparison.OrdinalIgnoreCase);
+    }
 }

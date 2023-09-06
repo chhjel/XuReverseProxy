@@ -1,13 +1,3 @@
-<template>
-    <div class="editor-component" :class="rootClasses">
-        <div class="editor-component__loader-bar" v-if="!isEditorInited">
-            Loading...
-        </div>
-
-        <div ref="editorElement" class="editor-component__editor"></div>
-    </div>
-</template>
-
 <script lang="ts">
 import { Vue, Prop, Watch } from "vue-property-decorator";
 import { Options } from "vue-class-component";
@@ -23,8 +13,17 @@ export default class CodeInputComponent extends Vue {
     @Prop({ required: false, default: "json" })
     language!: string;
 
+    @Prop({ required: false, default: '200px' })
+    height!: string;
+
+    @Prop({ required: false, default: "" })
+    label!: string;
+
     @Prop({ required: false, default: false })
     readOnly!: boolean;
+
+    @Prop({ required: false, default: false })
+    wordWrap!: boolean;
 
     @Prop({ required: false, default: "vs-dark" }) // 'vs' (default), 'vs-dark', 'hc-black'
     theme!: string;
@@ -63,6 +62,10 @@ export default class CodeInputComponent extends Vue {
         this.editor.getAction("editor.foldAllMarkerRegions").run();
     }
 
+    public insertText(val: string): void {
+        this.editor.trigger('keyboard', 'type', {text: val});
+    }
+
     getCursorPosition(): number {
         var model = this.editor.getModel();
         let pos = this.editor.getPosition();
@@ -79,6 +82,12 @@ export default class CodeInputComponent extends Vue {
             'editor-readonly': this.readOnly
         };
         return classes;
+    }
+
+    get rootStyle(): any {
+        return {
+            height: this.height
+        };
     }
     
     ////////////////////////////////////////////////////////////
@@ -146,7 +155,9 @@ export default class CodeInputComponent extends Vue {
             language: this.language,
             readOnly: this.readOnly,
             glyphMargin: !this.readOnly,
-            theme: this.theme
+            theme: this.theme,
+            lineNumbersMinChars: 2,
+            wordWrap: this.wordWrap ? "on" : "off"
         });
         
         const fitHeightToContent: boolean = false;
@@ -216,11 +227,26 @@ export default class CodeInputComponent extends Vue {
         if (this.prevHeight !== height) {
             this.prevHeight = height
             editorElement.style.height = `${height}px`
-            this.editor.layout()
+            this.editor.layout();
         }
     }
 }
 </script>
+
+<template>
+    <div>
+        <div class="input-wrapper" v-if="label">
+            <label>{{ label }}</label>
+        </div>
+        <div class="editor-component" :class="rootClasses" :style="rootStyle">
+            <div class="editor-component__loader-bar" v-if="!isEditorInited">
+                Loading...
+            </div>
+
+            <div ref="editorElement" class="editor-component__editor"></div>
+        </div>
+    </div>
+</template>
 
 <style scoped lang="scss">
 .editor-component {

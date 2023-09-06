@@ -3,6 +3,7 @@ using System.Web;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.ProxyAuthentication.Attributes;
+using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 
@@ -74,6 +75,7 @@ public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
 
             var httpClient = context.GetService<IHttpClientFactory>().CreateClient();
             var url = WebHookUrl?.Replace("{{url}}", HttpUtility.UrlEncode(approvalUrl));
+            url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, context.ClientIdentity, context.ProxyConfig, context.AuthenticationData);
 
             var method = HttpMethod.Get;
             if (!string.IsNullOrWhiteSpace(WebHookRequestMethod)) method = new HttpMethod(WebHookRequestMethod);
