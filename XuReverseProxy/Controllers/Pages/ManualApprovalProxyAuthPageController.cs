@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using QoDL.Toolkit.Core.Util;
+using QoDL.Toolkit.Web.Core.Utils;
 using XuReverseProxy.Attributes;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Config;
@@ -22,15 +24,18 @@ public class ManualApprovalProxyAuthPageController : Controller
     private readonly IIPLookupService _ipLookupService;
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly IProxyChallengeService _proxyChallengeService;
+    private readonly IIPBlockService _iPBlockService;
 
     public ManualApprovalProxyAuthPageController(IProxyClientIdentityService proxyClientIdentityService,
-        ApplicationDbContext dbContext, IIPLookupService ipLookupService, IOptionsMonitor<ServerConfig> serverConfig, IProxyChallengeService proxyChallengeService)
+        ApplicationDbContext dbContext, IIPLookupService ipLookupService, IOptionsMonitor<ServerConfig> serverConfig,
+        IProxyChallengeService proxyChallengeService, IIPBlockService iPBlockService)
     {
         _proxyClientIdentityService = proxyClientIdentityService;
         _dbContext = dbContext;
         _ipLookupService = ipLookupService;
         _serverConfig = serverConfig;
         _proxyChallengeService = proxyChallengeService;
+        _iPBlockService = iPBlockService;
     }
 
     [AuthorizeIfEnabled(nameof(RuntimeServerConfig.EnableManualApprovalPageAuthentication))]
@@ -61,6 +66,9 @@ public class ManualApprovalProxyAuthPageController : Controller
             EasyCode = easyCode,
             RequestedAt = requestedAt
         };
+
+        var rawIp = TKRequestUtils.GetIPAddress(Request.HttpContext);
+        var selfIpData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
 
         IPLookupResult? ipLocation = null;
 #if DEBUG
@@ -102,6 +110,20 @@ public class ManualApprovalProxyAuthPageController : Controller
                 ConditionsNotMet = conditionsData.Any(x => !x.Passed)
             });
         }
+
+        var clientIPIsBlocked = false;
+        Guid? clientIpBlockId = null;
+        var canUnblockIP = false;
+        var ipBlockType = BlockedIpDataType.None;
+        if (!string.IsNullOrWhiteSpace(client.IP))
+        {
+            var blockedIpData = await _iPBlockService.GetMatchingBlockedIpDataForAsync(client.IP);
+            clientIPIsBlocked = blockedIpData != null;
+            clientIpBlockId = blockedIpData?.Id;
+            canUnblockIP = !string.IsNullOrWhiteSpace(blockedIpData?.IP);
+            ipBlockType = blockedIpData?.Type ?? BlockedIpDataType.None;
+        }
+
         return View(new ManualApprovalProxyAuthPageViewModel
         {
             FrontendModel = new ManualApprovalProxyAuthPageViewModel.ManualApprovalProxyAuthPageFrontendModel
@@ -112,6 +134,11 @@ public class ManualApprovalProxyAuthPageController : Controller
                 IsLoggedIn = User.Identity?.IsAuthenticated == true,
                 Url = url,
                 Client = clientData,
+                ClientIPIsBlocked = clientIPIsBlocked,
+                ClientIPBlockId = clientIpBlockId,
+                SelfIP = selfIpData?.IP,
+                CanUnblockIP = canUnblockIP,
+                IPBlockType = ipBlockType,
                 CurrentChallengeData = challengeData,
                 AllChallengeData = allChallengeData,
                 ProxyConfig = new ManualApprovalProxyAuthPageViewModel.ManualApprovalProxyAuthPageFrontendModel.ProxyConfigFrontendModel
@@ -185,5 +212,45 @@ public class ManualApprovalProxyAuthPageController : Controller
     }
     [GenerateFrontendModel]
     public record SetClientBlockedFromManualApprovalRequestMessage(bool Blocked, string Message);
+
+    [AuthorizeIfEnabled(nameof(RuntimeServerConfig.EnableManualApprovalPageAuthentication))]
+    [HttpPost("/proxyAuth/approve/{clientIdentityId}/{authenticationId}/{solvedId}/blockip")]
+    public async Task<IActionResult> SetClientIPBlocked([FromRoute] Guid clientIdentityId, [FromRoute] Guid authenticationId, [FromRoute] Guid solvedId,
+        [FromBody] SetClientIPBlockedFromManualApprovalRequestMessage request)
+    {
+        if (!ModelState.IsValid) return Json(false);
+
+        // Ensure id's are valid
+        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
+        if (auth == null) return Json(false);
+        var client = await _proxyClientIdentityService.GetProxyClientIdentityAsync(clientIdentityId);
+        if (client == null) return Json(false);
+
+        var data = await _iPBlockService.BlockIPAsync(request.IP, request.Note, clientIdentityId);
+
+        return Json(data.Id);
+    }
+    [GenerateFrontendModel]
+    public record SetClientIPBlockedFromManualApprovalRequestMessage(string IP, string Note);
+
+    [AuthorizeIfEnabled(nameof(RuntimeServerConfig.EnableManualApprovalPageAuthentication))]
+    [HttpPost("/proxyAuth/approve/{clientIdentityId}/{authenticationId}/{solvedId}/removeipblock")]
+    public async Task<IActionResult> RemoveIpBlock([FromRoute] Guid clientIdentityId, [FromRoute] Guid authenticationId, [FromRoute] Guid solvedId,
+        [FromBody] RemoveIPBlockFromManualApprovalRequestMessage request)
+    {
+        if (!ModelState.IsValid) return Json(false);
+
+        // Ensure id's are valid
+        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
+        if (auth == null) return Json(false);
+        var client = await _proxyClientIdentityService.GetProxyClientIdentityAsync(clientIdentityId);
+        if (client == null) return Json(false);
+
+        await _iPBlockService.RemoveIPBlockByIdAsync(request.IPBlockId);
+
+        return Json(true);
+    }
+    [GenerateFrontendModel]
+    public record RemoveIPBlockFromManualApprovalRequestMessage(Guid IPBlockId);
     #endregion
 }

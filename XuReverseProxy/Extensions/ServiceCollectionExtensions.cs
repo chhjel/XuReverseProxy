@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProxyAuthenticationChallengeFactory, ProxyAuthenticationChallengeFactory>();
         services.AddScoped<IProxyAuthenticationConditionChecker, ProxyAuthenticationConditionChecker>();
 
+        services.AddScoped<IIPBlockService, IPBlockService>();
         services.AddSingleton<IIPLookupService, IPWhoIsIPLookupService>();
 
         return services;

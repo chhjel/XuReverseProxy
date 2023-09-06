@@ -27,6 +27,8 @@ export default class ServerConfigPage extends Vue {
 	config_NotFoundHtml: string = '';
 	config_ClientBlockedHtml: string = '';
 	config_ClientBlockedResponseCode: string = '';
+	config_IPBlockedHtml: string = '';
+	config_IPBlockedResponseCode: string = '';
 
 	async mounted() {
 		await this.loadConfig();
@@ -34,6 +36,8 @@ export default class ServerConfigPage extends Vue {
 		this.config_NotFoundHtml = this.getConfigString('NotFoundHtml');
 		this.config_ClientBlockedHtml = this.getConfigString('ClientBlockedHtml');
 		this.config_ClientBlockedResponseCode = this.getConfigString('ClientBlockedResponseCode');
+		this.config_IPBlockedHtml = this.getConfigString('IPBlockedHtml');
+		this.config_IPBlockedResponseCode = this.getConfigString('IPBlockedResponseCode');
 	}
 
 	async loadConfig() {
@@ -85,6 +89,11 @@ export default class ServerConfigPage extends Vue {
 		await this.saveConfig('ClientBlockedHtml', this.config_ClientBlockedHtml);
 		await this.saveConfig('ClientBlockedResponseCode', this.config_ClientBlockedResponseCode);
 	}
+
+	async saveIPBlockedSection() {
+		await this.saveConfig('IPBlockedHtml', this.config_IPBlockedHtml);
+		await this.saveConfig('IPBlockedResponseCode', this.config_IPBlockedResponseCode);
+	}
 }
 </script>
 
@@ -121,6 +130,13 @@ export default class ServerConfigPage extends Vue {
         		<p><code>&#123;&#123;blocked_message&#125;&#125;</code> can be used as a placeholder for the blocked message.</p>
 		    	<text-input-component label="Response code" v-model:value="config_ClientBlockedResponseCode" placeholder="401" class="blocked-response-code-input" />
 				<button-component @click="saveClientBlockedSection" class="ml-0 mt-3">Save</button-component>
+			</div>
+
+			<div class="block-title mt-4">IP blocked HTML</div>
+			<div class="block">
+				<code-input-component v-model:value="config_IPBlockedHtml" :disabled="isLoading" language="html" style="height: 400px" />
+		    	<text-input-component label="Response code" v-model:value="config_IPBlockedResponseCode" placeholder="401" class="blocked-response-code-input" />
+				<button-component @click="saveIPBlockedSection" class="ml-0 mt-3">Save</button-component>
 			</div>
 		</div>
 	</div>

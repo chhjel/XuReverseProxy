@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using QoDL.Toolkit.Core.Util;
+using QoDL.Toolkit.Web.Core.Utils;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Security;
@@ -30,20 +32,30 @@ public class ReverseProxyMiddleware
         _nextMiddleware = nextMiddleware;
     }
 
-    public async Task Invoke(HttpContext context, IHttpForwarder forwarder, 
-        IDevDataSeeder proxyConfigService, IOptionsMonitor<ServerConfig> serverConfig,
+    public async Task Invoke(HttpContext context, IHttpForwarder forwarder,
+        IOptionsMonitor<ServerConfig> serverConfig,
         IProxyAuthenticationChallengeFactory authChallengeFactory,
         IProxyClientIdentityService proxyClientIdentityService,
         ApplicationDbContext applicationDbContext,
         IServiceProvider serviceProvider,
         RuntimeServerConfig runtimeServerConfig,
         IProxyChallengeService proxyChallengeService,
-        IMemoryCache memoryCache)
+        IMemoryCache memoryCache,
+        IIPBlockService ipBlockService)
     {
         var host = context.Request.Host.Host;
         var hostParts = host.Split('.');
         var subdomain = hostParts.Length >= 3 ? hostParts[0] : string.Empty;
         var port = context.Request.Host.Port;
+
+        var rawIp = TKRequestUtils.GetIPAddress(context);
+        var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
+        if (ipData?.IP != null && await ipBlockService.IsIPBlockedAsync(ipData.IP))
+        {
+            var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.IPBlockedHtml);
+            await SetResponse(context, html, runtimeServerConfig.IPBlockedResponseCode);
+            return;
+        }
 
         // Prevent forwarding admin interface
         if ($"{subdomain}" == $"{serverConfig.CurrentValue.Domain.AdminSubdomain}")

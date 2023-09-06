@@ -2,6 +2,7 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
+import { BlockedIpDataType } from '../../Enums/Core/BlockedIpDataType';
 import { ClientDataFrontendModel } from './ClientDataFrontendModel';
 import { CurrentChallengeDataFrontendModel } from './CurrentChallengeDataFrontendModel';
 import { ChallengeDataFrontendModel } from './ChallengeDataFrontendModel';
@@ -12,10 +13,15 @@ export interface ManualApprovalProxyAuthPageFrontendModel
 	authenticationId: string;
 	solvedId: string;
 	isLoggedIn: boolean;
+	clientIPIsBlocked: boolean;
+	clientIPBlockId: string;
+	canUnblockIP: boolean;
+	ipBlockType: BlockedIpDataType;
 	client: ClientDataFrontendModel;
 	currentChallengeData: CurrentChallengeDataFrontendModel;
 	allChallengeData: ChallengeDataFrontendModel[];
 	proxyConfig: ProxyConfigFrontendModel;
 	isApproved: boolean;
 	url: string;
+	selfIP: string;
 }
