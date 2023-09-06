@@ -39,7 +39,7 @@ stages:
         tags: |
           $(versionTag)
           latest
-        arguments: --label branch=$(cleanSourceBranch)
+        arguments: --label branch=$(cleanSourceBranch) --build-arg BUILD_VERSION="$(versionTag)"
 
     - task: Docker@2
       displayName: Push image to docker hub.docker.com
