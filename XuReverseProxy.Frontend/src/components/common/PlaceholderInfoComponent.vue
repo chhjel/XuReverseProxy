@@ -51,6 +51,8 @@ export default class PlaceholderInfoComponent extends Vue {
 
 <style scoped lang="scss">
 .placeholder-details {
+    overflow-x: auto;
+    
     table {
         text-align: left;
     }
