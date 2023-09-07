@@ -14,7 +14,6 @@ export default class PlaceholderInfoComponent extends Vue {
     additionalPlaceholders: Array<PlaceholderInfo>
 
     allPlaceholderData: Array<PlaceholderInfo> = [];
-    // todo: emit insert
 
     mounted(): void {
         this.additionalPlaceholders.forEach(d => {

@@ -14,7 +14,6 @@ using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication;
 using XuReverseProxy.Core.Services;
 using XuReverseProxy.Core.Utils;
-using XuReverseProxy.Extensions;
 using XuReverseProxy.Models.ViewModels.Special;
 using Yarp.ReverseProxy.Forwarder;
 
@@ -43,6 +42,10 @@ public class ReverseProxyMiddleware
         IMemoryCache memoryCache,
         IIPBlockService ipBlockService)
     {
+        // Check for special cases first
+        if (await TryHandleInternalRequestAsync(context, _nextMiddleware))
+            return;
+
         var host = context.Request.Host.Host;
         var hostParts = host.Split('.');
         var subdomain = hostParts.Length >= 3 ? hostParts[0] : string.Empty;
@@ -112,7 +115,7 @@ public class ReverseProxyMiddleware
         // Check cached approval, access allowed is cached for 5 seconds
         if (memoryCache.TryGetValue($"__client_allowed_{proxyConfig.Id}", out _))
         {
-            await forwardRequest(context, forwarder, proxyClientIdentityService, proxyConfig, clientIdentity);
+            await forwardRequest();
             return;
         }
 
@@ -140,20 +143,19 @@ public class ReverseProxyMiddleware
             // Show challenge page if everything isnt solved yet
             if (!allChallengesSolved)
             {
-                await ShowAuthChallengeAsync(context, pageModel, serverConfig.CurrentValue);
+                await ShowAuthChallengeAsync(context, pageModel);
                 return;
             }
         }
 
         // Allowed => update cache & forward
         memoryCache.Set($"__client_allowed_{proxyConfig.Id}", true, DateTimeOffset.Now + TimeSpan.FromSeconds(5));
-        await forwardRequest(context, forwarder, proxyClientIdentityService, proxyConfig, clientIdentity);
+        await forwardRequest();
 
-        static async Task forwardRequest(HttpContext context, IHttpForwarder forwarder, 
-            IProxyClientIdentityService proxyClientIdentityService, ProxyConfig proxyConfig, ProxyClientIdentity? clientIdentity)
+        async Task forwardRequest()
         {
             if (clientIdentity != null) await proxyClientIdentityService.TryUpdateLastAccessedAtAsync(clientIdentity.Id);
-            await ForwardRequestAsync(context, forwarder, proxyConfig);
+            await ForwardRequestAsync(context, forwarder, proxyConfig, serverConfig.CurrentValue);
         }
     }
 
@@ -254,16 +256,15 @@ public class ReverseProxyMiddleware
     #endregion
 
     #region Proxy auth challenge view
-    private static async Task ShowAuthChallengeAsync(HttpContext context, ProxyChallengePageFrontendModel pageModel, ServerConfig serverConfig)
+    private static async Task ShowAuthChallengeAsync(HttpContext context, ProxyChallengePageFrontendModel pageModel)
     {
         context.Response.StatusCode = StatusCodes.Status200OK;
-        string html = CreateChallengePageHtml(serverConfig, pageModel);
+        string html = CreateChallengePageHtml(pageModel);
         await context.Response.WriteAsync(html);
     }
 
-    private static string CreateChallengePageHtml(ServerConfig config, ProxyChallengePageFrontendModel pageModel)
+    private static string CreateChallengePageHtml(ProxyChallengePageFrontendModel pageModel)
     {
-        // todo: hide admin domain for js/css in frontend. Intercept and handle instead.
         var title = !string.IsNullOrWhiteSpace(pageModel.Title) ? pageModel.Title : "XuReverseProxy";
         var pageModelJson = JsonSerializer.Serialize(pageModel, JsonConfig.DefaultOptions);
         return $@"<!DOCTYPE html>
@@ -274,18 +275,35 @@ public class ReverseProxyMiddleware
     <meta name=""robots"" content=""none"" />
     <title>{title}</title>
     <link rel=""stylesheet"" href=""https://fonts.googleapis.com/css?family=Montserrat|Material+Icons"" crossorigin=""anonymous"" />
-    <link rel=""stylesheet"" href=""{config.Domain.GetFullAdminDomain()}/dist/serverui.css"" asp-append-version=""true"" />
+    <link rel=""stylesheet"" href=""{CreateInternalUrl("dist/serverui.css")}"" asp-append-version=""true"" />
 </head>
 <body>
     <main role=""main"">
         <div data-vue-component=""ProxyChallengePage"" data-vue-options=""{WebUtility.HtmlEncode(pageModelJson)}""></div>
     </main>
 
-    <script defer src=""{config.Domain.GetFullAdminDomain()}/dist/serverui.js"" asp-append-version=""true""></script>
+    <script defer src=""{CreateInternalUrl("dist/serverui.js")}"" asp-append-version=""true""></script>
 </body>
 </html>";
     }
     #endregion
+
+    private static readonly Guid _internalEndpointGuid = Guid.NewGuid();
+    private static string CreateInternalUrl(string path) => $"/proxy-internal/{_internalEndpointGuid}/{path}";
+
+    private static async Task<bool> TryHandleInternalRequestAsync(HttpContext context, RequestDelegate _nextMiddleware)
+    {
+        // Proxying assets through here to not expose admin subdomain on e.g. the challenge page.
+        var distPrefix = CreateInternalUrl("dist/");
+        if (context.Request.Method == "GET" && context.Request.Path.ToString().StartsWith(distPrefix))
+        {
+            context.Request.Path = $"/dist/{context.Request.Path.Value?[distPrefix.Length..]}";
+            await _nextMiddleware(context);
+            return true;
+        }
+
+        return false;
+    }
 
     private static async Task SetResponse(HttpContext context, string? html, int statusCode = StatusCodes.Status200OK)
     {
@@ -293,77 +311,35 @@ public class ReverseProxyMiddleware
         await context.Response.WriteAsync(html ?? string.Empty);
     }
 
-    private static async Task ForwardRequestAsync(HttpContext context, IHttpForwarder forwarder, ProxyConfig proxyConfig)
+    private static async Task ForwardRequestAsync(HttpContext context, IHttpForwarder forwarder, ProxyConfig proxyConfig, ServerConfig serverConfig)
     {
         var destinationPrefix = proxyConfig.DestinationPrefix;
         if (string.IsNullOrWhiteSpace(destinationPrefix)) return;
 
         var transformer = XuHttpTransformer.Instance; //HttpTransformer.Default;
         var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
+
         var socksHandler = new SocketsHttpHandler()
         {
             UseProxy = false,
             AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.None,
             UseCookies = false,
-            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current),
-            SslOptions = new SslClientAuthenticationOptions
-            {
-                // todo: server config for this
-                RemoteCertificateValidationCallback = (object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors) => true
-            }
+            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current)
         };
+        if (!serverConfig.ValidateUpstreamCertificateIssues)
+        {
+            socksHandler.SslOptions = new()
+            {
+                RemoteCertificateValidationCallback = (object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors) => true
+            };
+        }
         var httpClient = new HttpMessageInvoker(socksHandler);
 
         var error = await forwarder.SendAsync(context, destinationPrefix, httpClient, requestOptions, transformer);
         if (error != ForwarderError.None)
         {
             // todo log. Add LastErrorAt & update if more than 5 min since last?
-        }
-    }
-
-    public class XuHttpTransformer : HttpTransformer
-    {
-        public static XuHttpTransformer Instance { get; } = new();
-        private readonly HttpTransformer _defaultTransformer;
-
-        public XuHttpTransformer()
-        {
-            _defaultTransformer = Default;
-        }
-
-        public override async ValueTask TransformRequestAsync(HttpContext httpContext, HttpRequestMessage proxyRequest, 
-            string destinationPrefix, CancellationToken cancellationToken)
-        {
-            if (!string.IsNullOrWhiteSpace(httpContext.Request.Headers.Cookie))
-            {
-                httpContext.Request.Headers.Cookie = RemoveInternalCookies(httpContext.Request.Headers.Cookie);
-            }
-            await _defaultTransformer.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
-        }
-
-        private static readonly HashSet<string> _internalCookieNames = new(new[] {
-            ProxyClientIdentityService.ClientIdCookieName,
-            ServiceCollectionExtensions.AuthCookieName,
-            ServiceCollectionExtensions.IdentityCookieName,
-            ServiceCollectionExtensions.AntiForgeryCookieName
-        });
-        private static string? RemoveInternalCookies(string? rawCookieHeader)
-        {
-            if (string.IsNullOrWhiteSpace(rawCookieHeader)) return rawCookieHeader;
-
-            static bool shouldRemoveCookie(string rawCookie)
-            {
-                var eqPos = rawCookie.IndexOf('=');
-                if (eqPos == -1) return false;
-
-                var name = rawCookie[..eqPos].Trim();
-                return _internalCookieNames.Contains(name);
-            }
-            
-            var partsToKeep = rawCookieHeader.Split(";")
-                .Where(x => !shouldRemoveCookie(x));
-            return string.Join(';', partsToKeep);
         }
     }
 }
