@@ -337,6 +337,11 @@ export default class DialogComponent extends Vue {
                 margin-bottom: -30px;
                 padding: 10px 30px;
                 border-top: 2px solid var(--color--accent-darken9);
+
+                :deep(.button) {
+                    margin-left: 0;
+                    margin-right: 20px;
+                }
             }
             &_content {
                 overflow-y: auto;
