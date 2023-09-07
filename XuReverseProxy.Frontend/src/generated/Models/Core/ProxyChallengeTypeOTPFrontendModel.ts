@@ -7,4 +7,5 @@ export interface ProxyChallengeTypeOTPFrontendModel
 	hasSentCode: boolean;
 	codeSentAt: Date;
 	description: string;
+	authenticationId: string;
 }

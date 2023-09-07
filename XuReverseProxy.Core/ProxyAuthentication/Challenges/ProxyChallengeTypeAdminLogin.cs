@@ -13,11 +13,11 @@ public class ProxyChallengeTypeAdminLogin : ProxyChallengeTypeBase
 
     public override Task<object> CreateFrontendChallengeModelAsync(ProxyChallengeInvokeContext context)
     {
-        return Task.FromResult<object>(new ProxyChallengeTypeAdminLoginFrontendModel(Description));
+        return Task.FromResult<object>(new ProxyChallengeTypeAdminLoginFrontendModel(Description, context.AuthenticationData.Id));
     }
 
     [GenerateFrontendModel]
-    public record ProxyChallengeTypeAdminLoginFrontendModel(string? Description);
+    public record ProxyChallengeTypeAdminLoginFrontendModel(string? Description, Guid AuthenticationId);
 
     [InvokableProxyAuthMethod]
     public async Task<VerifyAdminLoginResponseModel> VerifyLoginAsync(ProxyChallengeInvokeContext context, VerifyAdminLoginRequestModel request)

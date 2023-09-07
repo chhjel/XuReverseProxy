@@ -18,7 +18,7 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
   	@Prop()
 	options: ProxyChallengeTypeAdminLoginFrontendModel;
 	
-    service: ProxyAuthService = new ProxyAuthService('ProxyChallengeTypeAdminLogin');
+    service!: ProxyAuthService;
 	username: string = '';
 	password: string = '';
 	totp: string = '';
@@ -28,9 +28,10 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
 	statusIsError: boolean = false;
 
 	async mounted() {
+    	this.service = new ProxyAuthService('ProxyChallengeTypeAdminLogin', this.options.authenticationId);
 	}
 
-	get isLoading(): boolean { return this.service.status.inProgress; }
+	get isLoading(): boolean { return this.service?.status?.inProgress == true; }
 
 	async onLoginClicked(): Promise<any> {
 		await this.login();

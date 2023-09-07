@@ -23,11 +23,12 @@ public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
         return new ProxyChallengeTypeManualApprovalFrontendModel(
             await GetEasyCodeAsync(context),
             await context.GetDataAsync(DataKeyRequested) == "true",
-            requestedAtRaw == null ? default(DateTime?) : new DateTime(long.Parse(requestedAtRaw), DateTimeKind.Utc)
+            requestedAtRaw == null ? default(DateTime?) : new DateTime(long.Parse(requestedAtRaw), DateTimeKind.Utc),
+            context.AuthenticationData.Id
         );
     }
     [GenerateFrontendModel]
-    public record ProxyChallengeTypeManualApprovalFrontendModel(string EasyCode, bool HasRequested, DateTime? LastRequestedAt);
+    public record ProxyChallengeTypeManualApprovalFrontendModel(string EasyCode, bool HasRequested, DateTime? LastRequestedAt, Guid AuthenticationId);
 
     /// <summary>
     /// Get the easy-code, create if missing.

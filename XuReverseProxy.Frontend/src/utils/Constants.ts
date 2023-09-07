@@ -76,7 +76,7 @@ export const CommonPlaceholders: Array<PlaceholderInfo> = [
     { name: 'weekday', description: 'Current day of the week. E.g. Monday.' },
     { name: 'monthName', description: 'Name of the current month.' },
     { name: 'dayOfMonth', description: 'Current day of the month.' },
-    { name: 'hour', description: 'Current hour.' },
+    { name: 'hour', description: 'Current hour (24h).' },
     { name: 'minute', description: 'Current minute.' },
     { name: 'month', description: 'Current month number.' },
     { name: 'year', description: 'Current year.' }

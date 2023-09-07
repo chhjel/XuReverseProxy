@@ -8,7 +8,6 @@ import ProxyAuthService from "@services/ProxyAuthService";
 import { TrySendOTPResponseModel } from "@generated/Models/Core/TrySendOTPResponseModel";
 import { TrySolveOTPResponseModel } from "@generated/Models/Core/TrySolveOTPResponseModel";
 import { TrySolveOTPRequestModel } from "@generated/Models/Core/TrySolveOTPRequestModel";
-import { LoadStatus } from "@services/ServiceBase";
 
 @Options({
 	components: {
@@ -23,18 +22,19 @@ export default class ProxyChallengeTypeOTPComponent extends Vue {
 	otp: string = '';
 	hasSentCode: boolean = false;
 	
-    service: ProxyAuthService = new ProxyAuthService('ProxyChallengeTypeOTP');
+    service!: ProxyAuthService;
 	statusMessage: string = '';
 	statusIsError: boolean = false;
 
 	async mounted() {
+    	this.service = new ProxyAuthService('ProxyChallengeTypeOTP', this.options.authenticationId);
 		this.hasSentCode = this.options.hasSentCode;
 		if (this.options.codeSentAt) {
 			this.setStatusMessage(`Code last sent at ${this.formatDate(this.options.codeSentAt)}`);
 		}
 	}
 
-	get isLoading(): boolean { return this.service.status.inProgress; }
+	get isLoading(): boolean { return this.service?.status?.inProgress == true; }
 
 	async onSendCodeClicked(): Promise<any> {
 		await this.sendOtp();

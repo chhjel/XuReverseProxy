@@ -8,4 +8,5 @@ export interface ProxyChallengeTypeLoginFrontendModel
 	totpRequired: boolean;
 	usernameRequired: boolean;
 	passwordRequired: boolean;
+	authenticationId: string;
 }

@@ -7,4 +7,5 @@ export interface ProxyChallengeTypeManualApprovalFrontendModel
 	easyCode: string;
 	hasRequested: boolean;
 	lastRequestedAt: Date;
+	authenticationId: string;
 }

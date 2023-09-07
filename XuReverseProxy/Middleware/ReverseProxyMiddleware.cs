@@ -228,8 +228,9 @@ public class ReverseProxyMiddleware
         if (pathSegments.Length < 2) return false;
         var challengeTypeId = pathSegments[0];
         var methodName = pathSegments[1];
+        if (!Guid.TryParse(pathSegments[2], out var authId)) return false;
 
-        var auth = proxyConfig?.Authentications?.FirstOrDefault(x => x.ChallengeTypeId == challengeTypeId);
+        var auth = proxyConfig?.Authentications?.FirstOrDefault(x => x.Id == authId && x.ChallengeTypeId == challengeTypeId);
         if (auth == null) return false;
 
         var challenge = authChallengeFactory.CreateProxyAuthenticationChallenge(challengeTypeId, auth.ChallengeJson);
