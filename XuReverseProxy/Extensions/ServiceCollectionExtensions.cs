@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using QoDL.Toolkit.Core.Util;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication;
@@ -45,7 +46,7 @@ public static class ServiceCollectionExtensions
             scope.ServiceProvider.GetService<RuntimeServerConfig>()?.EnsureDatabaseRows();
 
             // todo: not here
-            scope.ServiceProvider.GetService<IDevDataSeeder>()?.EnsureDemoData();            
+            TKAsyncUtils.RunSync(() => scope.ServiceProvider.GetService<IDevDataSeeder>()?.EnsureDemoDataAsync());
         }
         return app;
     }
@@ -91,7 +92,18 @@ public static class ServiceCollectionExtensions
         // EF etc
         services.AddDbContext<ApplicationDbContext>();
         // Identity
-        services.AddIdentity<ApplicationUser, IdentityRole>(options => options.Stores.MaxLengthForKeys = 128)
+        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Stores.MaxLengthForKeys = 128;
+#if DEBUG
+                // Allow simple passwords for localdev
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 4;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+#endif
+            })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
         services.ConfigureApplicationCookie(options =>

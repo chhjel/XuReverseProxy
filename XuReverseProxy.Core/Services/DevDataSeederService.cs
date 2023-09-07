@@ -9,7 +9,7 @@ namespace XuReverseProxy.Core.Services;
 // Todo: move to own project & container
 public interface IDevDataSeeder
 {
-    public Task EnsureDemoData();
+    public Task EnsureDemoDataAsync();
 }
 
 public class DevDataSeederService : IDevDataSeeder
@@ -21,7 +21,7 @@ public class DevDataSeederService : IDevDataSeeder
         _dbContext = dbContext;
     }
 
-    public async Task EnsureDemoData()
+    public async Task EnsureDemoDataAsync()
     {
         if (_dbContext.ProxyConfigs.Any()) return;
 

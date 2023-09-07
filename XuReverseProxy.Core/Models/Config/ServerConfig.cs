@@ -7,6 +7,7 @@ public class ServerConfig
 {
     public required string Name { get; set; }
     public bool RestrictAdminToLocalhost { get; set; }
+    public bool ValidateUpstreamCertificateIssues { get; set; }
 
     public required DomainConfig Domain { get; set; }
 
