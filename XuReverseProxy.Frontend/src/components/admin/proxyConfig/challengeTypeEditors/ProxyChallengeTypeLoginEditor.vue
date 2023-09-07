@@ -76,7 +76,6 @@ export default class ProxyChallengeTypeLoginEditor extends Vue {
 		<text-input-component label="Description" v-model:value="localValue.description" />
 		<text-input-component label="Username" v-model:value="localValue.username" @focus="placeholderTarget = 'user'" ref="usernameInput" class="mt-2" />
 		<text-input-component label="Password" v-model:value="localValue.password" @focus="placeholderTarget = 'password'" ref="passwordInput" class="mt-2" />
-		<text-input-component label="TOTP Secret" v-model:value="localValue.totpSecret" class="mt-2" />
 
         <expandable-component header="Supported placeholders for username & password">
             <placeholder-info-component
@@ -84,7 +83,9 @@ export default class ProxyChallengeTypeLoginEditor extends Vue {
                 @insertPlaceholder="insertPlaceholder"
                 />
         </expandable-component>
-        <div @click="generateSecret">[generate secret]</div>
+        
+		<text-input-component label="TOTP Secret" v-model:value="localValue.totpSecret" class="mt-2" />
+        <div @click="generateSecret" style="cursor: pointer;">[generate secret]</div>
 	</div>
 </template>
 
