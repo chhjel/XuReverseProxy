@@ -17,15 +17,16 @@ export default class ProxyChallengeTypeManualApprovalComponent extends Vue {
   	@Prop()
 	options: ProxyChallengeTypeManualApprovalFrontendModel;
 	
-    service: ProxyAuthService = new ProxyAuthService('ProxyChallengeTypeManualApproval');
+    service!: ProxyAuthService;
 	result: RequestApprovalResponseModel | null = null;
 
 	async mounted() {
+    	this.service = new ProxyAuthService('ProxyChallengeTypeManualApproval', this.options.authenticationId);
 	}
 
 	get hasRequested(): boolean { return this.options.hasRequested || this.result?.success == true; }
 
-	get isLoading(): boolean { return this.service.status.inProgress; }
+	get isLoading(): boolean { return this.service?.status?.inProgress == true; }
 
 	get formattedEasyCode(): string {
 		if (!this.options.easyCode || this.options.easyCode.length < 6) return this.options.easyCode;

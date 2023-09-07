@@ -17,12 +17,13 @@ public class ProxyChallengeTypeLogin : ProxyChallengeTypeBase
         return Task.FromResult<object>(new ProxyChallengeTypeLoginFrontendModel(Description,
             TOTPRequired: !string.IsNullOrWhiteSpace(TOTPSecret),
             UsernameRequired: !string.IsNullOrWhiteSpace(Username),
-            PasswordRequired: !string.IsNullOrWhiteSpace(Password)
+            PasswordRequired: !string.IsNullOrWhiteSpace(Password),
+            context.AuthenticationData.Id
         ));
     }
 
     [GenerateFrontendModel]
-    public record ProxyChallengeTypeLoginFrontendModel(string? Description, bool TOTPRequired, bool UsernameRequired, bool PasswordRequired);
+    public record ProxyChallengeTypeLoginFrontendModel(string? Description, bool TOTPRequired, bool UsernameRequired, bool PasswordRequired, Guid AuthenticationId);
 
     [InvokableProxyAuthMethod]
     public async Task<VerifyLoginResponseModel> VerifyLoginAsync(ProxyChallengeInvokeContext context, VerifyLoginRequestModel request)

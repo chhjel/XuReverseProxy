@@ -5,4 +5,5 @@
 export interface ProxyChallengeTypeAdminLoginFrontendModel
 {
 	description: string;
+	authenticationId: string;
 }

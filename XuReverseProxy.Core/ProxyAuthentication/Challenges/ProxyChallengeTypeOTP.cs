@@ -21,11 +21,12 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
         return new ProxyChallengeTypeOTPFrontendModel(
             await context.GetDataAsync(_dataKeyLastSentAt) != null,
             lastSentAtRaw == null ? default(DateTime?) : new DateTime(long.Parse(lastSentAtRaw), DateTimeKind.Utc),
-            Description
+            Description,
+            context.AuthenticationData.Id
         );
     }
     [GenerateFrontendModel]
-    public record ProxyChallengeTypeOTPFrontendModel(bool HasSentCode, DateTime? CodeSentAt, string? Description);
+    public record ProxyChallengeTypeOTPFrontendModel(bool HasSentCode, DateTime? CodeSentAt, string? Description, Guid AuthenticationId);
 
     [InvokableProxyAuthMethod]
     public async Task<TrySendOTPResponseModel> TrySendOTPAsync(ProxyChallengeInvokeContext context, TrySendOTPRequestModel _)
