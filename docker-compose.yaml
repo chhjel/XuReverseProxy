@@ -10,11 +10,51 @@ name: xureverseproxy-dev
 #
 # Use profile "backend" if you want to run the backend from a container instead of from your IDE of choice:
 # docker-compose --profile backend up -d
+# docker-compose up -d --force-recreate --no-deps --build backend
 #
 # Use profile "frontend-watcher" if you want to build frontend from a container:
 # docker-compose --profile frontend-watcher up -d
 
 services:
+  # Backend
+  # - uses volume to consume built frontend-bundles in repo outside container
+  backend:
+    profiles: ["backend"]
+    build:
+      context: .
+      dockerfile: XuReverseProxy/Dockerfile
+      args:
+        - BUILD_CONFIG=Debug
+        - BUILD_FRONTEND=false
+    environment:
+      - ConnectionStrings__DbConnection=Host=db; Port=5432; Database=postgres; Username=postgres; Password=postgres
+      - Logging__LogLevel__Default=Information
+      - ServerConfig__Domain__Scheme=https://
+      - ServerConfig__Domain__Port=7272
+      - ServerConfig__Domain__Domain=localdev.test
+      - ServerConfig__Domain__AdminSubdomain=admin
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "7272:443"
+    volumes:
+      - ./XuReverseProxy/cert:/https:ro
+      - ./XuReverseProxy/wwwroot/dist:/app/wwwroot/dist
+    depends_on:
+      - db
+
+  # Frontend build watcher
+  # - outputs built bundles to repo outside container
+  frontend-watcher:
+    profiles: ["frontend-watcher"]
+    build:
+      context: .
+      dockerfile: XuReverseProxy.Frontend/Dockerfile
+    volumes:
+      - ./XuReverseProxy.Frontend/src:/frontend/src
+      - ./XuReverseProxy/wwwroot/dist:/XuReverseProxy/wwwroot/dist
+
   # Database
   db:
     extra_hosts:
@@ -47,34 +87,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
-  # Backend
-  backend:
-    profiles: ["backend"]
-    build:
-      context: .
-      dockerfile: XuReverseProxy/Dockerfile
-    environment:
-      - ConnectionStrings__DbConnection=Host=host.docker.internal; Port=5432; Database=postgres; Username=postgres; Password=postgres
-      - Logging__LogLevel__Default=Information
-      - ServerConfig__Domain__Scheme=https://
-      - ServerConfig__Domain__Port=7272
-      - ServerConfig__Domain__Domain=localdev.test
-      - ServerConfig__Domain__AdminSubdomain=admin
-    ports:
-      - "7878:80"
-    depends_on:
-      - db
-
-  # Frontend build watcher
-  frontend-watcher:
-    profiles: ["frontend-watcher"]
-    build:
-      context: .
-      dockerfile: XuReverseProxy.Frontend/Dockerfile
-    volumes:
-      - ./XuReverseProxy.Frontend/src:/frontend/src
-      - ./XuReverseProxy/wwwroot/dist:/XuReverseProxy/wwwroot/dist
 
   # Todo: dev db data seed container
 
