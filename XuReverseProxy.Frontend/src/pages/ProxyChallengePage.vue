@@ -11,7 +11,6 @@ import ProxyChallengeTypeLoginComponent from "@components/proxyChallenges/ProxyC
 import ProxyChallengeTypeAdminLoginComponent from "@components/proxyChallenges/ProxyChallengeTypeAdminLoginComponent.vue";
 import ProxyChallengeTypeOTPComponent from "@components/proxyChallenges/ProxyChallengeTypeOTPComponent.vue";
 import ProxyChallengeTypeSecretQueryStringComponent from "@components/proxyChallenges/ProxyChallengeTypeSecretQueryStringComponent.vue";
-import { ProxyAuthChallengeTypeOptions } from "@utils/Constants";
 import { nextTick } from "vue";
 import { getProxyAuthenticationTypeName } from "@utils/ProxyAuthenticationDataUtils";
 

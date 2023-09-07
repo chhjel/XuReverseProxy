@@ -78,10 +78,14 @@ export default class ProxyConfigEditor extends Vue {
 		<text-input-component label="Destination prefix" v-model:value="localValue.destinationPrefix" />
 
 		<div class="forward-summary">
-			<div class="material-icons icon">info</div>
-			<code><a :href="resultingProxyUrl">{{ resultingProxyUrl }}</a></code>
-			<span class="ml-2 mr-2">will forward to</span>
-			<code>{{ localValue.destinationPrefix }}</code>
+			<div class="icon-wrapper">
+				<div class="material-icons icon">info</div>
+			</div>
+			<div class="forward-summary__content">
+				<code><a :href="resultingProxyUrl">{{ resultingProxyUrl }}</a></code>
+				<span>will forward to</span>
+				<code>{{ localValue.destinationPrefix }}</code>
+			</div>
 		</div>
 
 		<div class="block-title mt-4">Challenge page</div>
@@ -109,16 +113,29 @@ export default class ProxyConfigEditor extends Vue {
 .proxyconfig-edit {
 	.forward-summary {
 		display: flex;
-		align-items: center;
-		font-size: 16px;
-		padding: 10px;
 		margin-top: 10px;
-		flex-wrap: wrap;
+		overflow-x: auto;
 
+		.icon-wrapper {
+			align-self: center;
+    		height: 24px;
+		}
 		.icon {
 			color: var(--color--info-base);
 			width: 24px;
 			margin-right: 5px;
+		}
+
+		&__content {
+			display: flex;
+			align-items: center;
+			font-size: 16px;
+			padding: 10px;
+			flex-wrap: wrap;
+
+			code, span {
+				margin-right: 5px;
+			}
 		}
 	}
 }

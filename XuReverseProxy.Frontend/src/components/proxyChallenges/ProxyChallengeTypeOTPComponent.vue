@@ -106,6 +106,7 @@ export default class ProxyChallengeTypeOTPComponent extends Vue {
 					placeholder="One-time code"
 					:disabled="isLoading"
 					@keydown.enter="onValidateCodeClicked"
+					autocomplete="one-time-code"
 					/>
 				<button-component @click="onValidateCodeClicked" :disabled="isLoading" class="ml-0 secondary">Validate code</button-component>
 				<button-component @click="onSendCodeClicked" :disabled="isLoading" class="ml-0 secondary">Re-send code</button-component>

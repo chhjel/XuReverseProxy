@@ -72,19 +72,32 @@ export const ClientIdentityPlaceholders: Array<PlaceholderInfo> = [
     { name: 'Client.UserAgent', description: 'UserAgent value of the client.' },
     { name: 'Client.BlockedMessage', description: 'Text entered when blocking the client if any.' }
 ];
+export const CommonPlaceholders: Array<PlaceholderInfo> = [
+    { name: 'weekday', description: 'Current day of the week. E.g. Monday.' },
+    { name: 'monthName', description: 'Name of the current month.' },
+    { name: 'dayOfMonth', description: 'Current day of the month.' },
+    { name: 'hour', description: 'Current hour.' },
+    { name: 'minute', description: 'Current minute.' },
+    { name: 'month', description: 'Current month number.' },
+    { name: 'year', description: 'Current year.' }
+];
 
 export const ClientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = [
-    { name: 'Blocked client', placeholders: ClientIdentityPlaceholders }
+    { name: 'Blocked client', placeholders: ClientIdentityPlaceholders },
+    { name: 'Common', placeholders: CommonPlaceholders }
 ];
 export const LoginUsernamePasswordPlaceholders: Array<PlaceholderGroupInfo> = [
     { name: 'Client', placeholders: ClientIdentityPlaceholders },
     { name: 'Proxy config', placeholders: ProxyConfigPlaceholders },
+    { name: 'Common', placeholders: CommonPlaceholders }
 ];
 export const ManualApprovalUrlPlaceholders: Array<PlaceholderGroupInfo> = [
     { name: 'Client', placeholders: ClientIdentityPlaceholders },
-    { name: 'Proxy config', placeholders: ProxyConfigPlaceholders }
+    { name: 'Proxy config', placeholders: ProxyConfigPlaceholders },
+    { name: 'Common', placeholders: CommonPlaceholders }
 ];
 export const OTPRequestUrlPlaceholders: Array<PlaceholderGroupInfo> = [
     { name: 'Client', placeholders: ClientIdentityPlaceholders },
-    { name: 'Proxy config', placeholders: ProxyConfigPlaceholders }
+    { name: 'Proxy config', placeholders: ProxyConfigPlaceholders },
+    { name: 'Common', placeholders: CommonPlaceholders }
 ];

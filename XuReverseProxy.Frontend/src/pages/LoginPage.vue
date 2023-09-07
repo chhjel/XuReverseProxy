@@ -157,6 +157,7 @@ export default class LoginPage extends Vue {
 					placeholder="Username"
 					:disabled="isLoading"
 					@keydown.enter="onLoginClicked"
+					autocomplete="username"
 					/>
 				<text-input-component
 					v-model:value="password"
@@ -164,6 +165,7 @@ export default class LoginPage extends Vue {
 					placeholder="Password"
 					:disabled="isLoading"
 					@keydown.enter="onLoginClicked"
+					autocomplete="current-password"
 					/>
 				<text-input-component
 					v-model:value="totp"
@@ -189,6 +191,7 @@ export default class LoginPage extends Vue {
 					placeholder="Username"
 					:disabled="isLoading"
 					@keydown.enter="onCreateAccountClicked"
+					autocomplete="username"
 					/>
 				<text-input-component
 					v-model:value="password"
@@ -196,6 +199,7 @@ export default class LoginPage extends Vue {
 					placeholder="Password"
 					:disabled="isLoading"
 					@keydown.enter="onCreateAccountClicked"
+					autocomplete="new-password"
 					/>
 				<text-input-component
 					v-model:value="repeatPassword"
@@ -203,6 +207,7 @@ export default class LoginPage extends Vue {
 					placeholder="Repeat password"
 					:disabled="isLoading"
 					@keydown.enter="onCreateAccountClicked"
+					autocomplete="new-password"
 					/>
 
 				<div class="pt-2 pb-2">

@@ -57,7 +57,7 @@ export default class ProxyChallengeTypeSecretQueryStringEditor extends Vue {
 	<div class="proxy-challenge-secretqs-edit" v-if="localValue">
         <p>Requires the configured secret in the url: <code>?secret={{ localValue.secret }}</code>.</p>
 		<text-input-component label="Secret" v-model:value="localValue.secret" />
-        <span @click="generateNewSecret">[generate secret]</span>
+        <span @click="generateNewSecret" style="cursor: pointer;">[generate secret]</span>
 	</div>
 </template>
 

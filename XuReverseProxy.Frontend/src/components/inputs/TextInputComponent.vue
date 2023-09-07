@@ -19,6 +19,9 @@ export default class TextInputComponent extends Vue {
     @Prop({ required: false, default: '' })
     label: string;
 
+    @Prop({ required: false, default: '' })
+    autocomplete: string;
+
     @Prop({ required: false, default: false })
     disabled: boolean;
 
@@ -102,6 +105,7 @@ export default class TextInputComponent extends Vue {
         v-model="localValue"
         :placeholder="placeholder"
         :disabled="disabled"
+        :autocomplete="autocomplete"
         @focus="onFocus"
         ref="inputElement" />
 
