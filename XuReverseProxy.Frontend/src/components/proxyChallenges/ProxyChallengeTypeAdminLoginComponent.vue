@@ -76,6 +76,7 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
 				placeholder="Username"
 				:disabled="isLoading"
 				@keydown.enter="onLoginClicked"
+				autocomplete="username"
 				/>
 			<text-input-component
 				v-model:value="password"
@@ -83,6 +84,7 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
 				placeholder="Password"
 				:disabled="isLoading"
 				@keydown.enter="onLoginClicked"
+				autocomplete="current-password"
 				/>
 			<text-input-component
 				v-model:value="totp"
