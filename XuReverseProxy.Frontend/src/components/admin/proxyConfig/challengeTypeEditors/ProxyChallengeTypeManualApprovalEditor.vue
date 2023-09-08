@@ -70,9 +70,9 @@ export default class ProxyChallengeTypeManualApprovalEditor extends Vue {
 <template>
 	<div class="proxy-challenge-manual-edit" v-if="localValue">
         <p>When the user clicks the button to request access, a request is sent to the webhook url.</p>
-		<text-input-component label="WebHook request method" v-model:value="localValue.webHookRequestMethod" class="mt-2" />
+		<text-input-component label="WebHook request method" v-model:value="localValue.webHookRequestMethod" :disabled="disabled" class="mt-2" />
         <code-input-component v-model:value="localValue.webHookUrl" language=""  class="mt-2"
-            height="100px" :wordWrap="true" label="WebHook url" ref="urlEditor" />
+            height="100px" :wordWrap="true" label="WebHook url" ref="urlEditor" :readOnly="disabled" />
         <expandable-component header="Supported placeholders">
             <placeholder-info-component
                 urlPlaceholdersExtra
@@ -84,7 +84,5 @@ export default class ProxyChallengeTypeManualApprovalEditor extends Vue {
 </template>
 
 <style scoped lang="scss">
-.proxy-challenge-manual-edit {
-
-}
+/* .proxy-challenge-manual-edit { } */
 </style>

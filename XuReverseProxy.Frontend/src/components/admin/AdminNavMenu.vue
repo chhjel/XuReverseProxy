@@ -24,9 +24,9 @@ export default class AdminNavMenu extends Vue {
 </template>
 
 <style scoped lang="scss">
-.admin-nav {
+/* .admin-nav {
     &__item {
 
     }
-}
+} */
 </style>
