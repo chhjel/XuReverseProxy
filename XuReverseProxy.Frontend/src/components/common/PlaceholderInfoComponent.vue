@@ -38,12 +38,10 @@ export default class PlaceholderInfoComponent extends Vue {
             <tr>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Insert</th>
             </tr>
             <tr v-for="data in allPlaceholderData">
-                <td><code>&#123;&#123;{{ data.name }}&#125;&#125;</code></td>
+                <td><a @click.prevent.stop="onInsertClicked(data)" href="#"><code>&#123;&#123;{{ data.name }}&#125;&#125;</code></a></td>
                 <td>{{ data.description }}</td>
-                <td><a @click.prevent.stop="onInsertClicked(data)" href="#">[insert]</a></td>
             </tr>
         </table>
     </div>
