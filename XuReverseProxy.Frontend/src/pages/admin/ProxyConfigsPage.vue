@@ -93,23 +93,25 @@ export default class ProxyConfigsPage extends Vue {
 <template>
 	<div class="proxyconfigs-page">
 		<loader-component :status="proxyConfigService.status" />
-		<div v-if="sortedConfigs.length == 0 && proxyConfigService.status.done">- No proxied configured yet -</div>
-		<div v-for="config in sortedConfigs" :key="config.id">
-			<router-link :to="{ name: 'proxyconfig', params: { configId: config.id }}" class="proxyconfig">
-				<div class="proxyconfig__header">
-					<div class="material-icons icon" :class="getConfigIconClasses(config)">{{ getConfigIcon(config) }}</div>
-					<div class="proxyconfig__name">{{ config.name }} <span class="proxyconfig__status">{{ getConfigStatus(config) }}</span></div>
-				</div>
-				<div class="proxyconfig__forwardsummary">
-					<code>{{ getResultingProxyUrl(config) }}</code>
-					<span class="ml-2 mr-2">forwards to</span>
-					<code>{{ config.destinationPrefix }}</code>
-				</div>
-			</router-link>
+		<div v-if="proxyConfigService.status.hasDoneAtLeastOnce">
+			<div v-if="sortedConfigs.length == 0 && proxyConfigService.status.done">- No proxied configured yet -</div>
+			<div v-for="config in sortedConfigs" :key="config.id">
+				<router-link :to="{ name: 'proxyconfig', params: { configId: config.id }}" class="proxyconfig">
+					<div class="proxyconfig__header">
+						<div class="material-icons icon" :class="getConfigIconClasses(config)">{{ getConfigIcon(config) }}</div>
+						<div class="proxyconfig__name">{{ config.name }} <span class="proxyconfig__status">{{ getConfigStatus(config) }}</span></div>
+					</div>
+					<div class="proxyconfig__forwardsummary">
+						<code>{{ getResultingProxyUrl(config) }}</code>
+						<span class="ml-2 mr-2">forwards to</span>
+						<code>{{ config.destinationPrefix }}</code>
+					</div>
+				</router-link>
+			</div>
+			<button-component @click="addNewProxyConfig"
+				v-if="proxyConfigService.status.done"
+				class="primary ml-0">Add new config</button-component>
 		</div>
-		<button-component @click="addNewProxyConfig"
-			v-if="proxyConfigService.status.done"
-			class="primary ml-0">Add new config</button-component>
 	</div>
 </template>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { LoadStatus } from "@services/ServiceBase";
+import ValueUtils from "@utils/ValueUtils";
 import { Options } from "vue-class-component";
 import { Vue, Prop } from 'vue-property-decorator'
 
@@ -14,22 +15,32 @@ export default class LoaderComponent extends Vue {
     error: string | null;
 
     @Prop({ required: false, default: null })
+    allow: boolean | null;
+
+    @Prop({ required: false, default: null })
     status: LoadStatus | Array<LoadStatus>;
 
-    delay: number = 200;
-    delayHasPassed: boolean = false;
+    @Prop({ required: false, default: null })
+    forId: string | null;
 
-    async mounted() {
-        // Require a delay before showing loader to prevent showing it for half a sec
-        setTimeout(() => {
-            this.delayHasPassed = true;
-        }, this.delay);
-    }
+    @Prop({ required: false, default: false })
+    inline!: string | boolean;
+
+    @Prop({ required: false, default: '-9px' })
+    inlineYAdjustment!: string;
+
+    // async mounted() {}
+
+    get isInline(): boolean { return ValueUtils.IsToggleTrue(this.inline); }
 
     get isVisible(): boolean {
-        if (this.value == true) return true;
-        else if (this.value == false) return true;
-        else if (!this.delayHasPassed) return false;
+        if (this.allow === false) return false;
+        else if (this.value === true) return true;
+        else if (this.value === false) return false;
+        else if (this.status != null
+            && !Array.isArray(this.status)
+            && this.forId != null
+            && this.forId != this.status.id) return false;
         else if (this.showError) return true;
         else if (Array.isArray(this.status) 
             && this.status.length > 0 
@@ -41,7 +52,7 @@ export default class LoaderComponent extends Vue {
     }
 
     get showLoader(): boolean {
-        if (this.value == true) return true;
+        if (this.value === true) return true;
         else if (Array.isArray(this.status) 
             && this.status.length > 0 
             && this.status.some(x => x.inProgress)) return true;
@@ -62,13 +73,19 @@ export default class LoaderComponent extends Vue {
         else if (!Array.isArray(this.status)) return this.status.errorMessage;
         else return null;
     }
+
+    get rootClasses(): any {
+        let classes: any = {};
+        classes['inline'] = this.isInline;
+        return classes;
+    }
 }
 </script>
 
 <template>
-    <div class="loader" v-if="isVisible">
+    <div class="loader" v-if="isVisible" :class="rootClasses">
         <div v-if="showLoader" class="loader__spinner">
-            <div class="spinner-container">  
+            <div class="spinner-container" :style="{ bottom: inlineYAdjustment }">
                 <div class="spinner-dot spinner-dot-1"></div>
                 <div class="spinner-dot spinner-dot-2"></div>
                 <div class="spinner-dot spinner-dot-3"></div>
@@ -86,9 +103,10 @@ export default class LoaderComponent extends Vue {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    animation: 0.5s fadeIn;
 
     &__spinner {
-        height: 50px;
+        height: 48px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -118,6 +136,23 @@ export default class LoaderComponent extends Vue {
         }
     }
 
+    &.inline {
+        display: inline-flex;
+        .loader__spinner {
+            height: inherit;
+        }
+
+        .spinner-container {
+            width: 76px;
+            position: relative;
+        }
+
+        .spinner-dot {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
     &__error {
         border: 2px solid var(--color--danger);
         padding: 8px;
@@ -135,6 +170,15 @@ export default class LoaderComponent extends Vue {
         to {
             opacity: .25;
             transform: scale(.75);
+        }
+    }
+
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 1;
         }
     }
 }

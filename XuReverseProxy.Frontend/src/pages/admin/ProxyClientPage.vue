@@ -8,12 +8,14 @@ import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendM
 import ProxyClientIdentityService from "@services/ProxyClientIdentityService";
 import { ProxyClientIdentity } from "@generated/Models/Core/ProxyClientIdentity";
 import StringUtils from "@utils/StringUtils";
+import LoaderComponent from "@components/common/LoaderComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
-		AdminNavMenu
+		AdminNavMenu,
+		LoaderComponent
 	}
 })
 export default class ProxyClientPage extends Vue {
@@ -38,6 +40,7 @@ export default class ProxyClientPage extends Vue {
 
 <template>
 	<div class="proxyclient-page">
+		<loader-component :status="service.status" />
 		<div v-if="client">
 			<code>{{ client }}</code>
 		</div>
@@ -45,7 +48,7 @@ export default class ProxyClientPage extends Vue {
 </template>
 
 <style scoped lang="scss">
-/* .proxyclient-page {
-
-} */
+.proxyclient-page {
+	padding-top: 20px;
+}
 </style>

@@ -144,15 +144,6 @@ export default class DialogComponent extends Vue {
     }
 
     get contentStyle(): any {
-        // let maxWidthValue = this.maxWidth?.toString() || '';
-        // if (this.maxWidth && maxWidthValue && !isNaN(Number(maxWidthValue))) {
-        //     maxWidthValue = `${maxWidthValue}px`;
-        // }
-        // let widthValue = this.width?.toString() || '';
-        // if (this.width && widthValue && !isNaN(Number(widthValue))) {
-        //     widthValue = `${widthValue}px`;
-        // }
-
         let style: any = {
             // maxWidth: maxWidthValue
         };

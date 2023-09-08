@@ -23,6 +23,7 @@ import { EmptyGuid, ProxyAuthChallengeTypeOptions, ProxyAuthConditionTypeOptions
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 import draggable from 'vuedraggable'
 import { ProxyAuthenticationDataOrderData } from "@generated/Models/Web/ProxyAuthenticationDataOrderData";
+import LoaderComponent from "@components/common/LoaderComponent.vue";
 
 @Options({
 	components: {
@@ -34,7 +35,8 @@ import { ProxyAuthenticationDataOrderData } from "@generated/Models/Web/ProxyAut
 		ProxyConfigEditor,
 		ProxyAuthenticationDataEditor,
 		ProxyAuthenticationConditionEditor,
-        draggable
+        draggable,
+		LoaderComponent
 	}
 })
 export default class ProxyConfigPage extends Vue {
@@ -52,6 +54,7 @@ export default class ProxyConfigPage extends Vue {
 	conditionDialogVisible: boolean = false;
 	conditionInDialog: ProxyAuthenticationCondition | null = null;
 	emptyGuid: string = EmptyGuid;
+	allowInitialLoader: boolean | null = null;
 
 	async mounted() {
 		await this.loadConfig();
@@ -66,6 +69,9 @@ export default class ProxyConfigPage extends Vue {
 		if (!result.success) {
 			console.error(result.message);
 			alert(result.message);
+		}
+		else {
+			this.allowInitialLoader = false;
 		}
 		this.proxyConfig = result.data || null;
 		if (this.proxyConfig) this.proxyConfig.authentications = this.proxyConfig.authentications.sort(({order:a}, {order:b}) => a-b)
@@ -241,20 +247,21 @@ export default class ProxyConfigPage extends Vue {
 		<div v-if="notFound" class="feedback-message">Proxy config was not found.</div>
 
 		<!-- Initial loading -->
-		<div v-if="isLoading && proxyConfig == null">Loading.. // todo, loader component</div>
+		<loader-component :status="proxyConfigService.status" :value="allowInitialLoader" />
 
 		<!-- Has config -->
 		<div v-if="proxyConfig">
 			<!-- Proxy config -->
-			<div class="block mt-4">
+			<div class="block">
 				<div class="block-title">Proxy config</div>
 				<proxy-config-editor
 					v-model:value="proxyConfig"
 					:disabled="isLoading" />
 
 				<div class="mt-1">
-					<button-component @click="saveConfig" :disabled="isLoading" class="ml-0">Save</button-component>
-					<button-component @click="deleteConfig" :disabled="isLoading" class="danger">Delete</button-component>
+					<button-component @click="saveConfig" :disabled="isLoading" class="ml-0 mr-1">Save</button-component>
+					<button-component @click="deleteConfig" :disabled="isLoading" class="ml-0 danger">Delete</button-component>
+					<loader-component :status="proxyConfigService.status" inline inlineYAdjustment="-4px" :allow="allowInitialLoader === false" />
 				</div>
 			</div>
 
@@ -299,11 +306,12 @@ export default class ProxyConfigPage extends Vue {
 			<dialog-component v-model:value="authDialogVisible" max-width="800" persistent>
 				<template #header>Proxy authentication</template>
 				<template #footer>
-					<button-component @click="saveAuth" class="primary ml-0">Save</button-component>
-					<button-component @click="authDialogVisible = false" class="secondary">Cancel</button-component>
+					<button-component @click="saveAuth" :disabled="isLoading" class="primary ml-0">Save</button-component>
+					<button-component @click="authDialogVisible = false" :disabled="isLoading" class="secondary">Cancel</button-component>
 					<button-component @click="deleteAuth" :disabled="isLoading" class="danger"
 						v-if="authInDialog?.id != emptyGuid"
 						>Delete</button-component>
+					<loader-component :status="proxyAuthService.status" inline inlineYAdjustment="-4px" />
 				</template>
 				<proxy-authentication-data-editor
 					v-if="authInDialog"
@@ -316,11 +324,12 @@ export default class ProxyConfigPage extends Vue {
 			<dialog-component v-model:value="conditionDialogVisible" max-width="600" persistent>
 				<template #header>Proxy authentication condition</template>
 				<template #footer>
-					<button-component @click="saveCondtion" class="primary ml-0">Save</button-component>
-					<button-component @click="conditionDialogVisible = false" class="secondary">Cancel</button-component>
+					<button-component @click="saveCondtion" :disabled="isLoading" class="primary ml-0">Save</button-component>
+					<button-component @click="conditionDialogVisible = false" :disabled="isLoading" class="secondary">Cancel</button-component>
 					<button-component @click="deleteCondition" :disabled="isLoading" class="danger"
 						v-if="conditionInDialog?.id != emptyGuid"
 						>Delete</button-component>
+					<loader-component :status="proxyAuthConditionService.status" inline inlineYAdjustment="-4px" />
 				</template>
 				<proxy-authentication-condition-editor
 					v-if="conditionInDialog"
@@ -334,6 +343,8 @@ export default class ProxyConfigPage extends Vue {
 
 <style scoped lang="scss">
 .proxyconfig-page {
+	padding-top: 20px;
+
 	.auth-item-wrapper {
 		display: flex;
 		align-items: center;
