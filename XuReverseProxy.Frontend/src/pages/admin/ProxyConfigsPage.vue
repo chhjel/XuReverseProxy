@@ -59,7 +59,7 @@ export default class ProxyConfigsPage extends Vue {
 
 	get sortedConfigs(): Array<ProxyConfig> {
 		return this.proxyConfigs.sort((a,b) => 
-			(a.enabled ? -999 : 1)
+			(!a.enabled ? 999999 : 0)
 			|| a.name?.localeCompare(b.name)
 		);
 	}
