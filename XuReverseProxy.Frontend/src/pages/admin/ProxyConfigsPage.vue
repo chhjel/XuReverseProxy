@@ -9,12 +9,14 @@ import ProxyConfigService from "@services/ProxyConfigService";
 import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import { EmptyGuid } from "@utils/Constants";
 import { createProxyConfigResultingProxyUrl } from "@utils/ProxyConfigUtils";
+import LoaderComponent from "@components/common/LoaderComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
-		AdminNavMenu
+		AdminNavMenu,
+		LoaderComponent
 	}
 })
 export default class ProxyConfigsPage extends Vue {
@@ -90,7 +92,8 @@ export default class ProxyConfigsPage extends Vue {
 
 <template>
 	<div class="proxyconfigs-page">
-		<div v-if="sortedConfigs.length == 0">- No proxied configured yet -</div>
+		<loader-component :status="proxyConfigService.status" />
+		<div v-if="sortedConfigs.length == 0 && proxyConfigService.status.done">- No proxied configured yet -</div>
 		<div v-for="config in sortedConfigs" :key="config.id">
 			<router-link :to="{ name: 'proxyconfig', params: { configId: config.id }}" class="proxyconfig">
 				<div class="proxyconfig__header">
@@ -104,7 +107,9 @@ export default class ProxyConfigsPage extends Vue {
 				</div>
 			</router-link>
 		</div>
-		<button-component @click="addNewProxyConfig" class="primary ml-0">Add new config</button-component>
+		<button-component @click="addNewProxyConfig"
+			v-if="proxyConfigService.status.done"
+			class="primary ml-0">Add new config</button-component>
 	</div>
 </template>
 

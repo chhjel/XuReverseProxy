@@ -45,7 +45,7 @@ export default class ProxyClientPage extends Vue {
 </template>
 
 <style scoped lang="scss">
-.proxyclient-page {
+/* .proxyclient-page {
 
-}
+} */
 </style>
