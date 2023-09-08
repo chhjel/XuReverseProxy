@@ -7,12 +7,14 @@ import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
 import ProxyClientIdentityService from "@services/ProxyClientIdentityService";
 import { ProxyClientIdentity } from "@generated/Models/Core/ProxyClientIdentity";
+import LoaderComponent from "@components/common/LoaderComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
-		AdminNavMenu
+		AdminNavMenu,
+		LoaderComponent
 	}
 })
 export default class ProxyClientsPage extends Vue {
@@ -29,22 +31,38 @@ export default class ProxyClientsPage extends Vue {
 		}
 		this.clients = result.data || [];
 	}
+
+	onClientClicked(client: ProxyClientIdentity): void {
+		this.$router.push({ name: 'client', params: { clientId: client.id } });
+	}
+
+	get pagedClients(): Array<ProxyClientIdentity> {
+		return this.clients;
+	}
 }
 </script>
 
 <template>
 	<div class="proxyclients-page">
-		// Todo:
-		<ul>
-			<li>Get paged</li>
-			<li>Delete single/all/not used in a month/week/year</li>
-		</ul>
-		<code>{{ clients }}</code>
+		<loader-component :status="service.status" />
+		<div v-if="service.status.hasDoneAtLeastOnce">
+			<ul>
+				Todo
+				<li>Get paged</li>
+				<li>Delete single/all/not used in a month/week/year</li>
+			</ul>
+			<div v-for="client in pagedClients">
+				<router-link :to="`/client/${client.id}`">
+					<code>{{ client }}</code>
+				</router-link>
+			</div>
+		</div>
 	</div>
 </template>
 
 <style scoped lang="scss">
 .proxyclients-page {
+	padding-top: 20px;
 
 }
 </style>

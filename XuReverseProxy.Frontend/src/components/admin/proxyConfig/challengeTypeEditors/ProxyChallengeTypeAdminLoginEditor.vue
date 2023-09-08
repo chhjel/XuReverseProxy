@@ -51,12 +51,10 @@ export default class ProxyChallengeTypeAdminLoginEditor extends Vue {
 <template>
 	<div class="proxy-challenge-admin-login-edit" v-if="localValue">
         <p>Requires the user to login admin credentials.</p>
-		<text-input-component label="Description" v-model:value="localValue.description" />
+		<text-input-component label="Description" v-model:value="localValue.description" :disabled="disabled" />
 	</div>
 </template>
 
 <style scoped lang="scss">
-/* .proxy-challenge-login-edit {
-
-} */
+/* .proxy-challenge-login-edit { } */
 </style>

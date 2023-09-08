@@ -255,6 +255,11 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 							<div>Last accessed</div>
 							<div>{{ formatDate(options.client.lastAccessedAtUtc) }}</div>
 						</div>
+						<div class="client-details-row mt-4">
+							<div>
+								<a :href="`/api/ProxyClientIdentity/redirect/to-client-details/${options.client.id}`">[Go to client details]</a>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

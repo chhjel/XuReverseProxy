@@ -73,9 +73,9 @@ export default class ProxyChallengeTypeLoginEditor extends Vue {
 <template>
 	<div class="proxy-challenge-login-edit" v-if="localValue">
         <p>Requires the user to login with the set details. All the fields are optional, you can use e.g. only username + TOTP if wanted.</p>
-		<text-input-component label="Description" v-model:value="localValue.description" />
-		<text-input-component label="Username" v-model:value="localValue.username" @focus="placeholderTarget = 'user'" ref="usernameInput" class="mt-2" />
-		<text-input-component label="Password" v-model:value="localValue.password" @focus="placeholderTarget = 'password'" ref="passwordInput" class="mt-2" />
+		<text-input-component label="Description" v-model:value="localValue.description" :disabled="disabled" />
+		<text-input-component label="Username" v-model:value="localValue.username" :disabled="disabled" @focus="placeholderTarget = 'user'" ref="usernameInput" class="mt-2" />
+		<text-input-component label="Password" v-model:value="localValue.password" :disabled="disabled" @focus="placeholderTarget = 'password'" ref="passwordInput" class="mt-2" />
 
         <expandable-component header="Supported placeholders for username & password">
             <placeholder-info-component
@@ -84,13 +84,11 @@ export default class ProxyChallengeTypeLoginEditor extends Vue {
                 />
         </expandable-component>
         
-		<text-input-component label="TOTP Secret" v-model:value="localValue.totpSecret" class="mt-2" />
+		<text-input-component label="TOTP Secret" v-model:value="localValue.totpSecret" :disabled="disabled" class="mt-2" />
         <div @click="generateSecret" style="cursor: pointer;">[generate secret]</div>
 	</div>
 </template>
 
 <style scoped lang="scss">
-/* .proxy-challenge-login-edit {
-
-} */
+/* .proxy-challenge-login-edit { } */
 </style>

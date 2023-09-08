@@ -65,21 +65,21 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
 
 <template>
 	<div class="proxyconfigauthchallenge-edit" v-if="localValue">
-		<select v-model="localValue.conditionType" class="mb-2 mt-2">
+		<select v-model="localValue.conditionType" class="mb-2 mt-2" :disabled="disabled">
 			<option v-for="challengeType in conditionTypeOptions" 
 				:value="challengeType.value">{{ challengeType.name }}</option>
 		</select>
 
         <div v-if="localValue.conditionType == 'DateTimeRange'">
-		    <text-input-component label="From" v-model:value="localValue.dateTimeUtc1" />
-		    <text-input-component label="To" v-model:value="localValue.dateTimeUtc2" />
+		    <text-input-component label="From" v-model:value="localValue.dateTimeUtc1" :disabled="disabled" />
+		    <text-input-component label="To" v-model:value="localValue.dateTimeUtc2" :disabled="disabled" />
         </div>
         <div v-else-if="localValue.conditionType == 'TimeRange'">
-		    <text-input-component label="From" v-model:value="localValue.timeOnlyUtc1" />
-		    <text-input-component label="To" v-model:value="localValue.timeOnlyUtc2" />
+		    <text-input-component label="From" v-model:value="localValue.timeOnlyUtc1" :disabled="disabled" />
+		    <text-input-component label="To" v-model:value="localValue.timeOnlyUtc2" :disabled="disabled" />
         </div>
         <div v-else-if="localValue.conditionType == 'WeekDays'">
-		    <text-input-component label="Weekdays" v-model:value="localValue.daysOfWeekUtc" />
+		    <text-input-component label="Weekdays" v-model:value="localValue.daysOfWeekUtc" :disabled="disabled" />
         </div>
 
         <div class="mt-3">

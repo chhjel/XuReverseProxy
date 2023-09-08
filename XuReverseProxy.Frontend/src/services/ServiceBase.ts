@@ -18,18 +18,21 @@ export default class ServiceBase {
 
     protected async awaitWithStatusNoResult(
         promise: Promise<Response>,
-        status: LoadStatus | null = null
+        status: LoadStatus | null = null,
+        id: string | null = null
     ): Promise<FetchResult<any>> {
-        return this.awaitWithStatus<any>(promise, status, false);
+        return this.awaitWithStatus<any>(promise, status, false, id);
     }
 
     protected async awaitWithStatus<T>(
         promise: Promise<Response>,
         status: LoadStatus | null = null,
-        json: boolean = true
+        json: boolean = true,
+        id: string | null = null
     ): Promise<FetchResult<T>> {
         return new Promise<FetchResult<T>>(async (resolve, reject) => {
             const statuses = new MultiLoadStatus([ this.status, status ]);
+            statuses.setId(id);
             statuses.setInProgress();
             try {
                 const response = await promise;
@@ -91,12 +94,14 @@ export interface FetchResult<TData>
 }
 
 export class LoadStatus {
+    public id: string | null = null;
     public inProgress: boolean = false;
     public done: boolean = false;
     public success: boolean = false;
     public failed: boolean = false;
     public errorMessage: string | null = null;
     public errorDetails: string | null = null;
+    public hasDoneAtLeastOnce: boolean = false;
 }
 
 export class MultiLoadStatus {
@@ -106,6 +111,8 @@ export class MultiLoadStatus {
         this.statuses = statuses.filter(x => x != null);
     }
 
+    setId(id: string): void { this.statuses.forEach(x => x.id = id); }
+
     setInProgress(): void { this.statuses.forEach(x => x.inProgress = true); }
 
     setSucceeded(): void {
@@ -114,6 +121,7 @@ export class MultiLoadStatus {
             status.done = true;
             status.success = true;
             status.failed = false;
+            status.hasDoneAtLeastOnce = true;
         });
     }
 
@@ -125,6 +133,7 @@ export class MultiLoadStatus {
             status.success = false;
             status.errorMessage = err;
             status.errorDetails = errDetails;
+            status.hasDoneAtLeastOnce = true;
         });
     }
 }

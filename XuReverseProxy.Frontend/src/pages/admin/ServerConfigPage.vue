@@ -11,6 +11,7 @@ import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
 import ExpandableComponent from "@components/common/ExpandableComponent.vue";
 import { ClientBlockedHtmlPlaceholders, PlaceholderGroupInfo, PlaceholderInfo } from "@utils/Constants";
 import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponent.vue";
+import LoaderComponent from "@components/common/LoaderComponent.vue";
 
 @Options({
 	components: {
@@ -19,7 +20,8 @@ import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponen
 		CheckboxComponent,
 		CodeInputComponent,
 		ExpandableComponent,
-		PlaceholderInfoComponent
+		PlaceholderInfoComponent,
+		LoaderComponent
 	}
 })
 export default class ServerConfigPage extends Vue {
@@ -41,6 +43,7 @@ export default class ServerConfigPage extends Vue {
 	config_ClientBlockedResponseCode: string = '';
 	config_IPBlockedHtml: string = '';
 	config_IPBlockedResponseCode: string = '';
+	allowLoader: boolean | null = null;
 
 	async mounted() {
 		await this.loadConfig();
@@ -56,6 +59,9 @@ export default class ServerConfigPage extends Vue {
 		const result = await this.service.GetAllAsync();
 		if (!result.success) {
 			console.error(result.message);
+		}
+		else {
+			this.allowLoader = false;
 		}
 		this.runtimeConfigs = result.data || null;
 	}
@@ -86,25 +92,25 @@ export default class ServerConfigPage extends Vue {
 		return item?.value || "";
 	}
 
-	async saveConfig(key: string, value: string) {
+	async saveConfig(key: string, value: string, loaderId: string) {
 		const item = this.runtimeConfigs.find(x => x.key == key);
 		if (item == null) return;
 		
 		const oldValue = item.value;
 		item.value = value;
 		
-		const result = await this.service.CreateOrUpdateAsync(item);
+		const result = await this.service.CreateOrUpdateAsync(item, null, loaderId);
 		if (!result.success) item.value = oldValue;
 	}
 
 	async saveClientBlockedSection() {
-		await this.saveConfig('ClientBlockedHtml', this.config_ClientBlockedHtml);
-		await this.saveConfig('ClientBlockedResponseCode', this.config_ClientBlockedResponseCode);
+		await this.saveConfig('ClientBlockedHtml', this.config_ClientBlockedHtml, 'ClientBlocked');
+		await this.saveConfig('ClientBlockedResponseCode', this.config_ClientBlockedResponseCode, 'ClientBlocked');
 	}
 
 	async saveIPBlockedSection() {
-		await this.saveConfig('IPBlockedHtml', this.config_IPBlockedHtml);
-		await this.saveConfig('IPBlockedResponseCode', this.config_IPBlockedResponseCode);
+		await this.saveConfig('IPBlockedHtml', this.config_IPBlockedHtml, 'IPBlocked');
+		await this.saveConfig('IPBlockedResponseCode', this.config_IPBlockedResponseCode, 'IPBlocked');
 	}
 
 	insertPlaceholderClientBlockedHtml(val: string): void {
@@ -115,8 +121,9 @@ export default class ServerConfigPage extends Vue {
 
 <template>
 	<div class="serverconfig-page">
-		<div class="runtime-config">
-			<div class="block mt-4">
+		<loader-component :status="service.status" :value="allowLoader" />
+		<div class="runtime-config" v-if="service.status.hasDoneAtLeastOnce">
+			<div class="block">
 				<checkbox-component 
 					label="Proxy server enabled"
 					offLabel="Proxy server disabled"
@@ -137,7 +144,8 @@ export default class ServerConfigPage extends Vue {
 			<div class="block-title mt-4">404 HTML</div>
 			<div class="block">
 				<code-input-component v-model:value="config_NotFoundHtml" :disabled="isLoading" language="html" height="400px"/>
-				<button-component @click="saveConfig('NotFoundHtml', config_NotFoundHtml)" class="ml-0 mt-3">Save</button-component>
+				<button-component @click="saveConfig('NotFoundHtml', config_NotFoundHtml, 'NotFoundHtml')" :disabled="isLoading" class="ml-0 mt-3">Save</button-component>
+				<loader-component :status="service.status" forId="NotFoundHtml" inline />
 			</div>
 
 			<div class="block-title mt-4">Client blocked HTML</div>
@@ -152,14 +160,16 @@ export default class ServerConfigPage extends Vue {
 						/>
 				</expandable-component>
 		    	<text-input-component label="Response code" v-model:value="config_ClientBlockedResponseCode" placeholder="401" class="blocked-response-code-input" />
-				<button-component @click="saveClientBlockedSection" class="ml-0 mt-3">Save</button-component>
+				<button-component @click="saveClientBlockedSection" :disabled="isLoading" class="ml-0 mt-3">Save</button-component>
+				<loader-component :status="service.status" forId="ClientBlocked" inline />
 			</div>
 
 			<div class="block-title mt-4">IP blocked HTML</div>
 			<div class="block">
 				<code-input-component v-model:value="config_IPBlockedHtml" :disabled="isLoading" language="html" height="400px" />
 		    	<text-input-component label="Response code" v-model:value="config_IPBlockedResponseCode" placeholder="401" class="blocked-response-code-input" />
-				<button-component @click="saveIPBlockedSection" class="ml-0 mt-3">Save</button-component>
+				<button-component @click="saveIPBlockedSection" :disabled="isLoading" class="ml-0 mt-3">Save</button-component>
+				<loader-component :status="service.status" forId="IPBlocked" inline />
 			</div>
 		</div>
 	</div>
@@ -167,6 +177,8 @@ export default class ServerConfigPage extends Vue {
 
 <style scoped lang="scss">
 .serverconfig-page {
+	padding-top: 20px;
+	
 	.blocked-response-code-input {
 		max-width: 200px;
 	}

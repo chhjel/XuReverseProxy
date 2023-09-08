@@ -9,12 +9,14 @@ import ProxyConfigService from "@services/ProxyConfigService";
 import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import { EmptyGuid } from "@utils/Constants";
 import { createProxyConfigResultingProxyUrl } from "@utils/ProxyConfigUtils";
+import LoaderComponent from "@components/common/LoaderComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
-		AdminNavMenu
+		AdminNavMenu,
+		LoaderComponent
 	}
 })
 export default class ProxyConfigsPage extends Vue {
@@ -59,7 +61,7 @@ export default class ProxyConfigsPage extends Vue {
 
 	get sortedConfigs(): Array<ProxyConfig> {
 		return this.proxyConfigs.sort((a,b) => 
-			(a.enabled ? -999 : 1)
+			(!a.enabled ? 999999 : 0)
 			|| a.name?.localeCompare(b.name)
 		);
 	}
@@ -90,21 +92,26 @@ export default class ProxyConfigsPage extends Vue {
 
 <template>
 	<div class="proxyconfigs-page">
-		<div v-if="sortedConfigs.length == 0">- No proxied configured yet -</div>
-		<div v-for="config in sortedConfigs" :key="config.id">
-			<router-link :to="{ name: 'proxyconfig', params: { configId: config.id }}" class="proxyconfig">
-				<div class="proxyconfig__header">
-					<div class="material-icons icon" :class="getConfigIconClasses(config)">{{ getConfigIcon(config) }}</div>
-					<div class="proxyconfig__name">{{ config.name }} <span class="proxyconfig__status">{{ getConfigStatus(config) }}</span></div>
-				</div>
-				<div class="proxyconfig__forwardsummary">
-					<code>{{ getResultingProxyUrl(config) }}</code>
-					<span class="ml-2 mr-2">forwards to</span>
-					<code>{{ config.destinationPrefix }}</code>
-				</div>
-			</router-link>
+		<loader-component :status="proxyConfigService.status" />
+		<div v-if="proxyConfigService.status.hasDoneAtLeastOnce">
+			<div v-if="sortedConfigs.length == 0 && proxyConfigService.status.done">- No proxied configured yet -</div>
+			<div v-for="config in sortedConfigs" :key="config.id">
+				<router-link :to="{ name: 'proxyconfig', params: { configId: config.id }}" class="proxyconfig">
+					<div class="proxyconfig__header">
+						<div class="material-icons icon" :class="getConfigIconClasses(config)">{{ getConfigIcon(config) }}</div>
+						<div class="proxyconfig__name">{{ config.name }} <span class="proxyconfig__status">{{ getConfigStatus(config) }}</span></div>
+					</div>
+					<div class="proxyconfig__forwardsummary">
+						<code>{{ getResultingProxyUrl(config) }}</code>
+						<span class="ml-2 mr-2">forwards to</span>
+						<code>{{ config.destinationPrefix }}</code>
+					</div>
+				</router-link>
+			</div>
+			<button-component @click="addNewProxyConfig"
+				v-if="proxyConfigService.status.done"
+				class="primary ml-0">Add new config</button-component>
 		</div>
-		<button-component @click="addNewProxyConfig" class="primary ml-0">Add new config</button-component>
 	</div>
 </template>
 
