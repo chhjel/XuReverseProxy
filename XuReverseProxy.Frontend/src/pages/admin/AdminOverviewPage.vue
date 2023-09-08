@@ -20,36 +20,15 @@ export default class AdminOverviewPage extends Vue {
     // loginService: LoginService = new LoginService();
 
 	async mounted() {
+		// todo: show some usefull details on overview page. For now redirect to configs
+		this.$router.push({ name: 'proxyconfigs' });
 	}
 }
 </script>
 
 <template>
 	<div class="overview-page">
-		<div>
-			<h4>Page: Overview (default)</h4>
-			<p>Some status here? List proxies? Some quick metrics? Last used, num clients etc?</p>
-		</div>
-
-		<div>
-			<h4>Page: Proxies</h4>
-			<p>CRUD for proxy config</p>
-		</div>
-
-		<div>
-			<h4>Page: Config</h4>
-			<p>Show static, non-secret config & runtime config</p>
-		</div>
-
-		<div>
-			<h4>Page: Clients</h4>
-			<p>Show static, non-secret config & runtime config</p>
-		</div>
-
-		<div>
-			<h4>Page: Jobs</h4>
-			<p>Show jobs status. Simple list w/ name of job, description, status icon & text, and last result.</p>
-		</div>
+		todo
 	</div>
 </template>
 
