@@ -7,6 +7,7 @@ import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
 import ProxyClientIdentityService from "@services/ProxyClientIdentityService";
 import { ProxyClientIdentity } from "@generated/Models/Core/ProxyClientIdentity";
+import StringUtils from "@utils/StringUtils";
 
 @Options({
 	components: {
@@ -15,48 +16,36 @@ import { ProxyClientIdentity } from "@generated/Models/Core/ProxyClientIdentity"
 		AdminNavMenu
 	}
 })
-export default class ProxyClientsPage extends Vue {
+export default class ProxyClientPage extends Vue {
   	@Inject()
 	readonly options!: AdminPageFrontendModel;
 	
     service: ProxyClientIdentityService = new ProxyClientIdentityService();
-	clients: Array<ProxyClientIdentity> = [];
+	client: ProxyClientIdentity | null = null;
+	clientId: string = '';
 
 	async mounted() {
-		const result = await this.service.GetAllAsync();
+		this.clientId = StringUtils.firstOrDefault(this.$route.params.clientId);
+		const result = await this.service.GetAsync(this.clientId);
 		if (!result.success) {
 			console.error(result.message);
+		} else {
+			this.client = result.data;
 		}
-		this.clients = result.data || [];
-	}
-
-	onClientClicked(client: ProxyClientIdentity): void {
-		this.$router.push({ name: 'client', params: { clientId: client.id } });
-	}
-
-	get pagedClients(): Array<ProxyClientIdentity> {
-		return this.clients;
 	}
 }
 </script>
 
 <template>
-	<div class="proxyclients-page">
-		// Todo:
-		<ul>
-			<li>Get paged</li>
-			<li>Delete single/all/not used in a month/week/year</li>
-		</ul>
-		<div v-for="client in pagedClients">
-			<router-link :to="`/client/${client.id}`">
-				<code>{{ client }}</code>
-			</router-link>
+	<div class="proxyclient-page">
+		<div v-if="client">
+			<code>{{ client }}</code>
 		</div>
 	</div>
 </template>
 
 <style scoped lang="scss">
-.proxyclients-page {
+.proxyclient-page {
 
 }
 </style>
