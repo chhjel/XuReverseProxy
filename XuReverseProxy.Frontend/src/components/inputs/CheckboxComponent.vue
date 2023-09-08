@@ -132,6 +132,15 @@ label input[type="checkbox"]:checked+.toggler-slider .toggler-knob {
 	background-color: var(--color--success-base);
 }
 
+.disabled {
+  .toggler-slider {
+    border-color: var(--color--panel-light) !important;
+  }
+  .toggler-knob {
+    background-color: var(--color--panel-light) !important;;
+  }
+}
+
 label .toggler-slider {
   width: 42px;
 	background-color: transparent;
