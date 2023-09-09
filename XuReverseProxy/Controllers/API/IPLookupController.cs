@@ -16,6 +16,6 @@ public class IPLookupController : Controller
     }
 
     [HttpPost("lookup")]
-    public async Task<IPLookupResult?> LookupAsync([FromBody] string ip) 
+    public async Task<IPLookupResult?> LookupAsync([FromBody] string ip)
         => await _ipLookupService.LookupIPAsync(ip);
 }
