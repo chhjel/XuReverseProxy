@@ -5,7 +5,9 @@ using QoDL.Toolkit.Core.Util;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication;
+using XuReverseProxy.Core.ScheduledTasks;
 using XuReverseProxy.Core.Services;
+using XuReverseProxy.Core.Systems.ScheduledTasks;
 using XuReverseProxy.Core.Utils;
 using XuReverseProxy.Middleware;
 
@@ -25,9 +27,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProxyChallengeService, ProxyChallengeService>();
         services.AddScoped<IProxyAuthenticationChallengeFactory, ProxyAuthenticationChallengeFactory>();
         services.AddScoped<IProxyAuthenticationConditionChecker, ProxyAuthenticationConditionChecker>();
-
         services.AddScoped<IIPBlockService, IPBlockService>();
         services.AddSingleton<IIPLookupService, IPWhoIsIPLookupService>();
+
+        // Scheduled tasks
+        services.AddSingleton<IHostedService, SchedulerHostedService>();
+        services.AddSingleton<IScheduledTask, ClientIdentityCleanupTask>();
 
         return services;
     }
