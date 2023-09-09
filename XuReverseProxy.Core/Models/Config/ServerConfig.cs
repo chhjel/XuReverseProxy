@@ -10,6 +10,7 @@ public class ServerConfig
     public bool ValidateUpstreamCertificateIssues { get; set; }
 
     public required DomainConfig Domain { get; set; }
+    public required JobsConfig Jobs { get; set; }
 
     public class DomainConfig
     {
@@ -34,5 +35,18 @@ public class ServerConfig
             if (string.IsNullOrWhiteSpace(subdomain)) return $"{Scheme}{Domain}{portPart}";
             else return $"{Scheme}{subdomain}.{Domain}{portPart}";
         }
+    }
+
+    public class JobsConfig
+    {
+        public required ClientIdentityCleanupJobConfig ClientIdentityCleanupJob { get; set; }
+    }
+
+    public class ClientIdentityCleanupJobConfig
+    {
+        public bool Enabled { get; set; }
+        public long? RemoveIfNotAccessedInMinutes { get; set; }
+        public long? RemoveIfNotAttemptedAccessedInMinutes { get; set; }
+        public long? RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes { get; set; }
     }
 }

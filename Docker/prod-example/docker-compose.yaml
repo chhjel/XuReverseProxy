@@ -16,6 +16,12 @@ services:
       - ServerConfig__Domain__Domain=your-domain.com
       - ServerConfig__Domain__AdminSubdomain=admin # causes admin interfaces to be available on admin.your-domain.com
       - ConnectionStrings__DbConnection=Host=db; Port=5432; Database=postgres; Username=postgres; Password=postgres
+      # Jobs default values:
+      #- ServerConfig__Jobs__ClientIdentityCleanupJob__Enabled=true
+      #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNotAccessedInMinutes=131400 # 3 months
+      #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNotAttemptedAccessedInMinutes= # default not used
+      #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes=10080 # 7 days
+      # Other
       - Logging__LogLevel__Default=Information
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
