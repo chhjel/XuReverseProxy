@@ -22,6 +22,7 @@ export default class LoginPage extends Vue {
 	options: LoginPageFrontendModel;
 	
     loginService: LoginService = new LoginService();
+	errorCode: string = '';
 
 	// Login
 	username: string = '';
@@ -42,6 +43,7 @@ export default class LoginPage extends Vue {
 	async mounted() {
 		this.totpSecret = this.options.freshTotpSecret;
 		this.setErrorCodeStatus();
+		this.errorCode = new URLSearchParams(window.location.search).get('err') || '';
 
 		if (this.options.allowCreateAdmin) {
 			this.totpQrCodeLabel = this.options.serverName || 'XuReverseProxy';
@@ -126,6 +128,15 @@ export default class LoginPage extends Vue {
 		}
 	}
 
+	get errorOnPageLoad(): string {
+		if (this.loginService.status.hasDoneAtLeastOnce)
+			return '';
+		else if (this.errorCode == 'ip_changed') 
+			return 'Your login session has been terminated due to activity detected from a different IP address. For security purposes, all active sessions have been logged out.';
+		else
+			return '';
+	}
+
     generateQrCode(): void {
         const data = this.generateTotpQrCodeData();
         const canvas = this.$refs.qrCodeCanvas as HTMLCanvasElement;
@@ -150,6 +161,10 @@ export default class LoginPage extends Vue {
 
 		<div class="login-form" v-if="!options.isRestrictedToLocalhost && !options.allowCreateAdmin">
 			<div class="login-form__title">Login</div>
+			
+			<div v-if="errorOnPageLoad" class="login-form__pageloaderror">
+				{{ errorOnPageLoad }}
+			</div>
 
 			<div class="login-form__inputs">
 				<text-input-component
@@ -278,6 +293,15 @@ export default class LoginPage extends Vue {
 	
 	&__inputs {
 		margin-top: 20px;
+	}
+
+	&__pageloaderror {
+		color: var(--color--warning-base);
+		border: 1px solid var(--color--warning-base);
+		padding: 10px 5px;
+		margin-top: 15px;
+		margin-bottom: 5px;
+		font-size: 16px;
 	}
 
 	&__status {

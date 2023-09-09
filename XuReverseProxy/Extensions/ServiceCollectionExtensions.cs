@@ -111,6 +111,11 @@ public static class ServiceCollectionExtensions
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+        services.Configure<SecurityStampValidatorOptions>(options =>
+        {
+            // Validate security timestamps for when we invalidate admin sessions due to ip change (if enabled).
+            options.ValidationInterval = TimeSpan.FromSeconds(1);
+        });
         services.ConfigureApplicationCookie(options =>
         {
             options.Cookie.Name = IdentityCookieName;

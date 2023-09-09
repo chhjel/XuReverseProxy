@@ -6,11 +6,18 @@
 public class ServerConfig
 {
     public required string Name { get; set; }
-    public bool RestrictAdminToLocalhost { get; set; }
-    public bool ValidateUpstreamCertificateIssues { get; set; }
 
+    public required SecurityConfig Security { get; set; }
     public required DomainConfig Domain { get; set; }
     public required JobsConfig Jobs { get; set; }
+
+    public class SecurityConfig
+    {
+        public bool RestrictAdminToLocalhost { get; set; }
+        public bool BindAdminCookieToIP { get; set; }
+        public bool LimitAdminLoginToSingleSession { get; set; }
+        public bool ValidateUpstreamCertificateIssues { get; set; }
+    }
 
     public class DomainConfig
     {

@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using QoDL.Toolkit.Core.Util;
 using QoDL.Toolkit.Web.Core.Utils;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Config;
@@ -55,7 +57,7 @@ public class LoginPageController : Controller
                 ServerName = _serverConfig.CurrentValue.Name,
                 ReturnUrl = @return,
                 ErrorCode = e,
-                IsRestrictedToLocalhost = _serverConfig.CurrentValue.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext),
+                IsRestrictedToLocalhost = _serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext),
                 AllowCreateAdmin = allowCreateAdmin,
                 FreshTotpSecret = allowCreateAdmin ? TotpUtils.GenerateNewKey() : null
             }
@@ -67,7 +69,7 @@ public class LoginPageController : Controller
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         if (!ModelState.IsValid) return BadRequest();
-        else if (_serverConfig.CurrentValue.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
+        else if (_serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
 
         IActionResult createResult(bool success, string? redirect = null, string? error = null)
             => Json(new LoginResponse { Success = success, Redirect = redirect, Error = error });
@@ -93,7 +95,7 @@ public class LoginPageController : Controller
     {
         if (!ModelState.IsValid) return BadRequest();
         else if (_userManager.Users.Any()) return createResult(false, error: "An admin account already exists.");
-        else if (_serverConfig.CurrentValue.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
+        else if (_serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
 
         var enableTotp = !string.IsNullOrWhiteSpace(request.TOTPSecret);
         if (enableTotp && !TotpUtils.ValidateCode(request.TOTPSecret, request.TOTPCode)) return createResult(false, error: "Invalid TOTP code");
@@ -153,13 +155,28 @@ public class LoginPageController : Controller
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         await _signInManager.SignOutAsync();
 
+        var usernamePasswordOk = await _userManager.CheckPasswordAsync(user, password);
+        if (usernamePasswordOk && user.TOTPEnabled)
+        {
+            if (!TotpUtils.ValidateCode(user.TOTPSecretKey, totpCode)) return (success: false, error: loginErrorMessage);
+
+            // Update security timestamp before logging in to invalidate any other sessions
+            if (_serverConfig.CurrentValue.Security.LimitAdminLoginToSingleSession)
+            {
+                await _userManager.UpdateSecurityStampAsync(user);
+            }
+        }
+
         var result = await _signInManager.PasswordSignInAsync(user, password, true, false);
         if (!result.Succeeded) return (success: false, error: loginErrorMessage);
 
-        if (user.TOTPEnabled)
-        {
-            if (!TotpUtils.ValidateCode(user.TOTPSecretKey, totpCode)) return (success: false, error: loginErrorMessage);
-        }
+        var appUser = (await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == user.Id)) as ApplicationUser;
+        if (appUser == null) return (success: false, error: "User not found (ERR:2)");
+
+        var rawIp = TKRequestUtils.GetIPAddress(Request.HttpContext);
+        var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
+        appUser.LastConnectedFromIP = ipData.IP;
+        await _dbContext.SaveChangesAsync();
 
         return (success: true, error: null);
     }
