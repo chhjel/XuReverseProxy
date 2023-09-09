@@ -23,6 +23,9 @@ export default class CheckboxComponent extends Vue {
 
     @Prop({ required: false, default: false })
     warnColorOff: boolean;
+
+    @Prop({ required: false, default: false })
+    warnColorOn: boolean;
     
     localValue: boolean = false;
 
@@ -34,13 +37,14 @@ export default class CheckboxComponent extends Vue {
     get wrapperClasses(): any {
         let classes: any = {
             disabled: this.isDisabled,
-            warn: !this.localValue && this.isWarnColorOff
+            warn: (!this.localValue && this.isWarnColorOff) || this.localValue && this.isWarnColorOn
         };
         return classes;
     }
 
     get isDisabled(): boolean { return ValueUtils.IsToggleTrue(this.disabled); }
     get isWarnColorOff(): boolean { return ValueUtils.IsToggleTrue(this.warnColorOff); }
+    get isWarnColorOn(): boolean { return ValueUtils.IsToggleTrue(this.warnColorOn); }
 
     get currentLabel(): string {
       if (!this.offLabel) return this.label;

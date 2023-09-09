@@ -36,7 +36,8 @@ export default class ServiceBase {
             statuses.setInProgress();
             try {
                 const response = await promise;
-                const data = json ? await response.json() as T : response.text();
+                let data = null;
+                if (response.status != 204) data = json ? await response.json() as T : response.text();
                 let result: FetchResult<T> = {
                     success: true,
                     errorMessage: '',
