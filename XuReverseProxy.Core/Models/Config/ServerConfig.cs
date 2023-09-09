@@ -15,6 +15,7 @@ public class ServerConfig
     {
         public bool RestrictAdminToLocalhost { get; set; }
         public bool BindAdminCookieToIP { get; set; }
+        public bool LimitAdminLoginToSingleSession { get; set; }
         public bool ValidateUpstreamCertificateIssues { get; set; }
     }
 

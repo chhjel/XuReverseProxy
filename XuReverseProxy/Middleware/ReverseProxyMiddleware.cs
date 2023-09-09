@@ -1,11 +1,14 @@
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using QoDL.Toolkit.Core.Models;
 using QoDL.Toolkit.Core.Util;
 using QoDL.Toolkit.Web.Core.Utils;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Security;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using XuReverseProxy.Core.Extensions;
@@ -40,7 +43,9 @@ public class ReverseProxyMiddleware
         RuntimeServerConfig runtimeServerConfig,
         IProxyChallengeService proxyChallengeService,
         IMemoryCache memoryCache,
-        IIPBlockService ipBlockService)
+        IIPBlockService ipBlockService,
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager)
     {
         // Check for special cases first
         if (await TryHandleInternalRequestAsync(context, _nextMiddleware))
@@ -64,6 +69,20 @@ public class ReverseProxyMiddleware
         if ($"{subdomain}" == $"{serverConfig.CurrentValue.Domain.AdminSubdomain}")
         {
             if (!context.Items.ContainsKey("IsAdminPage")) context.Items.Add("IsAdminPage", true);
+
+            // Validate that admin IP has not changed since login if enabled
+            if (serverConfig.CurrentValue.Security.BindAdminCookieToIP
+                && await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager))
+            {
+                context.Response.Clear();
+                if (context.Request.Method == HttpMethod.Get.Method)
+                    context.Response.Redirect("/auth/login?err=ip_changed");
+                else
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+
+                return;
+            }
+
             await _nextMiddleware(context);
             return;
         }
@@ -157,6 +176,20 @@ public class ReverseProxyMiddleware
             if (clientIdentity != null) await proxyClientIdentityService.TryUpdateLastAccessedAtAsync(clientIdentity.Id);
             await ForwardRequestAsync(context, forwarder, proxyConfig, serverConfig.CurrentValue);
         }
+    }
+
+    private static async Task<bool> CheckForChangedUserIP(HttpContext context, ApplicationDbContext applicationDbContext, TKIPData? ipData, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+    {
+        var userId = context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return false;
+
+        if ((await applicationDbContext.Users.FirstOrDefaultAsync(x => x.Id == userId)) is not ApplicationUser user) return false;
+        if (ipData != null && user.LastConnectedFromIP == ipData.IP) return false;
+
+        await userManager.UpdateSecurityStampAsync(user);
+        await signInManager.SignOutAsync();
+
+        return true;
     }
 
     private enum AuthCheckResult

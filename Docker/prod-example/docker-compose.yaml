@@ -19,6 +19,7 @@ services:
       # Security default values:
       #- ServerConfig__Security__RestrictAdminToLocalhost=false
       #- ServerConfig__Security__BindAdminCookieToIP=true
+      #- ServerConfig__Security__LimitAdminLoginToSingleSession=false
       #- ServerConfig__Security__ValidateUpstreamCertificateIssues=false
       # Jobs default values:
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__Enabled=true
