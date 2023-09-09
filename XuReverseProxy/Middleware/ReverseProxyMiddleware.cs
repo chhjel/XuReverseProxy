@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using QoDL.Toolkit.Core.Util;
@@ -328,7 +328,7 @@ public class ReverseProxyMiddleware
             UseCookies = false,
             ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current)
         };
-        if (!serverConfig.ValidateUpstreamCertificateIssues)
+        if (!serverConfig.Security.ValidateUpstreamCertificateIssues)
         {
             socksHandler.SslOptions = new()
             {

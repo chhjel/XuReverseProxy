@@ -16,6 +16,10 @@ services:
       - ServerConfig__Domain__Domain=your-domain.com
       - ServerConfig__Domain__AdminSubdomain=admin # causes admin interfaces to be available on admin.your-domain.com
       - ConnectionStrings__DbConnection=Host=db; Port=5432; Database=postgres; Username=postgres; Password=postgres
+      # Security default values:
+      #- ServerConfig__Security__RestrictAdminToLocalhost=false
+      #- ServerConfig__Security__BindAdminCookieToIP=true
+      #- ServerConfig__Security__ValidateUpstreamCertificateIssues=false
       # Jobs default values:
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__Enabled=true
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNotAccessedInMinutes=131400 # 3 months

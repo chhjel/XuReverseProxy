@@ -55,7 +55,7 @@ public class LoginPageController : Controller
                 ServerName = _serverConfig.CurrentValue.Name,
                 ReturnUrl = @return,
                 ErrorCode = e,
-                IsRestrictedToLocalhost = _serverConfig.CurrentValue.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext),
+                IsRestrictedToLocalhost = _serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext),
                 AllowCreateAdmin = allowCreateAdmin,
                 FreshTotpSecret = allowCreateAdmin ? TotpUtils.GenerateNewKey() : null
             }
@@ -67,7 +67,7 @@ public class LoginPageController : Controller
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         if (!ModelState.IsValid) return BadRequest();
-        else if (_serverConfig.CurrentValue.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
+        else if (_serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
 
         IActionResult createResult(bool success, string? redirect = null, string? error = null)
             => Json(new LoginResponse { Success = success, Redirect = redirect, Error = error });
@@ -93,7 +93,7 @@ public class LoginPageController : Controller
     {
         if (!ModelState.IsValid) return BadRequest();
         else if (_userManager.Users.Any()) return createResult(false, error: "An admin account already exists.");
-        else if (_serverConfig.CurrentValue.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
+        else if (_serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
 
         var enableTotp = !string.IsNullOrWhiteSpace(request.TOTPSecret);
         if (enableTotp && !TotpUtils.ValidateCode(request.TOTPSecret, request.TOTPCode)) return createResult(false, error: "Invalid TOTP code");
