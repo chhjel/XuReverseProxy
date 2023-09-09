@@ -11,9 +11,9 @@ namespace XuReverseProxy.Core.ScheduledTasks;
 public class ClientIdentityCleanupTask : IScheduledTask
 {
     /// <summary>
-    /// Every 5 minutes.
+    /// Every 30 minutes.
     /// </summary>
-    public string Schedule => "0 */1 * * * *";
+    public string Schedule => "0 */30 * * * *";
 
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ILogger<ClientIdentityCleanupTask> _logger;
