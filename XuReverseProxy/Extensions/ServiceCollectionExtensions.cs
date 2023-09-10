@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using QoDL.Toolkit.Core.Util;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
@@ -93,6 +94,8 @@ public static class ServiceCollectionExtensions
 
         // Inject service provider itself for use in some special places
         services.AddSingleton(x => x);
+        var serviceProvider = services.BuildServiceProvider();
+        var serverConfig = serviceProvider.GetService<IOptionsMonitor<ServerConfig>>()?.CurrentValue;
 
         // EF etc
         services.AddDbContext<ApplicationDbContext>();
@@ -121,7 +124,7 @@ public static class ServiceCollectionExtensions
             options.Cookie.Name = IdentityCookieName;
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
-            options.ExpireTimeSpan = TimeSpan.FromDays(365) * 100;
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(serverConfig?.Security?.AdminCookieLifetimeInMinutes ?? TimeSpan.FromDays(3).Minutes);
             options.SlidingExpiration = true;
             options.LoginPath = new PathString("/auth/login");
             options.LogoutPath = new PathString("/auth/logout");

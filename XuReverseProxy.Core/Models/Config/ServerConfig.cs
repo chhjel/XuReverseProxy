@@ -18,6 +18,8 @@ public class ServerConfig
         public bool InvalidateAllSessionsOnAdminLogin { get; set; }
         public bool InvalidateAllSessionsOnAdminLogout { get; set; } // todo: add as an option in frontend as well when logging out
         public bool ValidateUpstreamCertificateIssues { get; set; }
+        public long AdminCookieLifetimeInMinutes { get; set; }
+        public long ClientCookieLifetimeInMinutes { get; set; }
     }
 
     public class DomainConfig

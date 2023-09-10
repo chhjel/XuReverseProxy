@@ -23,6 +23,8 @@ services:
       #- ServerConfig__Security__InvalidateAllSessionsOnAdminLogin=false
       #- ServerConfig__Security__InvalidateAllSessionsOnAdminLogout=true
       #- ServerConfig__Security__ValidateUpstreamCertificateIssues=false
+      #- ServerConfig__Security__AdminCookieLifetimeInMinutes=360
+      #- ServerConfig__Security__ClientCookieLifetimeInMinutes=576000
       # Jobs default values:
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__Enabled=true
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNotAccessedInMinutes=131400 # 3 months
