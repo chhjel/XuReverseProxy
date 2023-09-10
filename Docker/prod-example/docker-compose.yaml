@@ -10,6 +10,7 @@ services:
     restart: unless-stopped
     image: christianwut/xureverseproxy:latest
     environment:
+      # See comments in https://github.com/chhjel/XuReverseProxy/blob/main/XuReverseProxy/appsettings.json for more details
       # ServerConfig__Domain configs below should reflect the public url the proxy should be available on.
       - ServerConfig__Domain__Scheme=https://
       - ServerConfig__Domain__Port=443
@@ -19,8 +20,11 @@ services:
       # Security default values:
       #- ServerConfig__Security__RestrictAdminToLocalhost=false
       #- ServerConfig__Security__BindAdminCookieToIP=true
-      #- ServerConfig__Security__LimitAdminLoginToSingleSession=false
+      #- ServerConfig__Security__InvalidateAllSessionsOnAdminLogin=false
+      #- ServerConfig__Security__InvalidateAllSessionsOnAdminLogout=true
       #- ServerConfig__Security__ValidateUpstreamCertificateIssues=false
+      #- ServerConfig__Security__AdminCookieLifetimeInMinutes=360
+      #- ServerConfig__Security__ClientCookieLifetimeInMinutes=576000
       # Jobs default values:
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__Enabled=true
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNotAccessedInMinutes=131400 # 3 months

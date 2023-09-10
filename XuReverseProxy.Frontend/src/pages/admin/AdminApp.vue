@@ -5,7 +5,7 @@ import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
-import EventBus from "@utils/EventBus";
+import EventBus, { CallbackUnregisterShortcut } from "@utils/EventBus";
 
 @Options({
 	components: {
@@ -18,10 +18,15 @@ export default class DashboardPage extends Vue {
   	@Prop()
 	@Provide()
 	options: AdminPageFrontendModel;
+	
+	wide: boolean = false;
 
 	async mounted() {
         document.addEventListener('keyup', this.onDocumentKeyDownOrDown);
         document.addEventListener('keydown', this.onDocumentKeyDownOrDown);
+		this.$router.afterEach(x => {
+			this.wide = (x.name === 'clients');
+		});
 	}
 
     beforeUnmount(): void {
@@ -34,21 +39,39 @@ export default class DashboardPage extends Vue {
             EventBus.notify("onEscapeClicked", e);
         }
     }
+
+	get rootClasses(): any {
+		let classes: any = {};
+		classes['wide'] = this.wide;
+		return classes;
+	}
 }
 </script>
 
 <template>
-	<div class="admin-app">
+	<div class="admin-app" :class="rootClasses">
 		<admin-nav-menu />
-  		<router-view :options="options"></router-view>
+		<div class="admin-app__content">
+  			<router-view :options="options"></router-view>
+		</div>
 	</div>
 </template>
 
 <style scoped lang="scss">
 .admin-app {
-    max-width: 800px;
     margin: auto;
 	padding: 40px;
+
+	.admin-app__content {
+		max-width: 100%;
+	}
+
+	&:not(.wide) {
+		.admin-app__content {
+			max-width: 1000px;
+		}
+	}
+
 	@media (max-width: 800px) {
 		padding: 10px;
 		margin-top: 20px;

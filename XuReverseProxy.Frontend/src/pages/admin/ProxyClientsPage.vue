@@ -40,6 +40,12 @@ export default class ProxyClientsPage extends Vue {
 		if (newTab) window.open(`/#/client/${clientId}`, '_blank');
 		else this.$router.push({ name: 'client', params: { clientId: clientId } });
 	}
+
+	formatDate(raw: Date | string): string {
+		if (raw == null) return '';
+		let date: Date = (typeof raw === 'string') ? new Date(raw) : raw;
+		return date.toLocaleString();
+	}
 }
 </script>
 
@@ -53,33 +59,42 @@ export default class ProxyClientsPage extends Vue {
 				<li>Delete single/all/not used in a month/week/year</li>
 			</ul>
 
+			<p>Note: Clients are only created for proxies with authentication.</p>
+
 			<div class="table-wrapper">
 				<table>
 					<tr>
-						<th>Id</th>
 						<th>Note</th>
-						<th>IP</th>
 						<th>UserAgent</th>
+						<th>IP</th>
+						<th>Id</th>
+						<th>Last access</th>
+						<th style="font-size: 12px;">Last attempted access</th>
 						<th></th>
 					</tr>
 					<tr v-for="client in pagedClients" :key="client.id" class="client"
 						@click="navToClient(client.id)"
 						@click.middle="navToClient(client.id, true)">
-						<td class="client__id">
-							<code>{{ client.id }}</code>
-						</td>
 						<td class="client__note">
-							<code>{{ client.note }}</code>
-						</td>
-						<td class="client__ip">
-							<code>{{ client.ip }}</code>
+							<code :title="client.note">{{ client.note }}</code>
 						</td>
 						<td class="client__useragent">
-							<code>{{ client.userAgent }}</code>
+							<code :title="client.userAgent">{{ client.userAgent }}</code>
+						</td>
+						<td class="client__ip">
+							<code :title="client.ip">{{ client.ip }}</code>
+						</td>
+						<td class="client__id">
+							<code :title="client.id">{{ client.id }}</code>
+						</td>
+						<td class="client__la">
+							<code v-if="client.lastAccessedAtUtc">{{ formatDate(client.lastAccessedAtUtc) }}</code>
+						</td>
+						<td class="client__laa">
+							<code v-if="client.lastAttemptedAccessedAtUtc">{{ formatDate(client.lastAttemptedAccessedAtUtc) }}</code>
 						</td>
 						<td class="client__meta">
-							<code v-if="client.blocked">blocked</code>
-							<code v-if="client.lastAccessedAtUtc">has accessed</code>
+							<code v-if="client.blocked">Blocked</code>
 						</td>
 					</tr>
 				</table>

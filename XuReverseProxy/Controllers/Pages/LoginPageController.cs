@@ -135,6 +135,12 @@ public class LoginPageController : Controller
     [HttpGet("/auth/logout")]
     public async Task<IActionResult> Logout()
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user != null && _serverConfig.CurrentValue.Security.InvalidateAllSessionsOnAdminLogout)
+        {
+            await _userManager.UpdateSecurityStampAsync(user);
+        }
+
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         await _signInManager.SignOutAsync();
         return RedirectToAction(nameof(Login), new { @return = "/" });
@@ -161,7 +167,7 @@ public class LoginPageController : Controller
             if (!TotpUtils.ValidateCode(user.TOTPSecretKey, totpCode)) return (success: false, error: loginErrorMessage);
 
             // Update security timestamp before logging in to invalidate any other sessions
-            if (_serverConfig.CurrentValue.Security.LimitAdminLoginToSingleSession)
+            if (_serverConfig.CurrentValue.Security.InvalidateAllSessionsOnAdminLogin)
             {
                 await _userManager.UpdateSecurityStampAsync(user);
             }

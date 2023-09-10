@@ -49,12 +49,13 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         if (context.Request.Cookies?.TryGetValue(ClientIdCookieName, out string? idFromCookieRaw) != true
             || !Guid.TryParse(idFromCookieRaw, out Guid identityId))
         {
+            var serverConfig = _serverConfig.CurrentValue;
             identityId = Guid.NewGuid();
             context.Response.Cookies.Append(ClientIdCookieName, identityId.ToString(),
                 new CookieOptions()
                 {
-                    Domain = $".{_serverConfig.CurrentValue.Domain.Domain}",
-                    Expires = DateTimeOffset.Now + (TimeSpan.FromDays(365) * 100),
+                    Domain = $".{serverConfig.Domain.Domain}",
+                    Expires = DateTimeOffset.Now + TimeSpan.FromMinutes(serverConfig.Security.ClientCookieLifetimeInMinutes),
                     Secure = true,
                     HttpOnly = true,
                     IsEssential = true

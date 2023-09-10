@@ -13,7 +13,7 @@ export default class ServiceBase {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
             })
-        })
+        });
     }
 
     protected async awaitWithStatusNoResult(
@@ -36,6 +36,10 @@ export default class ServiceBase {
             statuses.setInProgress();
             try {
                 const response = await promise;
+                if (response.redirected && response.url.includes('/auth/login')) {
+                    throw Error('You have been logged out, please refresh the page if you want to continue.');
+                }
+
                 let data = null;
                 if (response.status != 204) data = json ? await response.json() as T : response.text();
                 let result: FetchResult<T> = {
