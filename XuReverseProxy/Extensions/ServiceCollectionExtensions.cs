@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using QoDL.Toolkit.Core.Util;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
@@ -85,7 +84,7 @@ public static class ServiceCollectionExtensions
     public const string IdentityCookieName = "___xurp_identity";
     public const string AuthCookieName = "___xurp_auth";
     public const string AntiForgeryCookieName = "___xurp_antiforgery";
-    public static void Add3rdPartyServices(this IServiceCollection services, ConfigurationManager _, IWebHostEnvironment environment)
+    public static void Add3rdPartyServices(this IServiceCollection services, ConfigurationManager configurationManager, IWebHostEnvironment environment)
     {
         if (environment.IsDevelopment())
         {
@@ -94,8 +93,6 @@ public static class ServiceCollectionExtensions
 
         // Inject service provider itself for use in some special places
         services.AddSingleton(x => x);
-        var serviceProvider = services.BuildServiceProvider();
-        var serverConfig = serviceProvider.GetService<IOptionsMonitor<ServerConfig>>()?.CurrentValue;
 
         // EF etc
         services.AddDbContext<ApplicationDbContext>();
@@ -119,12 +116,17 @@ public static class ServiceCollectionExtensions
             // Validate security timestamps for when we invalidate admin sessions due to ip change (if enabled).
             options.ValidationInterval = TimeSpan.FromSeconds(1);
         });
+        long adminCookieLifetimeMinutes = 0;
+        if (!long.TryParse(configurationManager[$"ServerConfig:Security:{nameof(ServerConfig.SecurityConfig.AdminCookieLifetimeInMinutes)}"], out adminCookieLifetimeMinutes))
+        {
+            adminCookieLifetimeMinutes = (long)TimeSpan.FromDays(3).TotalMinutes;
+        }
         services.ConfigureApplicationCookie(options =>
         {
             options.Cookie.Name = IdentityCookieName;
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
-            options.ExpireTimeSpan = TimeSpan.FromMinutes(serverConfig?.Security?.AdminCookieLifetimeInMinutes ?? TimeSpan.FromDays(3).Minutes);
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(adminCookieLifetimeMinutes);
             options.SlidingExpiration = true;
             options.LoginPath = new PathString("/auth/login");
             options.LogoutPath = new PathString("/auth/logout");
