@@ -31,7 +31,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IIPLookupService, IPWhoIsIPLookupService>();
 
         // Scheduled tasks
-        services.AddSingleton<IHostedService, SchedulerHostedService>();
+        services.AddSingleton<SchedulerHostedService>();
+        services.AddSingleton<IHostedService>(p => p.GetRequiredService<SchedulerHostedService>());
         services.AddSingleton<IScheduledTask, ClientIdentityCleanupTask>();
 
         return services;

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
 using XuReverseProxy.Core.Systems.ScheduledTasks.Cron;
 
 namespace XuReverseProxy.Core.Systems.ScheduledTasks;
@@ -9,6 +10,9 @@ public class SchedulerHostedService : HostedService
     private readonly List<SchedulerTaskWrapper> _scheduledTasks = new();
     private readonly IEnumerable<IScheduledTask> _tasks;
     private readonly ILogger<SchedulerHostedService> _logger;
+
+    public readonly ConcurrentDictionary<Type, ScheduledTaskStatus> Statuses = new();
+    public readonly ConcurrentDictionary<Type, ScheduledTaskResult> LatestResults = new();
 
     public SchedulerHostedService(IEnumerable<IScheduledTask> scheduledTasks, ILogger<SchedulerHostedService> logger)
     {
@@ -33,6 +37,9 @@ public class SchedulerHostedService : HostedService
 
         foreach (IScheduledTask scheduledTask in _tasks)
         {
+            var taskType = scheduledTask.GetType();
+            if (!Statuses.ContainsKey(taskType)) Statuses[taskType] = new() { JobType = taskType, Message = "Not started yet." };
+
             _scheduledTasks.Add(new(CrontabSchedule.Parse(scheduledTask.Schedule), scheduledTask, referenceTime));
         }
     }
@@ -51,12 +58,36 @@ public class SchedulerHostedService : HostedService
             _ = await taskFactory.StartNew(
                 async () =>
                 {
+                    var taskType = task.Task.GetType();
+                    var startedAt = DateTime.UtcNow;
+
+                    var status = Statuses[taskType];
+                    status.LastStartedAt = startedAt;
+                    status.StoppedAt = null;
+                    status.Message = "Started";
+                    status.IsRunning = true;
+                    status.Failed = false;
+
                     try
                     {
-                        await task.Task.ExecuteAsync(cancellationToken);
+                        var result = await task.Task.ExecuteAsync(cancellationToken, status);
+                        result.StoppedAtUtc = DateTime.UtcNow;
+
+                        LatestResults[taskType] = result;
                     }
                     catch (Exception ex)
                     {
+                        status.Failed = true;
+                        LatestResults[taskType] = new()
+                        {
+                            JobType = taskType,
+                            Success = false,
+                            Result = $"Exception was thrown during job execution.",
+                            Exception = ex,
+                            StartedAtUtc = startedAt,
+                            StoppedAtUtc = DateTime.UtcNow
+                        };
+
                         _logger.LogError(ex, $"Task '{task.Task.GetType().Name}' threw an exception.");
                         UnobservedTaskExceptionEventArgs args = new(ex as AggregateException ?? new AggregateException(ex));
 
@@ -66,6 +97,11 @@ public class SchedulerHostedService : HostedService
                         {
                             throw;
                         }
+                    }
+                    finally
+                    {
+                        status.IsRunning = false;
+                        status.StoppedAt = DateTime.UtcNow;
                     }
                 },
                 cancellationToken, TaskCreationOptions.None, TaskScheduler.Current).ConfigureAwait(false);
