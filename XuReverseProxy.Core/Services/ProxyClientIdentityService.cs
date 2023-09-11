@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using QoDL.Toolkit.Core.Util;
 using QoDL.Toolkit.Web.Core.Utils;
@@ -17,11 +18,6 @@ public interface IProxyClientIdentityService
     Task<bool> BlockIdentityAsync(Guid identityId, string message);
     Task<bool> UnBlockIdentityAsync(Guid identityId);
     Task<bool> SetClientNoteAsync(Guid identityId, string note);
-
-    //public async Task<>
-    // todo: job that deletes the following:
-    // - identities that havent solved all challenges and are older than n days (n = configurable, only if n != null)
-    // - identities that have solved all challenges and are older than n days (n = configurable, only if n != null)
 }
 
 public class ProxyClientIdentityService : IProxyClientIdentityService
@@ -29,11 +25,13 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
     public const string ClientIdCookieName = "___xupid";
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IMemoryCache _memoryCache;
 
-    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext)
+    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, IMemoryCache memoryCache)
     {
         _serverConfig = serverConfig;
         _dbContext = dbContext;
+        _memoryCache = memoryCache;
     }
 
     public async Task<ProxyClientIdentity?> GetProxyClientIdentityAsync(Guid id)
@@ -46,20 +44,22 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
             || context.Response == null
             || context.Response.Cookies == null) return null;
 
+        // Create cookie if not set
+        var isNewIdentity = false;
         if (context.Request.Cookies?.TryGetValue(ClientIdCookieName, out string? idFromCookieRaw) != true
             || !Guid.TryParse(idFromCookieRaw, out Guid identityId))
         {
-            var serverConfig = _serverConfig.CurrentValue;
             identityId = Guid.NewGuid();
-            context.Response.Cookies.Append(ClientIdCookieName, identityId.ToString(),
-                new CookieOptions()
-                {
-                    Domain = $".{serverConfig.Domain.Domain}",
-                    Expires = DateTimeOffset.Now + TimeSpan.FromMinutes(serverConfig.Security.ClientCookieLifetimeInMinutes),
-                    Secure = true,
-                    HttpOnly = true,
-                    IsEssential = true
-                });
+            isNewIdentity = true;
+            context.Response.Cookies.Append(ClientIdCookieName, identityId.ToString(), CreateClientCookieOptions());
+        }
+
+        // Extend client cookie periodically
+        var cookieExtendCacheKey = $"_cext_{identityId}";
+        if (!isNewIdentity && !_memoryCache.TryGetValue<byte>(cookieExtendCacheKey, out _))
+        {
+            context.Response.Cookies.Append(ClientIdCookieName, identityId.ToString(), CreateClientCookieOptions());
+            _memoryCache.Set(cookieExtendCacheKey, (byte)0x01, TimeSpan.FromMinutes(5));
         }
 
         var rawIp = TKRequestUtils.GetIPAddress(context);
@@ -107,6 +107,19 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         }
 
         return identity;
+    }
+
+    private CookieOptions CreateClientCookieOptions()
+    {
+        var serverConfig = _serverConfig.CurrentValue;
+        return new()
+        {
+            Domain = $".{serverConfig.Domain.Domain}",
+            Expires = DateTimeOffset.Now + TimeSpan.FromMinutes(serverConfig.Security.ClientCookieLifetimeInMinutes),
+            Secure = true,
+            HttpOnly = true,
+            IsEssential = true
+        };
     }
 
     public async Task<bool> BlockIdentityAsync(Guid identityId, string message)
