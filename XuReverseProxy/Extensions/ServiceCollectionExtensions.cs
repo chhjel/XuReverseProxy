@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SchedulerHostedService>();
         services.AddSingleton<IHostedService>(p => p.GetRequiredService<SchedulerHostedService>());
         services.AddSingleton<IScheduledTask, ClientIdentityCleanupTask>();
+        services.AddSingleton<IScheduledTask, AuditLogsCleanupJob>();
 
         return services;
     }
