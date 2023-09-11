@@ -117,6 +117,7 @@ export default class ScheduledTasksPage extends Vue {
 			border: 1px solid var(--color--panel-light);
 			padding: 10px;
 			font-size: 14px;
+			overflow-x: auto;
 			&.success { border-color: var(--color--success-base); }
 			&.error { border-color: var(--color--error-base); }
 		}
@@ -125,6 +126,7 @@ export default class ScheduledTasksPage extends Vue {
 			border: 1px solid var(--color--panel-light);
 			padding: 10px;
 			font-size: 14px;
+			overflow-x: auto;
 			&.success { border-color: var(--color--success-base); }
 			&.error { border-color: var(--color--error-base); }
 		}
