@@ -190,7 +190,7 @@ export default class ProxyClientPage extends Vue {
 			</div>
 
 			<!-- GLOBE -->
-			<div class="block mb-4" v-if="ipLookupData?.success == true && ipLookupData.latitude && ipLookupData.longitude">
+			<div class="block no-bg mb-4 pa-0" v-if="ipLookupData?.success == true && ipLookupData.latitude && ipLookupData.longitude">
 				<globe-component class="globe" :lat="ipLookupData.latitude" :lon="ipLookupData.longitude" :ping="true" />
 			</div>
 
