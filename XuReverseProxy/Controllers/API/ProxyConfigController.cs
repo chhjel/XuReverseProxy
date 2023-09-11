@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Models.Common;
 
@@ -9,6 +11,37 @@ public class ProxyConfigController : EFCrudControllerBase<ProxyConfig>
     public ProxyConfigController(ApplicationDbContext context)
         : base(context, () => context.ProxyConfigs)
     {
+    }
+
+    public override async Task<GenericResultData<ProxyConfig>> CreateOrUpdateEntityAsync([FromBody] ProxyConfig entity)
+    {
+        var isNew = entity.Id == Guid.Empty;
+        var result = await base.CreateOrUpdateEntityAsync(entity);
+        if (result.Success)
+        {
+            _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext,
+                    isNew
+                    ? $"Created new proxy config {AdminAuditLogEntry.Placeholder_ProxyConfig}"
+                    : $"Updated proxy config {AdminAuditLogEntry.Placeholder_ProxyConfig}")
+                    .SetRelatedProxyConfig(result.Data?.Id, result.Data?.Name)
+                );
+            await _dbContext.SaveChangesAsync();
+        }
+        return result;
+    }
+
+    public override async Task<GenericResult> DeleteEntityAsync([FromRoute] Guid entityId)
+    {
+        var entity = await GetEntityAsync(entityId);
+        var result = await base.DeleteEntityAsync(entityId);
+        if (result.Success)
+        {
+            _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Deleted proxy config {AdminAuditLogEntry.Placeholder_ProxyConfig}")
+                    .SetRelatedProxyConfig(entityId, entity?.Data?.Name)
+                );
+            await _dbContext.SaveChangesAsync();
+        }
+        return result;
     }
 
     protected override async Task<GenericResultData<ProxyConfig>> ValidateEntityAsync(ProxyConfig entity)

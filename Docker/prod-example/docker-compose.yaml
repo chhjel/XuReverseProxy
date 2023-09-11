@@ -30,6 +30,9 @@ services:
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNotAccessedInMinutes=131400 # 3 months
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNotAttemptedAccessedInMinutes= # default not used
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes=10080 # 7 days
+      #- ServerConfig__Jobs__AuditLogCleanupJob__Enabled=true
+      #- MaxAdminEntryAgeInHours=730 # 30 days
+      #- MaxClientEntryAgeInHours=730 # 30 days
       # Other
       - Logging__LogLevel__Default=Information
       - ASPNETCORE_URLS=https://+:443;http://+:80

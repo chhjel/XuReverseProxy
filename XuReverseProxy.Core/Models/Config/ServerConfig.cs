@@ -50,6 +50,7 @@ public class ServerConfig
     public class JobsConfig
     {
         public required ClientIdentityCleanupJobConfig ClientIdentityCleanupJob { get; set; }
+        public required AuditLogCleanupJobConfig AuditLogCleanupJob { get; set; }
     }
 
     public class ClientIdentityCleanupJobConfig
@@ -58,5 +59,12 @@ public class ServerConfig
         public long? RemoveIfNotAccessedInMinutes { get; set; }
         public long? RemoveIfNotAttemptedAccessedInMinutes { get; set; }
         public long? RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes { get; set; }
+    }
+
+    public class AuditLogCleanupJobConfig
+    {
+        public bool Enabled { get; set; }
+        public long? MaxAdminEntryAgeInHours { get; set; }
+        public long? MaxClientEntryAgeInHours { get; set; }
     }
 }

@@ -27,7 +27,11 @@ public class AuditLogController : Controller
         if (request.ClientId != null) query = query.Where(x => x.RelatedClientId == request.ClientId);
         var totalCount = await query.CountAsync();
 
-        query = query.Skip(request.PageIndex * request.PageSize).Take(request.PageSize);
+        query = query
+            .OrderByDescending(x => x.TimestampUtc)
+            .Skip(request.PageIndex * request.PageSize)
+            .Take(request.PageSize);
+
         var pageItems = await query.ToListAsync();
         return new()
         {
@@ -47,7 +51,11 @@ public class AuditLogController : Controller
         if (request.ProxyConfigId != null) query = query.Where(x => x.RelatedProxyConfigId == request.ProxyConfigId);
         var totalCount = await query.CountAsync();
 
-        query = query.Skip(request.PageIndex * request.PageSize).Take(request.PageSize);
+        query = query
+            .OrderByDescending(x => x.TimestampUtc)
+            .Skip(request.PageIndex * request.PageSize)
+            .Take(request.PageSize);
+
         var pageItems = await query.ToListAsync();
         return new()
         {

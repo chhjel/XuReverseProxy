@@ -31,7 +31,7 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
     /// Create or update entity.
     /// </summary>
     [HttpPost]
-    public async Task<GenericResultData<TEntity>> CreateOrUpdateEntityAsync([FromBody] TEntity entity)
+    public virtual async Task<GenericResultData<TEntity>> CreateOrUpdateEntityAsync([FromBody] TEntity entity)
     {
         if (!ModelState.IsValid) return GenericResult.CreateError<TEntity>(ModelState);
 
@@ -60,7 +60,7 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
     /// Get all entities.
     /// </summary>
     [HttpGet]
-    public async Task<GenericResultData<List<TEntity>>> GetAllEntitiesAsync()
+    public virtual async Task<GenericResultData<List<TEntity>>> GetAllEntitiesAsync()
     {
         try
         {
@@ -77,7 +77,7 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
     /// Get all entities including child properties.
     /// </summary>
     [HttpGet("full")]
-    public async Task<GenericResultData<List<TEntity>>> GetAllEntitiesFullAsync()
+    public virtual async Task<GenericResultData<List<TEntity>>> GetAllEntitiesFullAsync()
     {
         try
         {
@@ -94,14 +94,14 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
     /// Get single entity.
     /// </summary>
     [HttpGet("{entityId}")]
-    public async Task<GenericResultData<TEntity>> GetEntityAsync([FromRoute] Guid entityId)
+    public virtual async Task<GenericResultData<TEntity>> GetEntityAsync([FromRoute] Guid entityId)
         => await GetEntityInternalAsync(entityId, full: false);
 
     /// <summary>
     /// Get single entity.
     /// </summary>
     [HttpGet("{entityId}/full")]
-    public async Task<GenericResultData<TEntity>> GetEntityFullAsync([FromRoute] Guid entityId)
+    public virtual async Task<GenericResultData<TEntity>> GetEntityFullAsync([FromRoute] Guid entityId)
         => await GetEntityInternalAsync(entityId, full: true);
 
     private async Task<GenericResultData<TEntity>> GetEntityInternalAsync(Guid entityId, bool full)
@@ -124,12 +124,13 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
     /// Delete single entity.
     /// </summary>
     [HttpDelete("{entityId}")]
-    public async Task<GenericResult> DeleteEntityAsync([FromRoute] Guid entityId)
+    public virtual async Task<GenericResult> DeleteEntityAsync([FromRoute] Guid entityId)
     {
         try
         {
-            var entity = _entities().Attach(new TEntity { Id = entityId });
-            entity.State = EntityState.Deleted;
+            var entity = _entities().FirstOrDefault(x => x.Id == entityId);
+            if (entity == null) return GenericResult.CreateSuccess();
+            _dbContext.Remove(entity);
             await _dbContext.SaveChangesAsync();
             return GenericResult.CreateSuccess();
         }

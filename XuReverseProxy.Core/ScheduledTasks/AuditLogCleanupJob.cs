@@ -37,7 +37,7 @@ public class AuditLogsCleanupJob : IScheduledTask
         var result = new ScheduledTaskResult() { JobType = GetType(), StartedAtUtc = DateTime.UtcNow, Result = string.Empty };
         _logger.LogInformation($"Starting AuditLogsCleanupJob.");
 
-        var config = _serverConfig.CurrentValue.Jobs.ClientIdentityCleanupJob;
+        var config = _serverConfig.CurrentValue.Jobs.AuditLogCleanupJob;
         if (config?.Enabled != true) return result.SetResult("Job not enabled");
 
         using var scope = _serviceProvider.CreateScope();
