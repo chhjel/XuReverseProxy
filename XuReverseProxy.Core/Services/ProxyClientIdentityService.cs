@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -26,12 +27,15 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ApplicationDbContext _dbContext;
     private readonly IMemoryCache _memoryCache;
+    private readonly IDataProtector _dataProtector;
 
-    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, IMemoryCache memoryCache)
+    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext,
+        IMemoryCache memoryCache, IDataProtectionProvider dataProtectorProvider)
     {
         _serverConfig = serverConfig;
         _dbContext = dbContext;
         _memoryCache = memoryCache;
+        _dataProtector = dataProtectorProvider.CreateProtector("XuReverseProxy");
     }
 
     public async Task<ProxyClientIdentity?> GetProxyClientIdentityAsync(Guid id)
@@ -46,19 +50,20 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
 
         // Create cookie if not set
         var isNewIdentity = false;
-        if (context.Request.Cookies?.TryGetValue(ClientIdCookieName, out string? idFromCookieRaw) != true
-            || !Guid.TryParse(idFromCookieRaw, out Guid identityId))
+        if (context.Request.Cookies?.TryGetValue(ClientIdCookieName, out string? valueFromCookie) != true
+            || !TryUnprotect(valueFromCookie, out var clientIdRaw)
+            || !Guid.TryParse(clientIdRaw, out Guid identityId))
         {
             identityId = Guid.NewGuid();
             isNewIdentity = true;
-            context.Response.Cookies.Append(ClientIdCookieName, identityId.ToString(), CreateClientCookieOptions());
+            context.Response.Cookies.Append(ClientIdCookieName, _dataProtector.Protect(identityId.ToString()), CreateClientCookieOptions());
         }
 
         // Extend client cookie periodically
         var cookieExtendCacheKey = $"_cext_{identityId}";
         if (!isNewIdentity && !_memoryCache.TryGetValue<byte>(cookieExtendCacheKey, out _))
         {
-            context.Response.Cookies.Append(ClientIdCookieName, identityId.ToString(), CreateClientCookieOptions());
+            context.Response.Cookies.Append(ClientIdCookieName, _dataProtector.Protect(identityId.ToString()), CreateClientCookieOptions());
             _memoryCache.Set(cookieExtendCacheKey, (byte)0x01, TimeSpan.FromMinutes(5));
         }
 
@@ -107,6 +112,20 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         }
 
         return identity;
+    }
+
+    private bool TryUnprotect(string? protectedValue, out string unprotectedValue)
+    {
+        unprotectedValue = string.Empty;
+        if (protectedValue == null) return false;
+
+        try
+        {
+            unprotectedValue = _dataProtector.Unprotect(protectedValue);
+            return true;
+        } catch(Exception) {
+            return false;
+        }
     }
 
     private CookieOptions CreateClientCookieOptions()
