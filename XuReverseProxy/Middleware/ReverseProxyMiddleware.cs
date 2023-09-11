@@ -132,7 +132,8 @@ public class ReverseProxyMiddleware
         }
 
         // Check cached approval, access allowed is cached for 5 seconds
-        if (memoryCache.TryGetValue($"__client_allowed_{proxyConfig.Id}", out _))
+        var allowedCacheKey = $"__client_allowed_{proxyConfig.Id}_{clientIdentity?.Id}";
+        if (memoryCache.TryGetValue(allowedCacheKey, out _))
         {
             await forwardRequest();
             return;
@@ -168,7 +169,7 @@ public class ReverseProxyMiddleware
         }
 
         // Allowed => update cache & forward
-        memoryCache.Set($"__client_allowed_{proxyConfig.Id}", true, DateTimeOffset.Now + TimeSpan.FromSeconds(5));
+        memoryCache.Set(allowedCacheKey, true, DateTimeOffset.Now + TimeSpan.FromSeconds(5));
         await forwardRequest();
 
         async Task forwardRequest()
