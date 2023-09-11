@@ -22,7 +22,7 @@ export default class ProxyChallengeTypeOTPComponent extends Vue {
 	otp: string = '';
 	hasSentCode: boolean = false;
 	
-    service!: ProxyAuthService;
+    service: ProxyAuthService = new ProxyAuthService('ProxyChallengeTypeOTP', '');
 	statusMessage: string = '';
 	statusIsError: boolean = false;
 

@@ -17,7 +17,7 @@ export default class ProxyChallengeTypeManualApprovalComponent extends Vue {
   	@Prop()
 	options: ProxyChallengeTypeManualApprovalFrontendModel;
 	
-    service!: ProxyAuthService;
+    service: ProxyAuthService = new ProxyAuthService('ProxyChallengeTypeManualApproval', '');
 	result: RequestApprovalResponseModel | null = null;
 
 	async mounted() {
