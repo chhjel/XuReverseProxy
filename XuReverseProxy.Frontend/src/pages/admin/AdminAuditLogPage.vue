@@ -33,7 +33,7 @@ export default class AdminAuditLogPage extends Vue {
 		fromUtc: new Date(new Date().setDate(new Date().getDate() - 30)),
 		toUtc: new Date(new Date().setDate(new Date().getDate() + 1)),
 		pageIndex: 0,
-		pageSize: 5,
+		pageSize: 20,
 		adminUserId: null,
 		proxyConfigId: null,
 		clientId: null
