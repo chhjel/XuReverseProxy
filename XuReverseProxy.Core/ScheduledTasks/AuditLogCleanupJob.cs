@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using XuReverseProxy.Core.Models.Config;
@@ -42,13 +43,37 @@ public class AuditLogsCleanupJob : IScheduledTask
 
         using var scope = _serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        //var totalDeleted = 0;
+        var totalDeleted = 0;
 
-        // todo
+        if (config.MaxAdminEntryAgeInHours > 0)
+        {
+            status.Message = "Cleaning admin events.";
+            var deletedCount = await dbContext.Database.ExecuteSqlRawAsync(
+                $"DELETE FROM \"AdminAuditLogEntries\" " +
+                $"WHERE (timezone('utc', now()) - \"{nameof(AdminAuditLogEntry.TimestampUtc)}\") > '{config.MaxAdminEntryAgeInHours.Value} hour'::interval;",
+                cancellationToken);
 
-        //result.Result += $"Deleted never accessed and not attempted accessed in some time: {deletedCount}. ";
+            totalDeleted += deletedCount;
+            result.Result += $"Deleted admin events: {deletedCount}. ";
+            if (deletedCount > 0)
+                _logger.LogInformation($"Deleted admin events = {deletedCount}");
+        }
 
-        //status.Message = $"Done. Total deleted: {totalDeleted}.";
+        if (config.MaxClientEntryAgeInHours > 0)
+        {
+            status.Message = "Cleaning client events.";
+            var deletedCount = await dbContext.Database.ExecuteSqlRawAsync(
+                $"DELETE FROM \"ClientAuditLogEntries\" " +
+                $"WHERE (timezone('utc', now()) - \"{nameof(ClientAuditLogEntry.TimestampUtc)}\") > '{config.MaxClientEntryAgeInHours.Value} hour'::interval;",
+                cancellationToken);
+
+            totalDeleted += deletedCount;
+            result.Result += $"Deleted client events: {deletedCount}. ";
+            if (deletedCount > 0)
+                _logger.LogInformation($"Deleted client events = {deletedCount}");
+        }
+
+        status.Message = $"Done. Total deleted: {totalDeleted}.";
         result.Success = true;
         return result;
     }
