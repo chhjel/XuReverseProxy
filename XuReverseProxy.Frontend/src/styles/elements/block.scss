@@ -1,11 +1,14 @@
 .block {
     padding: 20px;
     border: 2px solid var(--color--panel-light);
-    background-color: var(--color--panel-dark);
     position: relative;
 	@media (max-width: 600px) {
 		padding: 10px;
 	}
+
+    &:not(.no-bg) {
+        background-color: var(--color--panel-dark);
+    }
 
     &.block--secondary {
         border: 2px solid var(--color--secondary);

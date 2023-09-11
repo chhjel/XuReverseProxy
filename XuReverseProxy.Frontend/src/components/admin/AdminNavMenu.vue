@@ -19,14 +19,17 @@ export default class AdminNavMenu extends Vue {
 		<router-link to="/clients">Clients</router-link> |
 		<router-link to="/serverconfig">Server config</router-link> |
 		<router-link to="/jobs">Jobs</router-link> |
+		<router-link to="/admin-audit-log">Admin log</router-link> |
+		<router-link to="/client-audit-log">Client log</router-link> |
 		<a href="/auth/logout">[Logout]</a>
 	</nav>
 </template>
 
 <style scoped lang="scss">
-/* .admin-nav {
-    &__item {
+.admin-nav {
+	overflow-y: auto;
+    /* &__item {
 
-    }
-} */
+    } */
+}
 </style>

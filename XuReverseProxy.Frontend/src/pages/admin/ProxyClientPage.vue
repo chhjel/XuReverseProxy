@@ -136,10 +136,11 @@ export default class ProxyClientPage extends Vue {
 		<div v-if="client">
 			<!-- Metadata -->
 			<div class="block overflow-x-scroll mb-4 pt-2">
-				<div><code>userAgent = {{ client.userAgent }}</code></div>
-				<div><code>createdAtUtc = {{ client.createdAtUtc }}</code></div>
-				<div><code>lastAccessedAtUtc = {{ client.lastAccessedAtUtc }}</code></div>
-				<div><code>lastAttemptedAccessedAtUtc = {{ client.lastAttemptedAccessedAtUtc }}</code></div>
+				<div><code>IP = {{ client.ip }}</code></div>
+				<div><code>UserAgent = {{ client.userAgent }}</code></div>
+				<div><code>CreatedAtUtc = {{ client.createdAtUtc }}</code></div>
+				<div><code>LastAccessedAtUtc = {{ client.lastAccessedAtUtc }}</code></div>
+				<div><code>LastAttemptedAccessedAtUtc = {{ client.lastAttemptedAccessedAtUtc }}</code></div>
 			</div>
 
 			<!-- Notes -->
@@ -190,7 +191,7 @@ export default class ProxyClientPage extends Vue {
 			</div>
 
 			<!-- GLOBE -->
-			<div class="block mb-4" v-if="ipLookupData?.success == true && ipLookupData.latitude && ipLookupData.longitude">
+			<div class="block no-bg mb-4 pa-0" v-if="ipLookupData?.success == true && ipLookupData.latitude && ipLookupData.longitude">
 				<globe-component class="globe" :lat="ipLookupData.latitude" :lon="ipLookupData.longitude" :ping="true" />
 			</div>
 

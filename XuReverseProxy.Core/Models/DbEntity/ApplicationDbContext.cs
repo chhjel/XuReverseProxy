@@ -27,6 +27,8 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     public DbSet<RuntimeServerConfigItem> RuntimeServerConfigItems { get; set; }
     public DbSet<ApplicationUserRecoveryCode> RecoveryCodes { get; set; }
     public DbSet<BlockedIpData> BlockedIpDatas { get; set; }
+    public DbSet<AdminAuditLogEntry> AdminAuditLogEntries { get; set; }
+    public DbSet<ClientAuditLogEntry> ClientAuditLogEntries { get; set; }
 
     // IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
