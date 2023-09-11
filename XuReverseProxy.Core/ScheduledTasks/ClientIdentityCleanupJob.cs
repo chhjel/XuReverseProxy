@@ -54,7 +54,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
                 cancellationToken);
 
             totalDeleted += deletedCount;
-            result.Result += $"RemoveIfNotAccessedInMinutes.Deleted = {deletedCount}. ";
+            result.Result += $"Deleted not accessed: {deletedCount}. ";
             if (deletedCount > 0)
                 _logger.LogInformation($"RemoveIfNotAccessedInMinutes.Deleted = {deletedCount}");
         }
@@ -68,7 +68,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
                 cancellationToken);
 
             totalDeleted += deletedCount;
-            result.Result += $"RemoveIfNotAttemptedAccessedInMinutes.Deleted = {deletedCount}. ";
+            result.Result += $"Deleted not attempted accessed: {deletedCount}. ";
             if (deletedCount > 0)
                 _logger.LogInformation($"RemoveIfNotAttemptedAccessedInMinutes.Deleted = {deletedCount}");
         }
@@ -82,7 +82,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
                 cancellationToken);
 
             totalDeleted += deletedCount;
-            result.Result += $"RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes.Deleted = {deletedCount}. ";
+            result.Result += $"Deleted never accessed and not attempted accessed in some time: {deletedCount}. ";
             if (deletedCount > 0)
                 _logger.LogInformation($"RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes.Deleted = {deletedCount}");
         }
