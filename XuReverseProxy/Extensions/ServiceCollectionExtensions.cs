@@ -117,8 +117,7 @@ public static class ServiceCollectionExtensions
             // Validate security timestamps for when we invalidate admin sessions due to ip change (if enabled).
             options.ValidationInterval = TimeSpan.FromSeconds(1);
         });
-        long adminCookieLifetimeMinutes = 0;
-        if (!long.TryParse(configurationManager[$"ServerConfig:Security:{nameof(ServerConfig.SecurityConfig.AdminCookieLifetimeInMinutes)}"], out adminCookieLifetimeMinutes))
+        if (!long.TryParse(configurationManager[$"ServerConfig:Security:{nameof(ServerConfig.SecurityConfig.AdminCookieLifetimeInMinutes)}"], out long adminCookieLifetimeMinutes))
         {
             adminCookieLifetimeMinutes = (long)TimeSpan.FromDays(3).TotalMinutes;
         }
@@ -148,6 +147,7 @@ public static class ServiceCollectionExtensions
                 });
 
         // Misc
+        services.AddDataProtection();
         services.AddMemoryCache();
         services.AddControllersWithViews(options =>
         {
