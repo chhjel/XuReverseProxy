@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -15,7 +16,7 @@ namespace XuReverseProxy.Core.Models.DbEntity;
 // - ProxyClientIdentityData - kvp store
 // - ProxyClientIdentitySolvedChallengeData - solved challenges state
 // 
-public class ApplicationDbContext : IdentityDbContext
+public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
 {
     public DbSet<ProxyConfig> ProxyConfigs { get; set; }
     public DbSet<ProxyAuthenticationData> ProxyAuthenticationDatas { get; set; }
@@ -26,6 +27,9 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<RuntimeServerConfigItem> RuntimeServerConfigItems { get; set; }
     public DbSet<ApplicationUserRecoveryCode> RecoveryCodes { get; set; }
     public DbSet<BlockedIpData> BlockedIpDatas { get; set; }
+
+    // IDataProtectionKeyContext
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
     protected readonly IConfiguration Configuration;
 
