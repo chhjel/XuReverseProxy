@@ -176,8 +176,8 @@ public class LoginPageController : Controller
         var result = await _signInManager.PasswordSignInAsync(user, password, true, false);
         if (!result.Succeeded) return (success: false, error: loginErrorMessage);
 
-        var appUser = (await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == user.Id)) as ApplicationUser;
-        if (appUser == null) return (success: false, error: "User not found (ERR:2)");
+        if ((await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == user.Id)) is not ApplicationUser appUser)
+            return (success: false, error: "User not found (ERR:2)");
 
         var rawIp = TKRequestUtils.GetIPAddress(Request.HttpContext);
         var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);

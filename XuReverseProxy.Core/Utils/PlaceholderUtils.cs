@@ -21,7 +21,7 @@ public static class PlaceholderUtils
         return template;
     }
 
-    private static CultureInfo _placeholderLocale = CultureInfo.CreateSpecificCulture("en");
+    private static readonly CultureInfo _placeholderLocale = CultureInfo.CreateSpecificCulture("en");
     public static string? ResolveCommonPlaceholders(string? template, Func<string?, string?>? transformer = null)
     {
         string mod(string val) => transformer?.Invoke(val) ?? val;
