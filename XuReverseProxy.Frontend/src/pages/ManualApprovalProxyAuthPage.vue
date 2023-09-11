@@ -8,12 +8,14 @@ import ManualApprovalService from "@services/ManualApprovalService";
 import MapComponent from "@components/common/MapComponent.vue";
 import { ChallengeDataFrontendModel } from "@generated/Models/Web/ChallengeDataFrontendModel";
 import { getProxyAuthenticationTypeName } from "@utils/ProxyAuthenticationDataUtils";
+import GlobeComponent from "@components/common/GlobeComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
-		MapComponent
+		MapComponent,
+		GlobeComponent
 	}
 })
 export default class ManualApprovalProxyAuthPage extends Vue {
@@ -27,6 +29,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 	blockedIpId: string | null = null;
 	canUnblockIp: boolean = false;
 	clientNote: string = '';
+	hideGlobe: boolean = false;
 
 	async mounted() {
 		this.service = new ManualApprovalService(this.options.client.id, this.options.authenticationId, this.options.solvedId);
@@ -36,6 +39,10 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 		this.canUnblockIp = this.options.canUnblockIP;
 		this.blockedIpId = this.options.clientIPBlockId;
 		this.clientNote = this.options.client.note || '';
+
+		setTimeout(() => {
+			this.hideGlobe = true;
+		}, 4000);
 	}
 
 	get isLoading(): boolean { return this.service?.status?.inProgress == true; }
@@ -179,122 +186,133 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 
 <template>
 	<div class="manual-approval-page">
-		<div class="header">
-			<h1 class="title">Client requests access to <div>{{ title }}</div></h1>
-			<div class="aka" v-if="showAka">(aka <span>{{ options.proxyConfig.name }}</span>)</div>
-			<div class="link">on url <a :href="options.url">{{ options.url }}</a></div>
-		</div>
-		
-		<!-- Reference code -->
-		<div class="easycode-wrapper block block--secondary mt-5 mb-4">
-			<div class="easycodeTitle">Reference code</div>
-			<div class="easycode">{{ formattedEasyCode }}</div>
+		<!-- GLOBE -->
+		<div class="globe" v-if="!hideGlobe && options.client.ipLocation.latitude && options.client.ipLocation.longitude"
+			@click="hideGlobe = true">
+			<globe-component
+				:lat="options.client.ipLocation.latitude" :lon="options.client.ipLocation.longitude"
+				:altitude="0.2"
+				:ping="true" :focusDuration="4000" />
 		</div>
 
-		<div class="status" :class="statusClass">{{ status }}</div>
-
-		<!-- Actions -->
-		<div class="actions">
-			<button-component v-if="!isApproved" @click="onApproveClicked" :disabled="isLoading" class="ml-0 action">Approve</button-component>
-			<button-component v-if="isApproved" @click="onUnApproveClicked" :disabled="isLoading" class="ml-0 action">Remove approval</button-component>
-			<button-component v-if="!isBlocked" @click="onBlockClicked" :disabled="isLoading" class="ml-0 action danger">Block client</button-component>
-			<button-component v-if="isBlocked" @click="onUnBlockClicked" :disabled="isLoading" class="ml-0 action danger">Unblock client</button-component>
-		</div>
-
-		<!-- Notes -->
-		<div class="client-note mb-4 pt-2 block">
-			<div class="block-title">Client note</div>
-			<div class="input-wrapper">
-				<textarea id="clientNote" v-model="clientNote" @blur="updateClientNote"></textarea>
+		<div class="content">
+			<div class="header">
+				<h1 class="title">Client requests access to <div>{{ title }}</div></h1>
+				<div class="aka" v-if="showAka">(aka <span>{{ options.proxyConfig.name }}</span>)</div>
+				<div class="link">on url <a :href="options.url">{{ options.url }}</a></div>
 			</div>
-		</div>
+			
+			<!-- Reference code -->
+			<div class="easycode-wrapper block block--secondary mt-5 mb-4">
+				<div class="easycodeTitle">Reference code</div>
+				<div class="easycode">{{ formattedEasyCode }}</div>
+			</div>
 
-		<div class="two-cols">
-			<!-- Client details -->
-			<div>
-				<div class="block-title">Details</div>
-				<div class="client-details block">
-					<div>
-						<div class="client-details-row">
-							<div>IP</div>
-							<div>{{ options.client.ip }}</div>
-						</div>
-						<div class="client-details-row">
-							<div>Client approved</div>
-							<div>{{ (isApproved ? 'Yes' : 'No') }}</div>
-						</div>
-						<div class="client-details-row">
-							<div>Client blocked</div>
-							<div>{{ (isBlocked ? 'Yes' : 'No') }}</div>
-						</div>
-						<div class="client-details-row">
-							<div>IP blocked</div>
-							<div>
-								{{ (isIpBlocked ? 'Yes' : 'No') }}
-								<a v-if="!isIpBlocked" @click.prevent.stop="onBlockIpClicked" href="#">[block]</a>
-								<a v-if="isIpBlocked && canUnblockIp" @click.prevent.stop="onUnBlockIpClicked" href="#">[unblock]</a>
+			<div class="status" :class="statusClass">{{ status }}</div>
+
+			<!-- Actions -->
+			<div class="actions">
+				<button-component v-if="!isApproved" @click="onApproveClicked" :disabled="isLoading" class="ml-0 action">Approve</button-component>
+				<button-component v-if="isApproved" @click="onUnApproveClicked" :disabled="isLoading" class="ml-0 action">Remove approval</button-component>
+				<button-component v-if="!isBlocked" @click="onBlockClicked" :disabled="isLoading" class="ml-0 action danger">Block client</button-component>
+				<button-component v-if="isBlocked" @click="onUnBlockClicked" :disabled="isLoading" class="ml-0 action danger">Unblock client</button-component>
+			</div>
+
+			<!-- Notes -->
+			<div class="client-note mb-4 pt-2 block">
+				<div class="block-title">Client note</div>
+				<div class="input-wrapper">
+					<textarea id="clientNote" v-model="clientNote" @blur="updateClientNote"></textarea>
+				</div>
+			</div>
+
+			<div class="two-cols">
+				<!-- Client details -->
+				<div>
+					<div class="block-title">Details</div>
+					<div class="client-details block">
+						<div>
+							<div class="client-details-row">
+								<div>IP</div>
+								<div>{{ options.client.ip }}</div>
 							</div>
-						</div>
-						<div class="client-details-row">
-							<div>UserAgent</div>
-							<div><div class="truncate" @click="toggleTruncate">{{ options.client.userAgent }}</div></div>
-						</div>
-						<div class="client-details-row">
-							<div>Access requested</div>
-							<div>{{ formatDate(options.currentChallengeData.requestedAt) }}</div>
-						</div>
-						<div class="client-details-row" v-if="options.client.createdAtUtc">
-							<div>Client created</div>
-							<div>{{ formatDate(options.client.createdAtUtc) }}</div>
-						</div>
-						<div class="client-details-row" v-if="options.client.lastAttemptedAccessedAtUtc">
-							<div>Last attempted accessed</div>
-							<div>{{ formatDate(options.client.lastAttemptedAccessedAtUtc) }}</div>
-						</div>
-						<div class="client-details-row" v-if="options.client.lastAccessedAtUtc">
-							<div>Last accessed</div>
-							<div>{{ formatDate(options.client.lastAccessedAtUtc) }}</div>
-						</div>
-						<div class="client-details-row mt-4">
-							<div>
-								<a :href="`/api/ProxyClientIdentity/redirect/to-client-details/${options.client.id}`">[Go to client details]</a>
+							<div class="client-details-row">
+								<div>Client approved</div>
+								<div>{{ (isApproved ? 'Yes' : 'No') }}</div>
+							</div>
+							<div class="client-details-row">
+								<div>Client blocked</div>
+								<div>{{ (isBlocked ? 'Yes' : 'No') }}</div>
+							</div>
+							<div class="client-details-row">
+								<div>IP blocked</div>
+								<div>
+									{{ (isIpBlocked ? 'Yes' : 'No') }}
+									<a v-if="!isIpBlocked" @click.prevent.stop="onBlockIpClicked" href="#">[block]</a>
+									<a v-if="isIpBlocked && canUnblockIp" @click.prevent.stop="onUnBlockIpClicked" href="#">[unblock]</a>
+								</div>
+							</div>
+							<div class="client-details-row">
+								<div>UserAgent</div>
+								<div><div class="truncate" @click="toggleTruncate">{{ options.client.userAgent }}</div></div>
+							</div>
+							<div class="client-details-row">
+								<div>Access requested</div>
+								<div>{{ formatDate(options.currentChallengeData.requestedAt) }}</div>
+							</div>
+							<div class="client-details-row" v-if="options.client.createdAtUtc">
+								<div>Client created</div>
+								<div>{{ formatDate(options.client.createdAtUtc) }}</div>
+							</div>
+							<div class="client-details-row" v-if="options.client.lastAttemptedAccessedAtUtc">
+								<div>Last attempted accessed</div>
+								<div>{{ formatDate(options.client.lastAttemptedAccessedAtUtc) }}</div>
+							</div>
+							<div class="client-details-row" v-if="options.client.lastAccessedAtUtc">
+								<div>Last accessed</div>
+								<div>{{ formatDate(options.client.lastAccessedAtUtc) }}</div>
+							</div>
+							<div class="client-details-row mt-4">
+								<div>
+									<a :href="`/api/ProxyClientIdentity/redirect/to-client-details/${options.client.id}`">[Go to client details]</a>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-			<!-- Client location -->
-			<div>
-				<div class="block-title">
-					<div class="ipdetails-location">
-						<div v-if="ipContinent" class="ipdetails-location__part">{{ ipContinent }}</div>
-						<div v-if="ipFlagUrl || ipCountry" class="ipdetails-location__part">
-							<img :src="ipFlagUrl" class="ipdetails-flag" />
-							<span v-if="ipCountry">{{ ipCountry }}</span>
+				<!-- Client location -->
+				<div>
+					<div class="block-title">
+						<div class="ipdetails-location">
+							<div v-if="ipContinent" class="ipdetails-location__part">{{ ipContinent }}</div>
+							<div v-if="ipFlagUrl || ipCountry" class="ipdetails-location__part">
+								<img :src="ipFlagUrl" class="ipdetails-flag" />
+								<span v-if="ipCountry">{{ ipCountry }}</span>
+							</div>
+							<div v-if="ipCity" class="ipdetails-location__part">{{ ipCity }}</div>
 						</div>
-						<div v-if="ipCity" class="ipdetails-location__part">{{ ipCity }}</div>
+					</div>
+					<div class="location block" v-if="options.client.ipLocation?.success == true">
+						<!-- Map -->
+						<map-component class="map"
+							v-if="options.client.ipLocation.latitude && options.client.ipLocation.longitude"
+							:lat="options.client.ipLocation.latitude"
+							:lon="options.client.ipLocation.longitude"
+							:zoom="12"
+							note="Client location"
+							/>
 					</div>
 				</div>
-				<div class="location block" v-if="options.client.ipLocation?.success == true">
-					<!-- Map -->
-					<map-component class="map"
-						v-if="options.client.ipLocation.latitude && options.client.ipLocation.longitude"
-						:lat="options.client.ipLocation.latitude"
-						:lon="options.client.ipLocation.longitude"
-						:zoom="12"
-						note="Client location"
-						/>
-				</div>
 			</div>
-		</div>
 
-		<div class="challenge-statuses">
-			<div class="block-title">Challenge statuses</div>
-			<div class="block block--dark">
-				<div class="challenges" v-if="options.allChallengeData.length > 0">
-					<div v-for="challenge in options.allChallengeData" class="challenge" :title="getChallengeTooltip(challenge)">
-						<div class="material-icons icon" :class="getChallengeClasses(challenge)">{{ getChallengeIcon(challenge) }}</div>
-						<div>{{ getChallengeTypeIdName(challenge.type) }}</div>
+			<div class="challenge-statuses">
+				<div class="block-title">Challenge statuses</div>
+				<div class="block block--dark">
+					<div class="challenges" v-if="options.allChallengeData.length > 0">
+						<div v-for="challenge in options.allChallengeData" class="challenge" :title="getChallengeTooltip(challenge)">
+							<div class="material-icons icon" :class="getChallengeClasses(challenge)">{{ getChallengeIcon(challenge) }}</div>
+							<div>{{ getChallengeTypeIdName(challenge.type) }}</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -517,6 +535,23 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 				}
 			}
 		}
+	}
+
+	.globe {
+		position: fixed;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		right: 0;
+		z-index: 99999;
+    	animation: 4s ease 0s normal forwards 1 globeFadout;
+		background-color: #121212;
+	}
+		
+	@keyframes globeFadout{
+		0% { opacity: 1; }
+		90% { opacity: 1; }
+		100% { opacity: 0; }
 	}
 }
 </style>

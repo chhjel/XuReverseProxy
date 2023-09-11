@@ -19,6 +19,7 @@ import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import { ProxyAuthenticationData } from "@generated/Models/Core/ProxyAuthenticationData";
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 import { GenericResult } from "@generated/Models/Web/GenericResult";
+import GlobeComponent from "@components/common/GlobeComponent.vue";
 
 @Options({
 	components: {
@@ -26,6 +27,7 @@ import { GenericResult } from "@generated/Models/Web/GenericResult";
 		ButtonComponent,
 		CheckboxComponent,
 		MapComponent,
+		GlobeComponent,
 		LoaderComponent
 	}
 })
@@ -187,6 +189,11 @@ export default class ProxyClientPage extends Vue {
 					:zoom="12" note="Client location" />
 			</div>
 
+			<!-- GLOBE -->
+			<div class="block mb-4" v-if="ipLookupData?.success == true && ipLookupData.latitude && ipLookupData.longitude">
+				<globe-component class="globe" :lat="ipLookupData.latitude" :lon="ipLookupData.longitude" :ping="true" />
+			</div>
+
 			<!-- Solved data -->
 			<div class="block overflow-x-scroll mb-4 pt-2">
 				<div class="block-title">Solved client challenges</div>
@@ -235,6 +242,10 @@ export default class ProxyClientPage extends Vue {
 				}
 			}
 		}
+	}
+
+	.globe {
+		height: 300px;
 	}
 }
 </style>
