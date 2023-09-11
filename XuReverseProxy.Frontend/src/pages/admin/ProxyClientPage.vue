@@ -133,7 +133,7 @@ export default class ProxyClientPage extends Vue {
 
 		<div v-if="client">
 			<!-- Metadata -->
-			<div class="block mb-4 pt-2">
+			<div class="block overflow-x-scroll mb-4 pt-2">
 				<div><code>userAgent = {{ client.userAgent }}</code></div>
 				<div><code>createdAtUtc = {{ client.createdAtUtc }}</code></div>
 				<div><code>lastAccessedAtUtc = {{ client.lastAccessedAtUtc }}</code></div>
@@ -162,7 +162,7 @@ export default class ProxyClientPage extends Vue {
 			</div>
 
 			<!-- IP block -->
-			<div class="block mb-4 pt-2">
+			<div class="block overflow-x-scroll mb-4 pt-2">
 				<div class="block-title">IP block</div>
 				<div><code>isIpBlocked = {{ isIpBlocked }}</code></div>
 				<div><code>blockedIpId = {{ (blockedIpId || 'null') }}</code></div>
@@ -188,7 +188,7 @@ export default class ProxyClientPage extends Vue {
 			</div>
 
 			<!-- Solved data -->
-			<div class="block mb-4 pt-2">
+			<div class="block overflow-x-scroll mb-4 pt-2">
 				<div class="block-title">Solved client challenges</div>
 				<code>{{ clientAuthData }}</code>
 			</div>
@@ -196,7 +196,9 @@ export default class ProxyClientPage extends Vue {
 
 		<hr>
 		<div v-if="client">
-			<code>{{ client }}</code>
+			<div class="block overflow-x-scroll mb-4 pt-2">
+				<code>{{ client }}</code>
+			</div>
 		</div>
 	</div>
 </template>

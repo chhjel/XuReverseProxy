@@ -18,7 +18,7 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
   	@Prop()
 	options: ProxyChallengeTypeAdminLoginFrontendModel;
 	
-    service!: ProxyAuthService;
+    service: ProxyAuthService = new ProxyAuthService('ProxyChallengeTypeAdminLogin', '');
 	username: string = '';
 	password: string = '';
 	totp: string = '';

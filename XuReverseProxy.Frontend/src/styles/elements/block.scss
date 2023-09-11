@@ -16,6 +16,15 @@
 		border: 2px solid var(--color--panel);
         background-color: #121212;
     }
+
+    &.overflow-x-scroll {
+        overflow-y: auto;
+    }
+
+    .block-title {
+        position: sticky;
+        left: 0;
+    }
 }
 
 .block-title {
