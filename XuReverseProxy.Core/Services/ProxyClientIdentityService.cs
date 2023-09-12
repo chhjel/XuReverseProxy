@@ -28,14 +28,16 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
     private readonly ApplicationDbContext _dbContext;
     private readonly IMemoryCache _memoryCache;
     private readonly IDataProtector _dataProtector;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext,
-        IMemoryCache memoryCache, IDataProtectionProvider dataProtectorProvider)
+        IMemoryCache memoryCache, IDataProtectionProvider dataProtectorProvider, IHttpContextAccessor httpContextAccessor)
     {
         _serverConfig = serverConfig;
         _dbContext = dbContext;
         _memoryCache = memoryCache;
         _dataProtector = dataProtectorProvider.CreateProtector("XuReverseProxy");
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ProxyClientIdentity?> GetProxyClientIdentityAsync(Guid id)
@@ -150,6 +152,12 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         data.BlockedMessage = message;
         data.BlockedAtUtc = DateTime.UtcNow;
 
+        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext,
+                $"Blocked client {AdminAuditLogEntry.Placeholder_Client}")
+                .SetRelatedClient(data.Id, data.Note ?? data.IP)
+            );
+        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, $"Was blocked"));
+
         await _dbContext.SaveChangesAsync();
         return true;
     }
@@ -162,6 +170,12 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         data.Blocked = false;
         data.BlockedMessage = null;
         data.BlockedAtUtc = null;
+
+        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext,
+                $"Unblocked client {AdminAuditLogEntry.Placeholder_Client}")
+                .SetRelatedClient(data.Id, data.Note ?? data.IP)
+            );
+        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, $"Was unblocked"));
 
         await _dbContext.SaveChangesAsync();
         return true;

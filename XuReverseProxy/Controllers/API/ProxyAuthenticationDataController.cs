@@ -53,6 +53,39 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
     [GenerateFrontendModel]
     public record ProxyAuthenticationDataOrderData(Guid AuthId, int Order);
 
+    public override async Task<GenericResultData<ProxyAuthenticationData>> CreateOrUpdateEntityAsync([FromBody] ProxyAuthenticationData entity)
+    {
+        var isNew = entity.Id == Guid.Empty;
+        var result = await base.CreateOrUpdateEntityAsync(entity);
+        if (result.Success)
+        {
+            var config = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == entity.ProxyConfigId);
+            _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext,
+                    isNew
+                    ? $"Created new {entity.ChallengeTypeId}-auth for {AdminAuditLogEntry.Placeholder_ProxyConfig}"
+                    : $"Updated {entity.ChallengeTypeId}-auth for {AdminAuditLogEntry.Placeholder_ProxyConfig}")
+                    .SetRelatedProxyConfig(config?.Id, config?.Name)
+                );
+            await _dbContext.SaveChangesAsync();
+        }
+        return result;
+    }
+
+    public override async Task<GenericResult> DeleteEntityAsync([FromRoute] Guid entityId)
+    {
+        var entity = await GetEntityAsync(entityId);
+        var result = await base.DeleteEntityAsync(entityId);
+        if (result.Success)
+        {
+            var config = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == entityId);
+            _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Deleted {(entity?.Data?.ChallengeTypeId ?? "unknown")}-auth for {AdminAuditLogEntry.Placeholder_ProxyConfig}")
+                    .SetRelatedProxyConfig(config?.Id, config?.Name)
+                );
+            await _dbContext.SaveChangesAsync();
+        }
+        return result;
+    }
+
     protected override IQueryable<ProxyAuthenticationData> OnGetSingle(DbSet<ProxyAuthenticationData> entities)
         => entities.Include(i => i.Conditions);
 

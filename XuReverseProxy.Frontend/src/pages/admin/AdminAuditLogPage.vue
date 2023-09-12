@@ -119,12 +119,16 @@ export default class AdminAuditLogPage extends Vue {
 				<table>
 					<tr>
 						<th>When</th>
+						<th>IP</th>
 						<th>Who</th>
 						<th>What</th>
 					</tr>
 					<tr v-for="item in currentPageItems" :key="item.id" class="item">
 						<td class="item__when">
 							<code :title="formatDateFull(item.timestampUtc)">{{ formatDate(item.timestampUtc) }}</code>
+						</td>
+						<td class="item__ip">
+							<code>{{ item.ip }}</code>
 						</td>
 						<td class="item__who">
 							<code :title="item.adminUserId">Admin ({{ item.adminUserId }})</code>

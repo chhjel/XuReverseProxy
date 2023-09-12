@@ -62,7 +62,6 @@ public class AdminAuditLogEntry : IHasId
         return this;
     }
 
-    public const string Placeholder_User = "[USER]";
     public const string Placeholder_ProxyConfig = "[PROXYCONFIG]";
     public const string Placeholder_Client = "[CLIENT]";
 }

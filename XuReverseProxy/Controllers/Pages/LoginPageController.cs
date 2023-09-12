@@ -143,6 +143,10 @@ public class LoginPageController : Controller
 
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         await _signInManager.SignOutAsync();
+
+        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Logged out manually."));
+        await _dbContext.SaveChangesAsync();
+
         return RedirectToAction(nameof(Login), new { @return = "/" });
     }
 
@@ -182,6 +186,9 @@ public class LoginPageController : Controller
         var rawIp = TKRequestUtils.GetIPAddress(Request.HttpContext);
         var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
         appUser.LastConnectedFromIP = ipData.IP;
+
+        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Logged in from '{ipData?.IP}'."));
+
         await _dbContext.SaveChangesAsync();
 
         return (success: true, error: null);

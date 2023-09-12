@@ -2,15 +2,19 @@
 using Microsoft.EntityFrameworkCore;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.DbEntity;
+using XuReverseProxy.Core.Services;
 using XuReverseProxy.Models.Common;
 
 namespace XuReverseProxy.Controllers.API;
 
 public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIdentity>
 {
-    public ProxyClientIdentityController(ApplicationDbContext context)
+    private readonly IProxyClientIdentityService _proxyClientIdentityService;
+
+    public ProxyClientIdentityController(ApplicationDbContext context, IProxyClientIdentityService proxyClientIdentityService)
         : base(context, () => context.ProxyClientIdentities)
     {
+        _proxyClientIdentityService = proxyClientIdentityService;
     }
 
     // Needed to preserve hash after login
@@ -25,11 +29,7 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
 
         try
         {
-            var client = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == request.ClientId);
-            if (client == null) return GenericResult.CreateError("Client not found.");
-
-            client.Note = request.Note;
-            await _dbContext.SaveChangesAsync();
+            await _proxyClientIdentityService.SetClientNoteAsync(request.ClientId, request.Note);
             return GenericResult.CreateSuccess();
         }
         catch (Exception ex)
@@ -47,14 +47,8 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
 
         try
         {
-            var client = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == request.ClientId);
-            if (client == null) return GenericResult.CreateError("Client not found.");
-
-            if (!client.Blocked && request.Blocked) client.BlockedAtUtc = DateTime.UtcNow;
-            else if (client.Blocked && !request.Blocked) client.BlockedAtUtc = null;
-            client.Blocked = request.Blocked;
-            client.BlockedMessage = request.Message;
-            await _dbContext.SaveChangesAsync();
+            if (request.Blocked) await _proxyClientIdentityService.BlockIdentityAsync(request.ClientId, request.Message);
+            else await _proxyClientIdentityService.UnBlockIdentityAsync(request.ClientId);
             return GenericResult.CreateSuccess();
         }
         catch (Exception ex)
