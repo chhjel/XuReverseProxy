@@ -4,11 +4,20 @@ import { ProxyClientIdentity } from './../generated/Models/Core/ProxyClientIdent
 import EFCrudServiceBase from './EFCrudServiceBase';
 import { LoadStatus } from './ServiceBase';
 import { GenericResult } from '@generated/Models/Web/GenericResult';
+import { PaginatedResult } from '@generated/Models/Web/PaginatedResult';
+import { ProxyClientIdentitiesPagedRequestModel } from '@generated/Models/Web/ProxyClientIdentitiesPagedRequestModel';
 
 
 export default class ProxyClientIdentityService extends EFCrudServiceBase<ProxyClientIdentity> {
     constructor() {
         super('proxyClientIdentity');
+    }
+
+    public async GetPagedAsync(payload: ProxyClientIdentitiesPagedRequestModel, status: LoadStatus | null = null): Promise<PaginatedResult<ProxyClientIdentity>> {
+        const url = `${this._baseUrl}/paged`;
+        const request = this.fetchExt(url, "POST", payload);
+        const result = await this.awaitWithStatus<PaginatedResult<ProxyClientIdentity>>(request, status);
+        return result.data;
     }
 
     public async SetClientNoteAsync(payload: SetClientNoteRequestModel, status: LoadStatus | null = null): Promise<GenericResult> {

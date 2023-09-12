@@ -29,14 +29,14 @@ public class RuntimeServerConfig
     /// <summary></summary>
     public string NotFoundHtml
     {
-        get => GetConfig(nameof(NotFoundHtml)) ?? "<html><head><title>404 | XuReverseProxy</title></head><body>404 / XuReverseProxy</body></html>";
+        get => GetConfig(nameof(NotFoundHtml)) ?? "<!DOCTYPE html>\n<html>\n<head>\n<title>404 | XuReverseProxy</title>v</head>\n<body>\n404 / XuReverseProxy\n</body>\n</html>\n";
         set => SetConfig(nameof(NotFoundHtml), value);
     }
 
     /// <summary></summary>
     public string ClientBlockedHtml
     {
-        get => GetConfig(nameof(ClientBlockedHtml)) ?? "<html><head><title>Blocked | XuReverseProxy</title></head><body>{{blocked_message}}</body></html>";
+        get => GetConfig(nameof(ClientBlockedHtml)) ?? "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\n{{blocked_message}}\n</body>\n</html>\n";
         set => SetConfig(nameof(ClientBlockedHtml), value);
     }
 
@@ -50,7 +50,7 @@ public class RuntimeServerConfig
     /// <summary></summary>
     public string IPBlockedHtml
     {
-        get => GetConfig(nameof(IPBlockedHtml)) ?? "<html><head><title>Blocked | XuReverseProxy</title></head><body>Nope</body></html>";
+        get => GetConfig(nameof(IPBlockedHtml)) ?? "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\nNope</body>\n</html>\n";
         set => SetConfig(nameof(IPBlockedHtml), value);
     }
 
