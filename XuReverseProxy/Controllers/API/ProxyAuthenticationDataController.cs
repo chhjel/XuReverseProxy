@@ -55,6 +55,8 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
 
     public override async Task<GenericResultData<ProxyAuthenticationData>> CreateOrUpdateEntityAsync([FromBody] ProxyAuthenticationData entity)
     {
+        if (!ModelState.IsValid) return GenericResult.CreateError<ProxyAuthenticationData>(ModelState);
+
         var isNew = entity.Id == Guid.Empty;
         var result = await base.CreateOrUpdateEntityAsync(entity);
         if (result.Success)
@@ -73,12 +75,14 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
 
     public override async Task<GenericResult> DeleteEntityAsync([FromRoute] Guid entityId)
     {
-        var entity = await GetEntityAsync(entityId);
+        if (!ModelState.IsValid) return GenericResult.CreateError<ProxyAuthenticationData>(ModelState);
+
+        var entity = (await GetEntityAsync(entityId))?.Data;
         var result = await base.DeleteEntityAsync(entityId);
         if (result.Success)
         {
-            var config = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == entityId);
-            _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Deleted {(entity?.Data?.ChallengeTypeId ?? "unknown")}-auth for {AdminAuditLogEntry.Placeholder_ProxyConfig}")
+            var config = entity == null ? null : await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == entity.ProxyConfigId);
+            _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Deleted {(entity?.ChallengeTypeId ?? "unknown")}-auth for {AdminAuditLogEntry.Placeholder_ProxyConfig}")
                     .SetRelatedProxyConfig(config?.Id, config?.Name)
                 );
             await _dbContext.SaveChangesAsync();

@@ -30,6 +30,8 @@ public class ProxyAuthenticationConditionController : EFCrudControllerBase<Proxy
     }
     public override async Task<GenericResultData<ProxyAuthenticationCondition>> CreateOrUpdateEntityAsync([FromBody] ProxyAuthenticationCondition entity)
     {
+        if (!ModelState.IsValid) return GenericResult.CreateError<ProxyAuthenticationCondition>(ModelState);
+
         var isNew = entity.Id == Guid.Empty;
         var result = await base.CreateOrUpdateEntityAsync(entity);
         if (result.Success)
@@ -49,6 +51,8 @@ public class ProxyAuthenticationConditionController : EFCrudControllerBase<Proxy
 
     public override async Task<GenericResult> DeleteEntityAsync([FromRoute] Guid entityId)
     {
+        if (!ModelState.IsValid) return GenericResult.CreateError<ProxyAuthenticationCondition>(ModelState);
+
         var entity = (await GetEntityAsync(entityId))?.Data;
         var result = await base.DeleteEntityAsync(entityId);
         if (result.Success)

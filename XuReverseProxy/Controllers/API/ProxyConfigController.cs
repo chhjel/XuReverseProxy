@@ -15,6 +15,8 @@ public class ProxyConfigController : EFCrudControllerBase<ProxyConfig>
 
     public override async Task<GenericResultData<ProxyConfig>> CreateOrUpdateEntityAsync([FromBody] ProxyConfig entity)
     {
+        if (!ModelState.IsValid) return GenericResult.CreateError<ProxyConfig>(ModelState);
+
         var isNew = entity.Id == Guid.Empty;
         var result = await base.CreateOrUpdateEntityAsync(entity);
         if (result.Success)
@@ -32,6 +34,8 @@ public class ProxyConfigController : EFCrudControllerBase<ProxyConfig>
 
     public override async Task<GenericResult> DeleteEntityAsync([FromRoute] Guid entityId)
     {
+        if (!ModelState.IsValid) return GenericResult.CreateError<ProxyConfig>(ModelState);
+
         var entity = await GetEntityAsync(entityId);
         var result = await base.DeleteEntityAsync(entityId);
         if (result.Success)

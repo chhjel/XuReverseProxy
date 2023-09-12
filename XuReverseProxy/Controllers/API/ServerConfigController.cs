@@ -14,6 +14,8 @@ public class ServerConfigController : EFCrudControllerBase<RuntimeServerConfigIt
 
     public override async Task<GenericResultData<RuntimeServerConfigItem>> CreateOrUpdateEntityAsync([FromBody] RuntimeServerConfigItem entity)
     {
+        if (!ModelState.IsValid) return GenericResult.CreateError<RuntimeServerConfigItem>(ModelState);
+
         var result = await base.CreateOrUpdateEntityAsync(entity);
         if (result.Success)
         {
