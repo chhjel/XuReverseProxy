@@ -20,6 +20,7 @@ import { ProxyAuthenticationData } from "@generated/Models/Core/ProxyAuthenticat
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 import { GenericResult } from "@generated/Models/Web/GenericResult";
 import GlobeComponent from "@components/common/GlobeComponent.vue";
+import IPDetailsComponent from "@components/admin/IPDetailsComponent.vue";
 
 @Options({
 	components: {
@@ -28,7 +29,8 @@ import GlobeComponent from "@components/common/GlobeComponent.vue";
 		CheckboxComponent,
 		MapComponent,
 		GlobeComponent,
-		LoaderComponent
+		LoaderComponent,
+		IPDetailsComponent
 	}
 })
 export default class ProxyClientPage extends Vue {
@@ -43,15 +45,8 @@ export default class ProxyClientPage extends Vue {
 	client: ProxyClientIdentity | null = null;
 	clientId: string = '';
 
-	ipLookupService: IPLookupService = new IPLookupService();
-	ipLookupData: IPLookupResult | null = null;
-	ipBlockService: IPBlockService = new IPBlockService();
-	
 	isBlocked: boolean = false;
 	clientBlockedNote: string = '';
-	isIpBlocked: boolean = false;
-	blockedIpId: string | null = null;
-	canUnblockIp: boolean = false;
 	clientNote: string = '';
 
 	proxyConfigs: Array<ProxyConfig> = [];
@@ -75,14 +70,6 @@ export default class ProxyClientPage extends Vue {
 		this.clientBlockedNote = this.client.blockedMessage;
 		this.clientNote = this.client.note;
 
-		this.ipLookupService.LookupIPAsync(this.client.ip).then(x => this.ipLookupData = x);
-		
-		this.ipBlockService.GetMatchingBlockedIpDataForAsync(this.client.ip).then(x => {
-			this.isIpBlocked = x != null;
-			this.blockedIpId = x?.id;
-			this.canUnblockIp = x != null && x.ip != null && x.ip.length > 0;
-		});
-
 		this.proxyConfigs = (await this.proxyConfigService.GetAllAsync())?.data || [];
 		this.proxyConfigAuths = (await this.proxyAuthService.GetAllAsync())?.data || [];
 		this.client.solvedChallenges.forEach(x => {
@@ -100,11 +87,6 @@ export default class ProxyClientPage extends Vue {
 
 	get isLoading(): boolean { return this.statuses.some(x => x.inProgress); }
 	
-	get ipContinent(): string | null { return this.ipLookupData?.continent || null; }
-	get ipCountry(): string | null { return this.ipLookupData?.country || null; }
-	get ipCity(): string | null { return this.ipLookupData?.city || null; }
-	get ipFlagUrl(): string | null { return this.ipLookupData?.flagUrl || null; }
-
 	async updateClientNote(): Promise<any> {
 		await this.service.SetClientNoteAsync({
 			clientId: this.client.id,
@@ -164,36 +146,8 @@ export default class ProxyClientPage extends Vue {
 				</div>
 			</div>
 
-			<!-- IP block -->
-			<div class="block overflow-x-scroll mb-4 pt-2">
-				<div class="block-title">IP block</div>
-				<div><code>isIpBlocked = {{ isIpBlocked }}</code></div>
-				<div><code>blockedIpId = {{ (blockedIpId || 'null') }}</code></div>
-				<div><code>canUnblockIp = {{ canUnblockIp }}</code></div>
-			</div>
-
-			<!-- IP LOCATION -->
-			<div class="block mb-4" v-if="ipLookupData?.success == true">
-				<div class="ipdetails-location">
-					<div v-if="ipContinent" class="ipdetails-location__part">{{ ipContinent }}</div>
-					<div v-if="ipFlagUrl || ipCountry" class="ipdetails-location__part flag-part">
-						<img :src="ipFlagUrl" class="ipdetails-flag" />
-						<span v-if="ipCountry">{{ ipCountry }}</span>
-					</div>
-					<div v-if="ipCity" class="ipdetails-location__part">{{ ipCity }}</div>
-				</div>
-			</div>
-
-			<!-- MAP -->
-			<div class="block mb-4" v-if="ipLookupData?.success == true && ipLookupData.latitude && ipLookupData.longitude">
-				<map-component class="map" :lat="ipLookupData.latitude" :lon="ipLookupData.longitude"
-					:zoom="12" note="Client location" />
-			</div>
-
-			<!-- GLOBE -->
-			<div class="block no-bg mb-4 pa-0" v-if="ipLookupData?.success == true && ipLookupData.latitude && ipLookupData.longitude">
-				<globe-component class="globe" :lat="ipLookupData.latitude" :lon="ipLookupData.longitude" :ping="true" />
-			</div>
+			<!-- IP Details -->
+			<IPDetailsComponent :ip="client.ip" :key="client.ip || 'empty'" />
 
 			<!-- Solved data -->
 			<div class="block overflow-x-scroll mb-4 pt-2">

@@ -34,6 +34,7 @@ export default class CodeInputComponent extends Vue {
     @Prop({ required: false, default: "" })
     title!: string;
 
+    isFullscreen: boolean = false;
     isEditorInited: boolean = false;
 
     editor!: monaco.editor.IStandaloneCodeEditor;
@@ -79,7 +80,8 @@ export default class CodeInputComponent extends Vue {
     //////////////
     get rootClasses(): any {
         let classes: any = {
-            'editor-readonly': this.readOnly
+            'editor-readonly': this.readOnly,
+            'fullscreen': this.isFullscreen
         };
         return classes;
     }
@@ -242,6 +244,11 @@ export default class CodeInputComponent extends Vue {
             <div class="editor-component__loader-bar" v-if="!isEditorInited">
                 Loading...
             </div>
+            <div v-if="!isFullscreen" class="editor-component__gofullscreen" @click="isFullscreen = true">[fullscreen]</div>
+            <div v-if="isFullscreen" class="editor-component__fullscreen-bar">
+                <div class="spacer"></div>
+                <div class="editor-component__gosmall" @click="isFullscreen = false">[Exit fullscreen]</div>
+            </div>
 
             <div ref="editorElement" class="editor-component__editor"></div>
         </div>
@@ -252,37 +259,67 @@ export default class CodeInputComponent extends Vue {
 .editor-component {
     position: relative;
 
-    .editor-component__loader-bar {
+    &__loader-bar {
         margin-bottom: -14px;
     }
 
-    .editor-component__editor {
+    &__editor {
         width: 100%;
         height: 100%;
     }
-}
-.editor-toolbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 64px;
-    z-index: 100;
-    padding: 5px;
-    box-sizing: border-box;
-    background-color: var(--color--primary-darken2);
-    color: #fff;
 
-    &__close {
+    &.fullscreen {
+        position: fixed;
+        top: 32px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 100;
+        height: 100% !important;
+
+        .editor-component__editor {
+            height: calc(100% - 32px) !important;
+        }
+    }
+
+    &__fullscreen-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        height: 32px;
+        background-color: var(--color--panel-light);
         display: flex;
-        align-items: center;
-        height: 100%;
-        padding: 10px 30px;
+    }
+
+    &__gofullscreen {
         cursor: pointer;
-        transition: 0.2s all;
-        background-color: var(--color--primary-base);
+        position: absolute;
+        z-index: 1;
+        font-size: 12px;
+        color: var(--color--secondary-lighten);
+        padding: 2px;
+
         &:hover {
-            background-color: var(--color--primary-lighten1);
+            color: var(--color--info-base);
+        }
+    }
+
+    &__gofullscreen {
+        top: -19px;
+        right: -2px;
+    }
+
+    &__gosmall {
+        cursor: pointer;
+        color: var(--color--secondary-lighten);
+        align-self: center;
+        font-size: 22px;
+        margin-right: 10px;
+
+        &:hover {
+            color: var(--color--info-base);
         }
     }
 }
