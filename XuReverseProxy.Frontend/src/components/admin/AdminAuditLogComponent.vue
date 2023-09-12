@@ -3,7 +3,6 @@ import { Options } from "vue-class-component";
 import { Vue } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
-import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
 import AuditLogService from "@services/AuditLogService";
 import { PaginatedResult } from "@generated/Models/Web/PaginatedResult";
@@ -13,14 +12,17 @@ import ProxyConfigService from "@services/ProxyConfigService";
 import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import DateFormats from "@utils/DateFormats";
 import PagingComponent from "@components/common/PagingComponent.vue";
+import IPDetailsComponent from "./IPDetailsComponent.vue";
+import DialogComponent from "@components/common/DialogComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
-		AdminNavMenu,
+		DialogComponent,
 		LoaderComponent,
-        PagingComponent
+        PagingComponent,
+		IPDetailsComponent
 	}
 })
 export default class AdminAuditLogComponent extends Vue {
@@ -97,6 +99,13 @@ export default class AdminAuditLogComponent extends Vue {
     async onPageIndexChanged() {
         await this.loadData();
     }
+	
+	ipInDialog: string | null = null;
+	ipDialogVisible: boolean = false;
+	showIpDialog(ip: string): void {
+		this.ipInDialog = ip;
+		this.ipDialogVisible = true;
+	}
 }
 </script>
 
@@ -127,7 +136,7 @@ export default class AdminAuditLogComponent extends Vue {
 						<td class="item__when">
 							<code :title="formatDateFull(item.timestampUtc)">{{ formatDate(item.timestampUtc) }}</code>
 						</td>
-						<td class="item__ip">
+						<td class="item__ip" @click="showIpDialog(item.ip)">
 							<code>{{ item.ip }}</code>
 						</td>
 						<td class="item__who">
@@ -150,6 +159,15 @@ export default class AdminAuditLogComponent extends Vue {
                     @change="onPageIndexChanged"
                     />
 		</div>
+
+		<!-- IP Dialog -->
+		<dialog-component v-model:value="ipDialogVisible" max-width="800">
+			<template #header>IP location</template>
+			<template #footer>
+				<button-component @click="ipDialogVisible = false" :disabled="isLoading" class="secondary">Close</button-component>
+			</template>
+			<IPDetailsComponent :ip="ipInDialog" :key="ipInDialog || 'empty'" />
+		</dialog-component>
 	</div>
 </template>
 
@@ -193,6 +211,10 @@ export default class AdminAuditLogComponent extends Vue {
 			overflow: hidden;
 			text-overflow: ellipsis;
 			padding: 5px;
+		}
+
+		&__ip {
+			cursor: pointer;
 		}
 
 		&__who {

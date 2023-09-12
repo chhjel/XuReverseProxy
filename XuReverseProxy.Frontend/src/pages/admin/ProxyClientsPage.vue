@@ -175,6 +175,9 @@ export default class ProxyClientsPage extends Vue {
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
+		&__ip {
+			cursor: pointer;
+		}
 		&__note {
 			width: 300px;
 			max-width: 300px;
