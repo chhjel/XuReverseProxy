@@ -8,6 +8,7 @@ import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendM
 import ProxyClientIdentityService from "@services/ProxyClientIdentityService";
 import { ProxyClientIdentity } from "@generated/Models/Core/ProxyClientIdentity";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
+import DateFormats from "@utils/DateFormats";
 
 @Options({
 	components: {
@@ -42,9 +43,7 @@ export default class ProxyClientsPage extends Vue {
 	}
 
 	formatDate(raw: Date | string): string {
-		if (raw == null) return '';
-		let date: Date = (typeof raw === 'string') ? new Date(raw) : raw;
-		return date.toLocaleString();
+		return DateFormats.defaultDateTime(raw);
 	}
 }
 </script>

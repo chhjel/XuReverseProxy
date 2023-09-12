@@ -14,6 +14,7 @@ import { AdminAuditLogEntry } from "@generated/Models/Core/AdminAuditLogEntry";
 import { GetAdminAuditLogEntriesRequestModel } from "@generated/Models/Web/GetAdminAuditLogEntriesRequestModel";
 import ProxyConfigService from "@services/ProxyConfigService";
 import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
+import DateFormats from "@utils/DateFormats";
 
 @Options({
 	components: {
@@ -66,9 +67,11 @@ export default class AdminAuditLogPage extends Vue {
 	}
 
 	formatDate(raw: Date | string): string {
-		if (raw == null) return '';
-		let date: Date = (typeof raw === 'string') ? new Date(raw) : raw;
-		return date.toLocaleString();
+		return DateFormats.defaultDateTime(raw);
+	}
+
+	formatDateFull(raw: Date | string): string {
+		return DateFormats.dateTimeFull(raw);
 	}
 
 	async setPage(num: number) {
@@ -81,7 +84,7 @@ export default class AdminAuditLogPage extends Vue {
 
 		if (html.includes('[PROXYCONFIG]')) {
 			const existing = this.proxyConfigs.find(x => x.id == entry.relatedProxyConfigId);
-			const name = !existing ? 'deleted config'
+			const name = !existing ? (this.htmlEncode(entry.relatedProxyConfigName) || 'config') + " (deleted)"
 			 	: this.htmlEncode(existing.name || entry.relatedProxyConfigName) || 'config';
 			const linkClass = !existing ? 'missing' : '';
 			html = html.replace('[PROXYCONFIG]', `<a href="/#/proxyconfigs/${entry.relatedProxyConfigId}" class="${linkClass}">[${name}]</a>`);
@@ -116,12 +119,16 @@ export default class AdminAuditLogPage extends Vue {
 				<table>
 					<tr>
 						<th>When</th>
+						<th>IP</th>
 						<th>Who</th>
 						<th>What</th>
 					</tr>
 					<tr v-for="item in currentPageItems" :key="item.id" class="item">
 						<td class="item__when">
-							<code :title="formatDate(item.timestampUtc)">{{ formatDate(item.timestampUtc) }}</code>
+							<code :title="formatDateFull(item.timestampUtc)">{{ formatDate(item.timestampUtc) }}</code>
+						</td>
+						<td class="item__ip">
+							<code>{{ item.ip }}</code>
 						</td>
 						<td class="item__who">
 							<code :title="item.adminUserId">Admin ({{ item.adminUserId }})</code>
@@ -175,8 +182,8 @@ export default class AdminAuditLogPage extends Vue {
 
 	.item {
 		&__when {
-			width: 160px;
-			max-width: 160px;
+			width: 95px;
+			max-width: 95px;
 			overflow: hidden;
 			text-overflow: ellipsis;
 			padding: 5px;

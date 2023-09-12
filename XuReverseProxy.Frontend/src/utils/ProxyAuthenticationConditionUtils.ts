@@ -1,5 +1,6 @@
 import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
 import { ProxyAuthenticationCondition } from "@generated/Models/Core/ProxyAuthenticationCondition";
+import DateFormats from "./DateFormats";
 
 export function createProxyAuthenticationConditionSummary(condition: ProxyAuthenticationCondition): string {
     if (condition.conditionType == ProxyAuthenticationConditionType.DateTimeRange) {
@@ -21,9 +22,7 @@ export function createProxyAuthenticationConditionSummary(condition: ProxyAuthen
 }
 
 function formatDate(raw: Date | string): string {
-    if (raw == null) return '';
-    let date: Date = (typeof raw === 'string') ? new Date(raw) : raw;
-    return date.toLocaleString();
+    return DateFormats.defaultDateTime(raw);
 }
 
 function formatTime(raw: Date | string): string {

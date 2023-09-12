@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using QoDL.Toolkit.Core.Util;
 using XuReverseProxy.Core.Models.DbEntity;
 
@@ -17,10 +18,12 @@ public interface IIPBlockService
 public class IPBlockService : IIPBlockService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public IPBlockService(ApplicationDbContext dbContext)
+    public IPBlockService(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<bool> IsIPBlockedAsync(string ip)
@@ -71,6 +74,9 @@ public class IPBlockService : IIPBlockService
         data.Type = BlockedIpDataType.IP;
         data.IP = ip;
         _dbContext.Add(data);
+
+        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext, $"Blocked IP '{ip}'."));
+
         await _dbContext.SaveChangesAsync();
         return data;
     }
@@ -81,6 +87,9 @@ public class IPBlockService : IIPBlockService
         data.Type = BlockedIpDataType.IPRegex;
         data.IPRegex = ipRegex;
         _dbContext.Add(data);
+
+        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext, $"Blocked IP by RegEx '{ipRegex}'."));
+
         await _dbContext.SaveChangesAsync();
         return data;
     }
@@ -91,6 +100,9 @@ public class IPBlockService : IIPBlockService
         data.Type = BlockedIpDataType.CIDRRange;
         data.CidrRange = ipCidr;
         _dbContext.Add(data);
+
+        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext, $"Blocked IP CIDR range '{ipCidr}'."));
+
         await _dbContext.SaveChangesAsync();
         return data;
     }
@@ -108,6 +120,13 @@ public class IPBlockService : IIPBlockService
         var entity = _dbContext.BlockedIpDatas.FirstOrDefault(x => x.Id == id);
         if (entity == null) return;
         _dbContext.Remove(entity);
+
+        var val = entity.IP;
+        if (string.IsNullOrWhiteSpace(val)) val = entity.IPRegex;
+        else if (string.IsNullOrWhiteSpace(val)) val = entity.CidrRange;
+
+        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext, $"Removed IP block '{val}'."));
+
         await _dbContext.SaveChangesAsync();
     }
 }

@@ -8,6 +8,7 @@ import ProxyAuthService from "@services/ProxyAuthService";
 import { TrySendOTPResponseModel } from "@generated/Models/Core/TrySendOTPResponseModel";
 import { TrySolveOTPResponseModel } from "@generated/Models/Core/TrySolveOTPResponseModel";
 import { TrySolveOTPRequestModel } from "@generated/Models/Core/TrySolveOTPRequestModel";
+import DateFormats from "@utils/DateFormats";
 
 @Options({
 	components: {
@@ -76,9 +77,7 @@ export default class ProxyChallengeTypeOTPComponent extends Vue {
 	}
 
 	formatDate(raw: Date | string): string {
-		if (raw == null) return '';
-		let date: Date = (typeof raw === 'string') ? new Date(raw) : raw;
-		return date.toLocaleString();
+		return DateFormats.defaultDateTime(raw);
 	}
 }
 </script>

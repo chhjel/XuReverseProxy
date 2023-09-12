@@ -8,6 +8,7 @@ import LoaderComponent from "@components/common/LoaderComponent.vue";
 import ScheduledTasksService from "@services/ScheduledTasksService";
 import { ScheduledTaskStatus } from "@generated/Models/Core/ScheduledTaskStatus";
 import { ScheduledTaskResult } from "@generated/Models/Core/ScheduledTaskResult";
+import DateFormats from "@utils/DateFormats";
 
 interface JobData {
 	type: string;
@@ -57,9 +58,7 @@ export default class ScheduledTasksPage extends Vue {
 	}
 
 	formatDate(raw: Date | string): string {
-		if (raw == null) return '';
-		let date: Date = (typeof raw === 'string') ? new Date(raw) : raw;
-		return date.toLocaleString();
+		return DateFormats.defaultDateTime(raw);
 	}
 }
 </script>
