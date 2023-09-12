@@ -9,13 +9,17 @@ import ProxyClientIdentityService from "@services/ProxyClientIdentityService";
 import { ProxyClientIdentity } from "@generated/Models/Core/ProxyClientIdentity";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
 import DateFormats from "@utils/DateFormats";
+import { ProxyClientIdentitiesPagedRequestModel } from "@generated/Models/Web/ProxyClientIdentitiesPagedRequestModel";
+import { PaginatedResult } from "@generated/Models/Web/PaginatedResult";
+import PagingComponent from "@components/common/PagingComponent.vue";
 
 @Options({
 	components: {
 		TextInputComponent,
 		ButtonComponent,
 		AdminNavMenu,
-		LoaderComponent
+		LoaderComponent,
+        PagingComponent
 	}
 })
 export default class ProxyClientsPage extends Vue {
@@ -23,19 +27,31 @@ export default class ProxyClientsPage extends Vue {
 	readonly options!: AdminPageFrontendModel;
 	
     service: ProxyClientIdentityService = new ProxyClientIdentityService();
-	clients: Array<ProxyClientIdentity> = [];
 
+	currentPageData: PaginatedResult<ProxyClientIdentity> | null = null;
+	filter: ProxyClientIdentitiesPagedRequestModel = {
+		pageIndex: 0,
+		pageSize: 20
+	};
+	
 	async mounted() {
-		const result = await this.service.GetAllAsync();
-		if (!result.success) {
-			console.error(result.message);
-		}
-		this.clients = result.data || [];
+		await this.loadData();
 	}
 
-	get pagedClients(): Array<ProxyClientIdentity> {
-		return this.clients;
+	async loadData() {
+		this.currentPageData = await this.service.GetPagedAsync(this.filter);
 	}
+
+    get isLoading(): boolean { return this.service.status.inProgress; }
+
+	get currentPageItems(): Array<ProxyClientIdentity> {
+		if (this.currentPageData == null) return [];
+		else return this.currentPageData.pageItems;
+	}
+
+    get totalItemCount(): number {
+        return this.currentPageData?.totalItemCount || 0;
+    }
 
 	navToClient(clientId: string, newTab: boolean = false): void {
 		if (newTab) window.open(`/#/client/${clientId}`, '_blank');
@@ -45,20 +61,29 @@ export default class ProxyClientsPage extends Vue {
 	formatDate(raw: Date | string): string {
 		return DateFormats.defaultDateTime(raw);
 	}
+
+    async onPageIndexChanged() {
+        await this.loadData();
+    }
 }
 </script>
 
 <template>
 	<div class="proxyclients-page">
-		<loader-component :status="service.status" />
+		<loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce" />
+		
 		<div v-if="service.status.hasDoneAtLeastOnce">
-			<ul>
-				Todo
-				<li>Get paged</li>
-				<li>Delete single/all/not used in a month/week/year</li>
-			</ul>
-
 			<p>Note: Clients are only created for proxies with authentication.</p>
+
+			<paging-component class="pagination mb-1"
+					:count="totalItemCount"
+					:pageSize="filter.pageSize"
+					v-model:value="filter.pageIndex"
+					:disabled="isLoading"
+					:asIndex="true"
+					:hideIfSinglePage="true"
+					@change="onPageIndexChanged"
+					/>
 
 			<div class="table-wrapper">
 				<table>
@@ -66,12 +91,11 @@ export default class ProxyClientsPage extends Vue {
 						<th>Note</th>
 						<th>UserAgent</th>
 						<th>IP</th>
-						<th>Id</th>
 						<th>Last access</th>
 						<th style="font-size: 12px;">Last attempted access</th>
 						<th></th>
 					</tr>
-					<tr v-for="client in pagedClients" :key="client.id" class="client"
+					<tr v-for="client in currentPageItems" :key="client.id" class="client"
 						@click="navToClient(client.id)"
 						@click.middle="navToClient(client.id, true)">
 						<td class="client__note">
@@ -82,9 +106,6 @@ export default class ProxyClientsPage extends Vue {
 						</td>
 						<td class="client__ip">
 							<code :title="client.ip">{{ client.ip }}</code>
-						</td>
-						<td class="client__id">
-							<code :title="client.id">{{ client.id }}</code>
 						</td>
 						<td class="client__la">
 							<code v-if="client.lastAccessedAtUtc">{{ formatDate(client.lastAccessedAtUtc) }}</code>
@@ -98,6 +119,16 @@ export default class ProxyClientsPage extends Vue {
 					</tr>
 				</table>
 			</div>
+            
+            <paging-component class="pagination mt-2"
+                    :count="totalItemCount"
+                    :pageSize="filter.pageSize"
+                    v-model:value="filter.pageIndex"
+                    :disabled="isLoading"
+                    :asIndex="true"
+                    :hideIfSinglePage="true"
+                    @change="onPageIndexChanged"
+                    />
 		</div>
 	</div>
 </template>
@@ -138,18 +169,14 @@ export default class ProxyClientsPage extends Vue {
     }
 
 	.client {
-		&__id {
-			max-width: 70px;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-
 		&__useragent {
+			width: 177px;
 			max-width: 177px;
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
 		&__note {
+			width: 300px;
 			max-width: 300px;
 			overflow: hidden;
 			text-overflow: ellipsis;

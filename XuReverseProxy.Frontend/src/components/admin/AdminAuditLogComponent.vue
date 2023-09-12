@@ -60,11 +60,6 @@ export default class AdminAuditLogComponent extends Vue {
 		else return this.currentPageData.pageItems;
 	}
 
-    get pageCount(): number {
-        const count = Math.ceil((this.currentPageData?.totalItemCount || 0) / this.filter.pageSize);
-        return Math.max(1, count);
-    }
-
     get totalItemCount(): number {
         return this.currentPageData?.totalItemCount || 0;
     }

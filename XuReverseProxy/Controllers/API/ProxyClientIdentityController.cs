@@ -17,6 +17,28 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
         _proxyClientIdentityService = proxyClientIdentityService;
     }
 
+    [HttpPost("paged")]
+    public async Task<PaginatedResult<ProxyClientIdentity>> GetPagedAsync([FromBody] ProxyClientIdentitiesPagedRequestModel request)
+    {
+        var query = _dbContext.ProxyClientIdentities.AsQueryable();
+        // todo: filter
+        var totalCount = await query.CountAsync();
+
+        query = query
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .Skip(request.PageIndex * request.PageSize)
+            .Take(request.PageSize);
+
+        var pageItems = await query.ToListAsync();
+        return new()
+        {
+            PageItems = pageItems,
+            TotalItemCount = totalCount
+        };
+    }
+    [GenerateFrontendModel]
+    public record ProxyClientIdentitiesPagedRequestModel(int PageIndex, int PageSize);
+
     // Needed to preserve hash after login
     [HttpGet("redirect/to-client-details/{clientid}")]
     public IActionResult RedirectToClientDetails([FromRoute] Guid clientid)
