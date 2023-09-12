@@ -89,20 +89,17 @@ export default class ProxyClientsPage extends Vue {
 				<table>
 					<tr>
 						<th>Note</th>
-						<th>UserAgent</th>
 						<th>IP</th>
-						<th>Last access</th>
+						<th style="font-size: 12px;">Last access</th>
 						<th style="font-size: 12px;">Last attempted access</th>
-						<th></th>
+						<th>Status</th>
+						<th>UserAgent</th>
 					</tr>
 					<tr v-for="client in currentPageItems" :key="client.id" class="client"
 						@click="navToClient(client.id)"
 						@click.middle="navToClient(client.id, true)">
 						<td class="client__note">
 							<code :title="client.note">{{ client.note }}</code>
-						</td>
-						<td class="client__useragent">
-							<code :title="client.userAgent">{{ client.userAgent }}</code>
 						</td>
 						<td class="client__ip">
 							<code :title="client.ip">{{ client.ip }}</code>
@@ -115,6 +112,9 @@ export default class ProxyClientsPage extends Vue {
 						</td>
 						<td class="client__meta">
 							<code v-if="client.blocked">Blocked</code>
+						</td>
+						<td class="client__useragent">
+							<code :title="client.userAgent">{{ client.userAgent }}</code>
 						</td>
 					</tr>
 				</table>
@@ -147,10 +147,11 @@ export default class ProxyClientsPage extends Vue {
     }
     th {
         padding: 3px;
+		white-space: nowrap;
     }
     td {
         color: var(--color--text-dark);
-        padding: 3px;
+        padding: 4px;
     }
     tr {
         border-bottom: 1px solid var(--color--text-darker);
@@ -170,16 +171,25 @@ export default class ProxyClientsPage extends Vue {
 
 	.client {
 		&__useragent {
-			width: 177px;
-			max-width: 177px;
+			width: 300px;
+			max-width: 300px;
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
 		&__ip {
 			cursor: pointer;
+    		width: 1%;
+		}
+		&__la, &__laa {
+			/* width: 150px;
+			max-width: 150px; */
+    		width: 1%;
+		}
+		&__meta {
+    		width: 1%;
 		}
 		&__note {
-			width: 300px;
+    		width: 1%;
 			max-width: 300px;
 			overflow: hidden;
 			text-overflow: ellipsis;

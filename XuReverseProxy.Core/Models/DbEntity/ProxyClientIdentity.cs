@@ -10,6 +10,7 @@ public class ProxyClientIdentity : IProvidesPlaceholders, IHasId
 
     public string? IP { get; set; }
     public string? UserAgent { get; set; }
+    //public string? Fingerprint { get; set; }
     public string? Note { get; set; }
 
     public DateTime CreatedAtUtc { get; set; }

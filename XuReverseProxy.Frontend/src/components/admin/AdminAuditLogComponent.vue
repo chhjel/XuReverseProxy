@@ -206,8 +206,7 @@ export default class AdminAuditLogComponent extends Vue {
 
 	.item {
 		&__when {
-			width: 95px;
-			max-width: 95px;
+    		width: 1%;
 			overflow: hidden;
 			text-overflow: ellipsis;
 			padding: 5px;
@@ -215,9 +214,11 @@ export default class AdminAuditLogComponent extends Vue {
 
 		&__ip {
 			cursor: pointer;
+    		width: 1%;
 		}
 
 		&__who {
+    		width: 1%;
 			width: 90px;
 			max-width: 90px;
 			overflow: hidden;
