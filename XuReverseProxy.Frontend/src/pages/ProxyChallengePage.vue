@@ -99,8 +99,9 @@ export default class ProxyChallengePage extends Vue {
 			<div class="proxy-description" v-if="options.description">{{ options.description }}</div>
 		</div>
 
-		<div v-if="uncompletedChallenges.length == 0" class="block" style="text-align: center;">
-			Access granted
+		<div v-if="uncompletedChallenges.length == 0" class="block granted">
+			- Access granted -
+			<div class="mt-3">Loading..</div>
 		</div>
 
 		<div class="challenges mt-4" v-if="uncompletedChallenges.length > 0">
@@ -198,6 +199,17 @@ export default class ProxyChallengePage extends Vue {
 		.icon {
 			margin-right: 2px;
 			color: var(--color--success-base);
+		}
+	}
+
+	.granted {
+		text-align: center;
+		color: var(--color--success-base);
+		font-size: 20px;
+		font-weight: 600;
+
+		div {
+			font-size: 16px;
 		}
 	}
 
