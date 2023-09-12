@@ -9,6 +9,7 @@ import MapComponent from "@components/common/MapComponent.vue";
 import { ChallengeDataFrontendModel } from "@generated/Models/Web/ChallengeDataFrontendModel";
 import { getProxyAuthenticationTypeName } from "@utils/ProxyAuthenticationDataUtils";
 import GlobeComponent from "@components/common/GlobeComponent.vue";
+import DateFormats from "@utils/DateFormats";
 
 @Options({
 	components: {
@@ -116,9 +117,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 	get ipFlagUrl(): string | null { return this.options.client.ipLocation?.flagUrl || null; }
 
 	formatDate(raw: Date | string): string {
-		if (raw == null) return '';
-		let date: Date = (typeof raw === 'string') ? new Date(raw) : raw;
-		return date.toLocaleString();
+		return DateFormats.defaultDateTime(raw);
 	}
 
 	getChallengeTypeIdName(typeId: string): string {
