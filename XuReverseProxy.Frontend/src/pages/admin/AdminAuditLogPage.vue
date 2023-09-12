@@ -84,7 +84,7 @@ export default class AdminAuditLogPage extends Vue {
 
 		if (html.includes('[PROXYCONFIG]')) {
 			const existing = this.proxyConfigs.find(x => x.id == entry.relatedProxyConfigId);
-			const name = !existing ? 'deleted config'
+			const name = !existing ? (this.htmlEncode(entry.relatedProxyConfigName) || 'config') + " (deleted)"
 			 	: this.htmlEncode(existing.name || entry.relatedProxyConfigName) || 'config';
 			const linkClass = !existing ? 'missing' : '';
 			html = html.replace('[PROXYCONFIG]', `<a href="/#/proxyconfigs/${entry.relatedProxyConfigId}" class="${linkClass}">[${name}]</a>`);
