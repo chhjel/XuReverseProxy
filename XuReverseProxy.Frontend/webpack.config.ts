@@ -53,7 +53,7 @@ const config: Configuration = {
     path: outputToProject
       ? path.resolve(__dirname, "../XuReverseProxy/wwwroot/dist")
       : path.resolve(__dirname, "build"),
-    publicPath: outputToProject ? "../XuReverseProxy/wwwroot/dist/" : "/build/",
+    publicPath: "/dist/",
     filename: "[name].js",
     chunkFilename: "[name].[id].js",
   },
