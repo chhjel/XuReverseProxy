@@ -7,6 +7,7 @@ export interface ClientAuditLogEntry
 	id: string;
 	timestampUtc: Date;
 	clientId: string;
+	clientName: string;
 	ip: string;
 	action: string;
 	relatedProxyConfigId: string;

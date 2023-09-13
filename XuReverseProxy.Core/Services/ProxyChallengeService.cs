@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using XuReverseProxy.Core.Extensions;
 using XuReverseProxy.Core.Models.DbEntity;
 using static XuReverseProxy.Core.Models.DbEntity.ProxyAuthenticationCondition;
 
@@ -93,7 +94,8 @@ public class ProxyChallengeService : IProxyChallengeService
                 SolvedAtUtc = DateTime.UtcNow
             });
 
-            _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, $"Solved challenge '{auth.ChallengeTypeId}' for {ClientAuditLogEntry.Placeholder_ProxyConfig}")
+            _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, identity.NameForLog(), 
+                $"Solved challenge '{auth.ChallengeTypeId}' for {ClientAuditLogEntry.Placeholder_ProxyConfig}")
                 .SetRelatedProxyConfig(auth.ProxyConfigId, proxyConfig.Name));
 
             await _dbContext.SaveChangesAsync();
@@ -121,7 +123,8 @@ public class ProxyChallengeService : IProxyChallengeService
 
         _dbContext.Remove(data);
 
-        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, $"Un-solved challenge '{auth.ChallengeTypeId}' for {ClientAuditLogEntry.Placeholder_ProxyConfig}")
+        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, identity.NameForLog(),
+            $"Un-solved challenge '{auth.ChallengeTypeId}' for {ClientAuditLogEntry.Placeholder_ProxyConfig}")
             .SetRelatedProxyConfig(auth.ProxyConfigId, proxyConfig.Name));
 
         await _dbContext.SaveChangesAsync();

@@ -11,6 +11,7 @@ public class ClientAuditLogEntry : IHasId
     public Guid Id { get; set; }
     public DateTime TimestampUtc { get; set; }
     public Guid ClientId { get; set; }
+    public string? ClientName { get; set; }
     public string? IP { get; set; }
 
     /// <summary>
@@ -28,9 +29,10 @@ public class ClientAuditLogEntry : IHasId
         TimestampUtc = DateTime.UtcNow;
     }
 
-    public ClientAuditLogEntry(HttpContext? context, Guid clientId, string action) : this()
+    public ClientAuditLogEntry(HttpContext? context, Guid clientId, string? clientName, string action) : this()
     {
         ClientId = clientId;
+        ClientName = clientName;
         IP = TKRequestUtils.GetIPAddress(context!);
         Action = action;
     }

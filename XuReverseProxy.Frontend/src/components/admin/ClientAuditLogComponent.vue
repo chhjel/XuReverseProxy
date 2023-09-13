@@ -111,6 +111,8 @@ export default class ClientAuditLogComponent extends Vue {
 	}
 
 	createClientName(client: ClientAuditLogEntry): string {
+		if (client.clientName && client.clientName.length > 0) return client.clientName;
+		
 		const id = client.clientId;
 		const idPart = !id ? 'no-id' : `${id.split('-')[0]}..`;
 		return `[${idPart}]`;
