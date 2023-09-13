@@ -36,7 +36,7 @@ export default class ClientAuditLogComponent extends Vue {
 		fromUtc: new Date(new Date().setDate(new Date().getDate() - 1000)),
 		toUtc: new Date(new Date().setDate(new Date().getDate() + 1)),
 		pageIndex: 0,
-		pageSize: 20,
+		pageSize: 40,
 		clientId: null,
 		proxyConfigId: null
 	};
@@ -112,7 +112,7 @@ export default class ClientAuditLogComponent extends Vue {
 
 	createClientName(client: ClientAuditLogEntry): string {
 		if (client.clientName && client.clientName.length > 0) return client.clientName;
-		
+
 		const id = client.clientId;
 		const idPart = !id ? 'no-id' : `${id.split('-')[0]}..`;
 		return `[${idPart}]`;

@@ -31,7 +31,7 @@ export default class ProxyClientsPage extends Vue {
 	currentPageData: PaginatedResult<ProxyClientIdentity> | null = null;
 	filter: ProxyClientIdentitiesPagedRequestModel = {
 		pageIndex: 0,
-		pageSize: 20
+		pageSize: 40
 	};
 	
 	async mounted() {
