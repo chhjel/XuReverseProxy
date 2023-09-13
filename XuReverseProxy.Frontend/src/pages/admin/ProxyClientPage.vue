@@ -21,6 +21,8 @@ import IPDetailsComponent from "@components/admin/IPDetailsComponent.vue";
 import { ProxyClientIdentitySolvedChallengeData } from "@generated/Models/Core/ProxyClientIdentitySolvedChallengeData";
 import { createProxyAuthenticationSummary } from "@utils/ProxyAuthenticationDataUtils";
 import DateFormats from "@utils/DateFormats";
+import ClientAuditLogComponent from "@components/admin/ClientAuditLogComponent.vue";
+import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
 
 interface SolvedClientData {
 	proxyConfig: ProxyConfig;
@@ -33,10 +35,12 @@ interface SolvedClientData {
 		TextInputComponent,
 		ButtonComponent,
 		CheckboxComponent,
+		CodeInputComponent,
 		MapComponent,
 		GlobeComponent,
 		LoaderComponent,
-		IPDetailsComponent
+		IPDetailsComponent,
+		ClientAuditLogComponent
 	}
 })
 export default class ProxyClientPage extends Vue {
@@ -150,33 +154,28 @@ export default class ProxyClientPage extends Vue {
 				<div>Created at: <code> {{ formatDate(client.createdAtUtc) }}</code></div>
 				<div v-if="client.lastAccessedAtUtc">Last accessed: <code>{{ formatDate(client.lastAccessedAtUtc) }}</code></div>
 				<div v-if="client.lastAttemptedAccessedAtUtc">Last attempted accessed: <code>{{ formatDate(client.lastAttemptedAccessedAtUtc) }}</code></div>
+				
+				<checkbox-component label="Blocked" offLabel="Not blocked"
+						:value="isBlocked" class="mt-2 mb-2" warnColorOn
+						@click="toggleClientBlocked"
+						:disabled="isLoading" />
+				<div v-if="clientBlockedNote" class="mt-2">Blocked note: <code>{{ clientBlockedNote}}</code></div>
 			</div>
 
 			<!-- Notes -->
 			<div class="block mb-4 pt-2">
 				<div class="block-title">Client note</div>
-				<div class="input-wrapper">
-					<textarea id="clientNote" v-model="clientNote" @blur="updateClientNote"></textarea>
-				</div>
-			</div>
-			
-			<!-- Blocked -->
-			<div class="block mb-4 pt-2">
-				<div class="block-title">Client block</div>
-				<checkbox-component label="Blocked" offLabel="Not blocked"
-						:value="isBlocked" class="mt-2 mb-2" warnColorOn
-						@click="toggleClientBlocked"
-						:disabled="isLoading" />
-				<div v-if="clientBlockedNote" class="mt-2"><code>{{ clientBlockedNote}}</code></div>
-				<!-- <div><code>blockedAtUtc = {{ (client.blockedAtUtc || 'null')}}</code></div> -->
+				<code-input-component v-model:value="clientNote" language="" class="mt-2"
+					height="100px" :wordWrap="true" ref="noteEditor" :readOnly="isLoading"
+					@blur="updateClientNote" />
 			</div>
 
 			<!-- IP Details -->
 			<IPDetailsComponent :ip="client.ip" :key="client.ip || 'empty'" />
 
 			<!-- Solved data -->
-			<div class="block overflow-x-scroll mb-4 pt-2" v-if="clientAuthData.length > 0">
-				<div class="block-title">Solved client challenges</div>
+			<div class="block overflow-x-scroll mb-4" v-if="clientAuthData.length > 0">
+				<div class="block-title mb-2">Solved challenges</div>
 				<div v-for="solvedConfig in clientAuthData">
 					<router-link :to="`/proxyconfigs/${solvedConfig.proxyConfig?.id}`">
 						<b>{{ solvedConfig.proxyConfig?.name }}</b>
@@ -185,6 +184,12 @@ export default class ProxyClientPage extends Vue {
 					<span v-if="solvedConfig?.solvedData?.solvedAtUtc"> - Solved at: {{ formatDate(solvedConfig?.solvedData?.solvedAtUtc) }}</span>
 					<span v-if="solvedConfig?.solvedData?.solvedId != solvedConfig?.auth?.solvedId"> - SolvedId was changed.</span>
 				</div>
+			</div>
+			
+			<!-- Audit log -->
+			<div class="block overflow-x-scroll mb-4">
+				<div class="block-title mb-2">Log</div>
+				<client-audit-log-component :clientId="clientId" />
 			</div>
 		</div>
 	</div>

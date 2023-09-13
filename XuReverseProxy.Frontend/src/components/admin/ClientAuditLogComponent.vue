@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
-import { Vue } from 'vue-property-decorator'
+import { Prop, Vue } from 'vue-property-decorator'
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
@@ -26,6 +26,9 @@ import DialogComponent from "@components/common/DialogComponent.vue";
 	}
 })
 export default class ClientAuditLogComponent extends Vue {
+	@Prop({ required: false, default: null })
+	clientId: string | null;
+
     // todo: show filter inputs if no value specified by props. E.g. show audit events for a proxy config on its configpage.
     service: AuditLogService = new AuditLogService();
 	currentPageData: PaginatedResult<ClientAuditLogEntry> | null = null;
@@ -42,6 +45,7 @@ export default class ClientAuditLogComponent extends Vue {
 	proxyConfigs: Array<ProxyConfig> = [];
 
 	async mounted() {
+		this.filter.clientId = this.clientId;
 		await this.loadReferencedData();
 		await this.loadData();
 	}

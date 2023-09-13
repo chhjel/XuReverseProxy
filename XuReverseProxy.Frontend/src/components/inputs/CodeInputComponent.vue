@@ -171,6 +171,10 @@ export default class CodeInputComponent extends Vue {
             });
         }
 
+        editor.onDidBlurEditorText(()=>{
+            this.$emit('blur');
+        });
+
         this.checkForInit();
         return editor;
     }
