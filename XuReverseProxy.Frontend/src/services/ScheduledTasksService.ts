@@ -1,19 +1,11 @@
-import { ScheduledTaskResult } from './../generated/Models/Core/ScheduledTaskResult';
-import { ScheduledTaskStatus } from './../generated/Models/Core/ScheduledTaskStatus';
+import { ScheduledTaskViewModel } from "@generated/Models/Web/ScheduledTaskViewModel";
 import ServiceBase, { LoadStatus } from "./ServiceBase";
 
 export default class ScheduledTasksService extends ServiceBase {
-    public async GetTaskStatusesAsync(status: LoadStatus | null = null): Promise<Array<ScheduledTaskStatus>> {
-        const url = `/api/scheduledTasks/statuses`;
+    public async GetTasksDetailsAsync(status: LoadStatus | null = null): Promise<Array<ScheduledTaskViewModel>> {
+        const url = `/api/scheduledTasks/`;
         const request = this.fetchExt(url, "GET", null);
-        const result = await this.awaitWithStatus<Array<ScheduledTaskStatus>>(request, status);
-        return result.data;
-    }
-
-    public async GetTaskResultsAsync(status: LoadStatus | null = null): Promise<Array<ScheduledTaskResult>> {
-        const url = `/api/scheduledTasks/results`;
-        const request = this.fetchExt(url, "GET", null);
-        const result = await this.awaitWithStatus<Array<ScheduledTaskResult>>(request, status);
+        const result = await this.awaitWithStatus<Array<ScheduledTaskViewModel>>(request, status);
         return result.data;
     }
 }

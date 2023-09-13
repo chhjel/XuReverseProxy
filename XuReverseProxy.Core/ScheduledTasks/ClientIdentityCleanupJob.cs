@@ -14,13 +14,17 @@ public class ClientIdentityCleanupTask : IScheduledTask
     /// <summary>
     /// Every 1 minute.
     /// </summary>
-    public string Schedule => "0 */1 * * * *";
+    public string Schedule { get; } = "0 */1 * * * *";
 #else
     /// <summary>
     /// Every 30 minutes.
     /// </summary>
-    public string Schedule => "0 */30 * * * *";
+    public string Schedule { get; } = "0 */30 * * * *";
 #endif
+
+    public string Name { get; } = "Client Identity Maintenance Job";
+
+    public string Description { get; } = "Removes old client identities.";
 
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ILogger<ClientIdentityCleanupTask> _logger;

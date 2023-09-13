@@ -8,25 +8,29 @@ using XuReverseProxy.Core.Systems.ScheduledTasks;
 
 namespace XuReverseProxy.Core.ScheduledTasks;
 
-public class AuditLogsCleanupJob : IScheduledTask
+public class AuditLogsCleanupTask : IScheduledTask
 {
 #if DEBUG
     /// <summary>
     /// Every 1 minute.
     /// </summary>
-    public string Schedule => "0 */1 * * * *";
+    public string Schedule { get; } = "0 */1 * * * *";
 #else
     /// <summary>
     /// Every 60 minutes.
     /// </summary>
-    public string Schedule => "0 */60 * * * *";
+    public string Schedule { get; } = "0 */60 * * * *";
 #endif
 
+    public string Name { get; } = "Audit Log Maintenance Job";
+
+    public string Description { get; } = "Removes old audit log entries.";
+
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
-    private readonly ILogger<AuditLogsCleanupJob> _logger;
+    private readonly ILogger<AuditLogsCleanupTask> _logger;
     private readonly IServiceProvider _serviceProvider;
 
-    public AuditLogsCleanupJob(IOptionsMonitor<ServerConfig> serverConfig, ILogger<AuditLogsCleanupJob> logger, IServiceProvider serviceProvider)
+    public AuditLogsCleanupTask(IOptionsMonitor<ServerConfig> serverConfig, ILogger<AuditLogsCleanupTask> logger, IServiceProvider serviceProvider)
     {
         _serverConfig = serverConfig;
         _logger = logger;
