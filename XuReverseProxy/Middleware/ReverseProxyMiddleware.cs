@@ -190,6 +190,9 @@ public class ReverseProxyMiddleware
         await userManager.UpdateSecurityStampAsync(user);
         await signInManager.SignOutAsync();
 
+        applicationDbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(context, $"Session IP changed from '{user.LastConnectedFromIP}' to '{ipData?.IP}' causing all user sessions to be terminated."));
+        await applicationDbContext.SaveChangesAsync();
+
         return true;
     }
 
