@@ -2,7 +2,7 @@ import { App, DefineComponent, createApp } from 'vue'
 
 export interface InitializableVueApp {
     component: DefineComponent<{}, {}, any>;
-    onInit?: (app: App<Element>) => void;
+    onInit?: (app: App<Element>, options: any) => void;
 }
 
 export default class VueAppInitializer
@@ -36,7 +36,7 @@ export default class VueAppInitializer
         }
         
         const app = createApp(initializableApp.component, props);
-        if (initializableApp.onInit != null) initializableApp.onInit(app);
+        if (initializableApp.onInit != null) initializableApp.onInit(app, props.options);
         app.mount(element);
     }
 }

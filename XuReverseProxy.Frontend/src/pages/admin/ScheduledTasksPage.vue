@@ -9,12 +9,7 @@ import ScheduledTasksService from "@services/ScheduledTasksService";
 import { ScheduledTaskStatus } from "@generated/Models/Core/ScheduledTaskStatus";
 import { ScheduledTaskResult } from "@generated/Models/Core/ScheduledTaskResult";
 import DateFormats from "@utils/DateFormats";
-
-interface JobData {
-	type: string;
-	status: ScheduledTaskStatus | null;
-	result: ScheduledTaskResult | null;
-}
+import { ScheduledTaskViewModel } from "@generated/Models/Web/ScheduledTaskViewModel";
 
 @Options({
 	components: {
@@ -28,33 +23,10 @@ export default class ScheduledTasksPage extends Vue {
 	readonly options!: AdminPageFrontendModel;
 	
     service: ScheduledTasksService = new ScheduledTasksService();
-	statuses: Array<ScheduledTaskStatus> = [];
-	results: Array<ScheduledTaskResult> = [];
+	jobDatas: Array<ScheduledTaskViewModel> = [];
 
 	async mounted() {
-		this.statuses = await this.service.GetTaskStatusesAsync();
-		this.results = await this.service.GetTaskResultsAsync();
-	}
-
-	get jobDatas(): Array<JobData> {
-		let datas: Array<JobData> = [];
-		this.statuses.forEach(x => {
-			let data = datas.find(d => d.type == x.jobTypeName);
-			if (!data) {
-				data = { type: x.jobTypeName, status: null, result: null };
-				datas.push(data);
-			}
-			data.status = x;
-		});
-		this.results.forEach(x => {
-			let data = datas.find(d => d.type == x.jobTypeName);
-			if (!data) {
-				data = { type: x.jobTypeName, status: null, result: null };
-				datas.push(data);
-			}
-			data.result = x;
-		});
-		return datas;
+		this.jobDatas = await this.service.GetTasksDetailsAsync();
 	}
 
 	formatDate(raw: Date | string): string {
@@ -68,13 +40,14 @@ export default class ScheduledTasksPage extends Vue {
 		<loader-component :status="service.status" />
 		<div v-if="service.status.hasDoneAtLeastOnce">
 			<div v-for="data in jobDatas" class="job block mb-4">
-				<div class="job__name">{{ data.type }}</div>
+				<div class="job__name">{{ data.name }}</div>
 				<div class="job__chips" v-if="data.status">
 					<div class="job__chip" v-if="data.status.isRunning">Running</div>
 					<div class="job__chip" v-if="data.status.failed">Failed</div>
 					<div class="job__chip" v-if="data.status.lastStartedAt">Started at {{ formatDate(data.status.lastStartedAt) }}</div>
 					<div class="job__chip" v-if="data.status.stoppedAt">Stopped at {{ formatDate(data.status.stoppedAt) }}</div>
 				</div>
+				<p class="job__desc" v-if="data.description">{{ data.description }}</p>
 				<div class="job__status" v-if="data.status" :class="{ success: !data.status.isRunning && !data.status.failed, error: data.status.failed }">
 					<b>Last status:</b> {{ data.status.message }}
 				</div>
@@ -97,6 +70,10 @@ export default class ScheduledTasksPage extends Vue {
 		&__name {
 			font-size: 24px;
 			margin-bottom: 10px;
+		}
+		&__desc {
+			font-size: 12px;
+			color: var(--color--text-dark);
 		}
 		&__chips {
 			display: flex;

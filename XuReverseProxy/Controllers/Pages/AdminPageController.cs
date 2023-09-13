@@ -10,11 +10,11 @@ namespace XuReverseProxy.Controllers.Pages;
 [Route("[action]")]
 public class AdminPageController : Controller
 {
-    private readonly IOptionsMonitor<ServerConfig> _serverConfig;
+    private readonly ServerConfig _serverConfig;
 
     public AdminPageController(IOptionsMonitor<ServerConfig> serverConfig)
     {
-        _serverConfig = serverConfig;
+        _serverConfig = serverConfig.CurrentValue;
     }
 
     [HttpGet("/")]
@@ -26,10 +26,11 @@ public class AdminPageController : Controller
         {
             FrontendModel = new AdminPageViewModel.AdminPageFrontendModel
             {
-                RootDomain = _serverConfig.CurrentValue.Domain.GetFullDomain(),
-                ServerScheme = _serverConfig.CurrentValue.Domain.Scheme,
-                ServerPort = _serverConfig.CurrentValue.Domain.Port,
-                ServerDomain = _serverConfig.CurrentValue.Domain.Domain
+                ServerName = _serverConfig.Name ?? "XuReverseProxy",
+                RootDomain = _serverConfig.Domain.GetFullDomain(),
+                ServerScheme = _serverConfig.Domain.Scheme,
+                ServerPort = _serverConfig.Domain.Port,
+                ServerDomain = _serverConfig.Domain.Domain
             }
         };
         return View(model);

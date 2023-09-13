@@ -40,12 +40,18 @@ public class AdminAuditLogEntry : IHasId
     public AdminAuditLogEntry(HttpContext? context, string action) : this()
     {
         var userId = context?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId != null && Guid.TryParse(userId, out var parsedUserId))
+        TrySetAdminUserId(userId);
+        IP = TKRequestUtils.GetIPAddress(context!);
+        Action = action;
+    }
+
+    public AdminAuditLogEntry TrySetAdminUserId(string? adminUserId)
+    {
+        if (adminUserId != null && Guid.TryParse(adminUserId, out var parsedUserId))
         {
             AdminUserId = parsedUserId;
         }
-        IP = TKRequestUtils.GetIPAddress(context!);
-        Action = action;
+        return this;
     }
 
     public AdminAuditLogEntry SetRelatedClient(Guid? relatedClientId, string? relatedClientName)

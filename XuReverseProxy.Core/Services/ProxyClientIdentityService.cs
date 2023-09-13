@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using QoDL.Toolkit.Core.Util;
 using QoDL.Toolkit.Web.Core.Utils;
+using XuReverseProxy.Core.Extensions;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
 
@@ -154,14 +155,12 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
 
         _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext,
                 $"Blocked client {AdminAuditLogEntry.Placeholder_Client}")
-                .SetRelatedClient(data.Id, data.Note ?? data.IP)
-            );
-        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, $"Was blocked"));
-
+                .SetRelatedClient(data.Id, data.NameForLog())
+        );
+        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, data.NameForLog(), $"Was blocked"));
         await _dbContext.SaveChangesAsync();
         return true;
     }
-
     public async Task<bool> UnBlockIdentityAsync(Guid identityId)
     {
         var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
@@ -173,9 +172,9 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
 
         _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext,
                 $"Unblocked client {AdminAuditLogEntry.Placeholder_Client}")
-                .SetRelatedClient(data.Id, data.Note ?? data.IP)
+                .SetRelatedClient(data.Id, data.NameForLog())
             );
-        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, $"Was unblocked"));
+        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, data.NameForLog(), $"Was unblocked"));
 
         await _dbContext.SaveChangesAsync();
         return true;

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using QoDL.Toolkit.Web.Core.Utils;
-using System.Security.Claims;
 using XuReverseProxy.Core.Abstractions;
 using XuReverseProxy.Core.Attributes;
 
@@ -12,6 +11,7 @@ public class ClientAuditLogEntry : IHasId
     public Guid Id { get; set; }
     public DateTime TimestampUtc { get; set; }
     public Guid ClientId { get; set; }
+    public string? ClientName { get; set; }
     public string? IP { get; set; }
 
     /// <summary>
@@ -29,20 +29,10 @@ public class ClientAuditLogEntry : IHasId
         TimestampUtc = DateTime.UtcNow;
     }
 
-    public ClientAuditLogEntry(HttpContext? context, Guid clientId, string action) : this()
+    public ClientAuditLogEntry(HttpContext? context, Guid clientId, string? clientName, string action) : this()
     {
         ClientId = clientId;
-        IP = TKRequestUtils.GetIPAddress(context!);
-        Action = action;
-    }
-
-    public ClientAuditLogEntry(HttpContext? context, string action) : this()
-    {
-        var clientId = context?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (clientId != null && Guid.TryParse(clientId, out var parsedClientId))
-        {
-            ClientId = parsedClientId;
-        }
+        ClientName = clientName;
         IP = TKRequestUtils.GetIPAddress(context!);
         Action = action;
     }

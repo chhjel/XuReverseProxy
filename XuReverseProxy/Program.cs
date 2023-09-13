@@ -7,6 +7,7 @@ namespace XuReverseProxy
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
 
             // Add services to the container.
             builder.Services.Add3rdPartyServices(builder.Configuration, builder.Environment);

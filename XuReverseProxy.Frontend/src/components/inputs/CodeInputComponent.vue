@@ -171,6 +171,10 @@ export default class CodeInputComponent extends Vue {
             });
         }
 
+        editor.onDidBlurEditorText(()=>{
+            this.$emit('blur');
+        });
+
         this.checkForInit();
         return editor;
     }
@@ -296,6 +300,9 @@ export default class CodeInputComponent extends Vue {
     &__gofullscreen {
         cursor: pointer;
         position: absolute;
+        top: -19px;
+        right: -2px;
+        background-color: var(--color--panel);
         z-index: 1;
         font-size: 12px;
         color: var(--color--secondary-lighten);
@@ -305,12 +312,7 @@ export default class CodeInputComponent extends Vue {
             color: var(--color--info-base);
         }
     }
-
-    &__gofullscreen {
-        top: -19px;
-        right: -2px;
-    }
-
+    
     &__gosmall {
         cursor: pointer;
         color: var(--color--secondary-lighten);

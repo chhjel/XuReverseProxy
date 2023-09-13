@@ -8,21 +8,40 @@ import ProxyClientsPage from '@pages/admin/ProxyClientsPage.vue';
 import ProxyClientPage from '@pages/admin/ProxyClientPage.vue';
 import ScheduledTasksPage from '@pages/admin/ScheduledTasksPage.vue';
 import AdminAuditLogPage from '@pages/admin/AdminAuditLogPage.vue';
+import ClientAuditLogPage from '@pages/admin/ClientAuditLogPage.vue';
+import { nextTick } from 'vue';
 
 const routes: Readonly<RouteRecordRaw[]> = [
-    { name: "/", path: "/", component: AdminOverviewPage },
-    { name: "proxyconfigs", path: "/proxyconfigs", component: ProxyConfigsPage },
-    { name: "proxyconfig", path: "/proxyconfigs/:configId", component: ProxyConfigPage },
-    { name: "serverconfig", path: "/serverconfig", component: ServerConfigPage },
-    { name: "clients", path: "/clients", component: ProxyClientsPage },
-    { name: "client", path: "/client/:clientId", component: ProxyClientPage },
-    { name: "jobs", path: "/jobs", component: ScheduledTasksPage },
-    { name: "admin-audit-log", path: "/admin-audit-log", component: AdminAuditLogPage },
-    { name: "404", path: "/:catchAll(.*)", component: Admin404Page },
+    { name: "/", path: "/", meta: { title: '' }, component: AdminOverviewPage },
+    { name: "proxyconfigs", path: "/proxyconfigs", meta: { title: 'Proxy Configs' }, component: ProxyConfigsPage },
+    { name: "proxyconfig", path: "/proxyconfigs/:configId", meta: { title: 'Proxy Config' }, component: ProxyConfigPage },
+    { name: "serverconfig", path: "/serverconfig", meta: { title: 'Server Config' }, component: ServerConfigPage },
+    { name: "clients", path: "/clients", meta: { title: 'Clients' }, component: ProxyClientsPage },
+    { name: "client", path: "/client/:clientId", meta: { title: 'Client' }, component: ProxyClientPage },
+    { name: "jobs", path: "/jobs", meta: { title: 'Jobs' }, component: ScheduledTasksPage },
+    { name: "admin-audit-log", path: "/admin-audit-log", meta: { title: 'Admin Audit Log' }, component: AdminAuditLogPage },
+    { name: "client-audit-log", path: "/client-audit-log", meta: { title: 'Client Audit Log' }, component: ClientAuditLogPage },
+    { name: "404", path: "/:catchAll(.*)", meta: { title: '404' }, component: Admin404Page },
 ]
 
 const adminRouter = createRouter({
     history: createWebHashHistory(),
     routes: routes
   });
-export default adminRouter;
+
+export default function createAdminRouter(opts: any) {
+  const serverName = <string>opts.serverName || 'XuReverseProxy';
+  // Allow whitespace as servername to remove suffix
+  const titleSuffix = serverName.trim().length == 0 ? '' : ` | ${serverName}`;
+
+  adminRouter.afterEach((to, from) => {
+      nextTick(() => {
+          const pageName = <string>to.meta.title || '';
+          // If pagename is not configured => use servername only
+          const title = pageName.trim().length == 0 ? serverName : `${pageName}${titleSuffix}`;
+          document.title = title;
+      });
+  });
+  
+  return adminRouter;
+}

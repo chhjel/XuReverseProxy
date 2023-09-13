@@ -187,7 +187,8 @@ public class LoginPageController : Controller
         var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
         appUser.LastConnectedFromIP = ipData.IP;
 
-        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Logged in from '{ipData?.IP}'."));
+        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Logged in from '{ipData?.IP}'.")
+            .TrySetAdminUserId(appUser.Id));
 
         await _dbContext.SaveChangesAsync();
 
