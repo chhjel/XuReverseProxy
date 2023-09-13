@@ -3,7 +3,9 @@ import GlobeComponent from "@components/common/GlobeComponent.vue";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
 import MapComponent from "@components/common/MapComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
+import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 import { IPLookupResult } from "@generated/Models/Core/IPLookupResult";
+import { GenericResult } from "@generated/Models/Web/GenericResult";
 import IPBlockService from "@services/IPBlockService";
 import IPLookupService from "@services/IPLookupService";
 import { LoadStatus } from "@services/ServiceBase";
@@ -16,6 +18,7 @@ import { Prop, Vue } from 'vue-property-decorator'
 		LoaderComponent,
 		MapComponent,
 		GlobeComponent,
+		CheckboxComponent,
 	}
 })
 export default class IPDetailsComponent extends Vue {
@@ -46,8 +49,22 @@ export default class IPDetailsComponent extends Vue {
 			this.canUnblockIp = x != null && x.ip != null && x.ip.length > 0;
         });
 	}
+    
+	async toggleIPBlocked(): Promise<any> {
+        this.blockedIpNote = this.blockedIpNote || '';
 
-    async blockIP() {
+		const oldValue = this.isIpBlocked;
+		this.isIpBlocked = !this.isIpBlocked;
+		const success = await this.updateIPBlocked()
+		if (!success) this.isIpBlocked = oldValue;
+	}
+
+	async updateIPBlocked(): Promise<boolean> {
+        if (this.isIpBlocked) return await this.blockIP()
+        else return await this.unblockIP();
+	}
+
+    async blockIP(): Promise<boolean> {
         const note = prompt('Note (optional)');
         if (note === null) return;
         const result = await this.ipBlockService.BlockIPAsync({
@@ -60,10 +77,12 @@ export default class IPDetailsComponent extends Vue {
             this.blockedIpNote = result.note;
             this.isIpBlocked = true;
 			this.canUnblockIp = true;
+            return true;
         }
+        return false;
     }
 
-    async unblockIP() {
+    async unblockIP(): Promise<boolean> {
         if (!this.blockedIpId) return;
         const result = await this.ipBlockService.RemoveIPBlockByIdAsync({
             id: this.blockedIpId
@@ -73,7 +92,9 @@ export default class IPDetailsComponent extends Vue {
             this.blockedIpNote = null;
             this.isIpBlocked = false;
 			this.canUnblockIp = false;
+            return true;
         }
+        return false;
     }
 
 	get isLoading(): boolean { return this.statuses.some(x => x.inProgress); }
@@ -96,35 +117,38 @@ export default class IPDetailsComponent extends Vue {
                 <h2>IP location was not found.</h2>
             </div>
 
-            <div v-if="isLocalhost">
+            <div v-if="isLocalhost" class="block mb-4">
+				<div class="block-title">IP details</div>
                 <p>Can't show any more details for localhost.</p>
             </div>
 
             <div v-if="isValidIp">
                 <!-- IP LOCATION -->
-                <div class="block mb-4" v-if="ipLookupData?.success == true">
-                    <h2 class="mt-0">{{ ip }}</h2>
-                    <div class="ipdetails-location">
-                        <div v-if="ipContinent" class="ipdetails-location__part">{{ ipContinent }}</div>
-                        <div v-if="ipFlagUrl || ipCountry" class="ipdetails-location__part flag-part">
-                            <img :src="ipFlagUrl" class="ipdetails-flag" />
-                            <span v-if="ipCountry">{{ ipCountry }}</span>
+                <div class="block mb-4">
+				    <div class="block-title">{{ ip }}</div>
+                    <div v-if="ipLookupData?.success == true">
+                        <div class="ipdetails-location mt-3">
+                            <div v-if="ipContinent" class="ipdetails-location__part">{{ ipContinent }}</div>
+                            <div v-if="ipFlagUrl || ipCountry" class="ipdetails-location__part flag-part">
+                                <img :src="ipFlagUrl" class="ipdetails-flag" />
+                                <span v-if="ipCountry">{{ ipCountry }}</span>
+                            </div>
+                            <div v-if="ipCity" class="ipdetails-location__part">{{ ipCity }}</div>
                         </div>
-                        <div v-if="ipCity" class="ipdetails-location__part">{{ ipCity }}</div>
                     </div>
-                    
-                    <!-- IP block -->
-                    <p v-if="isIpBlocked" class="mb-2 mt-4">IP is currently blocked.</p>
 
-                    <div v-if="blockedIpNote">Note: <code>{{ blockedIpNote }}</code></div>
-                    <p v-if="isIpBlocked && !canUnblockIp">IP has been blocked indirectly through a regex or CIDR range.</p>
-
-                    <div class="mt-2">
-                        <button-component @click="blockIP" class="ml-0" danger v-if="!isIpBlocked">Block IP</button-component>
-                        <button-component @click="unblockIP" class="ml-0" v-if="canUnblockIp">Unblock IP</button-component>
+                    <div v-if="canUnblockIp || !isIpBlocked">
+                        <checkbox-component label="IP blocked" offLabel="IP not blocked"
+                                :value="isIpBlocked" class="mt-3" warnColorOn
+                                @click="toggleIPBlocked"
+                                :disabled="isLoading" />
+                        <div v-if="blockedIpNote" class="mt-2"><code>{{ blockedIpNote}}</code></div>
+                    </div>
+                    <div v-if="!canUnblockIp && isIpBlocked" class="mt-4">
+                        IP is currently blocked indirectly through a RegEx or CIDR rule.
                     </div>
                 </div>
-                
+
                 <!-- MAP -->
                 <div class="block mb-4 pa-0" v-if="ipLookupData?.success == true && ipLookupData.latitude && ipLookupData.longitude">
                     <map-component class="map" :lat="ipLookupData.latitude" :lon="ipLookupData.longitude"
