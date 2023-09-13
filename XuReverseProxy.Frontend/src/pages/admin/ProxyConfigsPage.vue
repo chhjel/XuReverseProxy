@@ -10,6 +10,7 @@ import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import { EmptyGuid } from "@utils/Constants";
 import { createProxyConfigResultingProxyUrl } from "@utils/ProxyConfigUtils";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
+import { ProxyConfigMode } from "@generated/Enums/Core/ProxyConfigMode";
 
 @Options({
 	components: {
@@ -44,7 +45,9 @@ export default class ProxyConfigsPage extends Vue {
 			port: null,
 			subdomain: '',
 			challengeTitle: '',
+			mode: ProxyConfigMode.Forward,
 			destinationPrefix: 'http://192.168.2.',
+			staticHTML: '',
 			showCompletedChallenges: true,
 			showChallengesWithUnmetRequirements: true
 		};
