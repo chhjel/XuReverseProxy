@@ -6,8 +6,8 @@ import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
 import AuditLogService from "@services/AuditLogService";
 import { PaginatedResult } from "@generated/Models/Web/PaginatedResult";
-import { AdminAuditLogEntry } from "@generated/Models/Core/AdminAuditLogEntry";
-import { GetAdminAuditLogEntriesRequestModel } from "@generated/Models/Web/GetAdminAuditLogEntriesRequestModel";
+import { ClientAuditLogEntry } from "@generated/Models/Core/ClientAuditLogEntry";
+import { GetClientAuditLogEntriesRequestModel } from "@generated/Models/Web/GetClientAuditLogEntriesRequestModel";
 import ProxyConfigService from "@services/ProxyConfigService";
 import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import DateFormats from "@utils/DateFormats";
@@ -25,18 +25,17 @@ import DialogComponent from "@components/common/DialogComponent.vue";
 		IPDetailsComponent
 	}
 })
-export default class AdminAuditLogComponent extends Vue {
+export default class ClientAuditLogComponent extends Vue {
     // todo: show filter inputs if no value specified by props. E.g. show audit events for a proxy config on its configpage.
     service: AuditLogService = new AuditLogService();
-	currentPageData: PaginatedResult<AdminAuditLogEntry> | null = null;
-	filter: GetAdminAuditLogEntriesRequestModel = {
+	currentPageData: PaginatedResult<ClientAuditLogEntry> | null = null;
+	filter: GetClientAuditLogEntriesRequestModel = {
 		fromUtc: new Date(new Date().setDate(new Date().getDate() - 1000)),
 		toUtc: new Date(new Date().setDate(new Date().getDate() + 1)),
 		pageIndex: 0,
 		pageSize: 20,
-		adminUserId: null,
-		proxyConfigId: null,
-		clientId: null
+		clientId: null,
+		proxyConfigId: null
 	};
 	
     proxyConfigService: ProxyConfigService = new ProxyConfigService();
@@ -52,12 +51,12 @@ export default class AdminAuditLogComponent extends Vue {
 	}
 
 	async loadData() {
-		this.currentPageData = await this.service.GetAdminLogAsync(this.filter);
+		this.currentPageData = await this.service.GetClientLogAsync(this.filter);
 	}
 
     get isLoading(): boolean { return this.service.status.inProgress; }
 
-	get currentPageItems(): Array<AdminAuditLogEntry> {
+	get currentPageItems(): Array<ClientAuditLogEntry> {
 		if (this.currentPageData == null) return [];
 		else return this.currentPageData.pageItems;
 	}
@@ -74,7 +73,7 @@ export default class AdminAuditLogComponent extends Vue {
 		return DateFormats.dateTimeFull(raw);
 	}
 
-	createActionHtml(entry: AdminAuditLogEntry): string {
+	createActionHtml(entry: ClientAuditLogEntry): string {
 		let html = this.htmlEncode(entry.action);
 
 		if (html.includes('[PROXYCONFIG]')) {
@@ -83,11 +82,6 @@ export default class AdminAuditLogComponent extends Vue {
 			 	: this.htmlEncode(existing.name || entry.relatedProxyConfigName) || 'config';
 			const linkClass = !existing ? 'missing' : '';
 			html = html.replace('[PROXYCONFIG]', `<a href="/#/proxyconfigs/${entry.relatedProxyConfigId}" class="${linkClass}">[${name}]</a>`);
-		}
-
-		if (html.includes('[CLIENT]')) {
-			const name = this.htmlEncode(entry.relatedClientName || entry.relatedClientId);
-			html = html.replace('[CLIENT]', `<a href="/#/client/${entry.relatedClientId}">[${name}]</a>`);
 		}
 
 		return html;
@@ -110,6 +104,12 @@ export default class AdminAuditLogComponent extends Vue {
 	showIpDialog(ip: string): void {
 		this.ipInDialog = ip;
 		this.ipDialogVisible = true;
+	}
+
+	createClientName(client: ClientAuditLogEntry): string {
+		const id = client.clientId;
+		const idPart = !id ? 'no-id' : `${id.split('-')[0]}..`;
+		return `[${idPart}]`;
 	}
 }
 </script>
@@ -145,7 +145,9 @@ export default class AdminAuditLogComponent extends Vue {
 							<code>{{ item.ip }}</code>
 						</td>
 						<td class="item__who">
-							<code :title="item.adminUserId">Admin ({{ item.adminUserId }})</code>
+							<router-link :to="`/client/${item.clientId}`">
+								<code :title="item.clientId">{{ createClientName(item) }}</code>
+							</router-link>
 						</td>
 						<td class="item__what">
 							<div v-html="createActionHtml(item)"></div>

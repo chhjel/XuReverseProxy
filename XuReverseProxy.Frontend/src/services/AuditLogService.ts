@@ -14,7 +14,7 @@ export default class AuditLogService extends ServiceBase {
     }
 
     public async GetClientLogAsync(payload: GetClientAuditLogEntriesRequestModel, status: LoadStatus | null = null): Promise<PaginatedResult<ClientAuditLogEntry>> {
-        const url = `/api/auditLog/adminLog`;
+        const url = `/api/auditLog/clientLog`;
         const request = this.fetchExt(url, "POST", payload);
         const result = await this.awaitWithStatus<PaginatedResult<ClientAuditLogEntry>>(request, status);
         return result.data;

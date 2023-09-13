@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using XuReverseProxy.Core.Models.DbEntity;
 using static XuReverseProxy.Core.Models.DbEntity.ProxyAuthenticationCondition;
 
@@ -19,13 +20,15 @@ public class ProxyChallengeService : IProxyChallengeService
     private readonly ApplicationDbContext _dbContext;
     private readonly IProxyAuthenticationConditionChecker _proxyAuthenticationConditionChecker;
     private readonly IProxyClientIdentityService _proxyClientIdentityService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ProxyChallengeService(ApplicationDbContext dbContext,
-        IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker, IProxyClientIdentityService proxyClientIdentityService)
+        IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker, IProxyClientIdentityService proxyClientIdentityService, IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
         _proxyAuthenticationConditionChecker = proxyAuthenticationConditionChecker;
         _proxyClientIdentityService = proxyClientIdentityService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<bool> IsChallengeSolvedAsync(Guid identityId, ProxyAuthenticationData auth)
@@ -67,6 +70,9 @@ public class ProxyChallengeService : IProxyChallengeService
         var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
         if (auth == null) return false;
 
+        var proxyConfig = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == auth.ProxyConfigId);
+        if (proxyConfig == null) return false;
+
         var data = await _dbContext.ProxyClientIdentitySolvedChallengeDatas.FirstOrDefaultAsync(x =>
             x.IdentityId == identityId
             && x.AuthenticationId == authenticationId
@@ -86,6 +92,10 @@ public class ProxyChallengeService : IProxyChallengeService
                 SolvedId = solvedId,
                 SolvedAtUtc = DateTime.UtcNow
             });
+
+            _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, $"Solved challenge '{auth.ChallengeTypeId}' for {ClientAuditLogEntry.Placeholder_ProxyConfig}")
+                .SetRelatedProxyConfig(auth.ProxyConfigId, proxyConfig.Name));
+
             await _dbContext.SaveChangesAsync();
         }
 
@@ -100,6 +110,9 @@ public class ProxyChallengeService : IProxyChallengeService
         var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
         if (auth == null) return false;
 
+        var proxyConfig = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == auth.ProxyConfigId);
+        if (proxyConfig == null) return false;
+
         var data = await _dbContext.ProxyClientIdentitySolvedChallengeDatas.FirstOrDefaultAsync(x =>
             x.IdentityId == identityId
             && x.AuthenticationId == authenticationId
@@ -107,6 +120,10 @@ public class ProxyChallengeService : IProxyChallengeService
         if (data == null) return false;
 
         _dbContext.Remove(data);
+
+        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, $"Un-solved challenge '{auth.ChallengeTypeId}' for {ClientAuditLogEntry.Placeholder_ProxyConfig}")
+            .SetRelatedProxyConfig(auth.ProxyConfigId, proxyConfig.Name));
+
         await _dbContext.SaveChangesAsync();
         return true;
     }

@@ -8,6 +8,7 @@ import ProxyClientsPage from '@pages/admin/ProxyClientsPage.vue';
 import ProxyClientPage from '@pages/admin/ProxyClientPage.vue';
 import ScheduledTasksPage from '@pages/admin/ScheduledTasksPage.vue';
 import AdminAuditLogPage from '@pages/admin/AdminAuditLogPage.vue';
+import ClientAuditLogPage from '@pages/admin/ClientAuditLogPage.vue';
 
 const routes: Readonly<RouteRecordRaw[]> = [
     { name: "/", path: "/", component: AdminOverviewPage },
@@ -18,6 +19,7 @@ const routes: Readonly<RouteRecordRaw[]> = [
     { name: "client", path: "/client/:clientId", component: ProxyClientPage },
     { name: "jobs", path: "/jobs", component: ScheduledTasksPage },
     { name: "admin-audit-log", path: "/admin-audit-log", component: AdminAuditLogPage },
+    { name: "client-audit-log", path: "/client-audit-log", component: ClientAuditLogPage },
     { name: "404", path: "/:catchAll(.*)", component: Admin404Page },
 ]
 

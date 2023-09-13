@@ -156,7 +156,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
                 $"Blocked client {AdminAuditLogEntry.Placeholder_Client}")
                 .SetRelatedClient(data.Id, data.Note ?? data.IP)
             );
-        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, $"Was blocked"));
+        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, $"Was blocked"));
 
         await _dbContext.SaveChangesAsync();
         return true;
@@ -175,7 +175,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
                 $"Unblocked client {AdminAuditLogEntry.Placeholder_Client}")
                 .SetRelatedClient(data.Id, data.Note ?? data.IP)
             );
-        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, $"Was unblocked"));
+        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, $"Was unblocked"));
 
         await _dbContext.SaveChangesAsync();
         return true;
