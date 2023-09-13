@@ -2,6 +2,7 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
+import { ProxyConfigMode } from '../../Enums/Core/ProxyConfigMode';
 import { ProxyAuthenticationData } from './ProxyAuthenticationData';
 
 export interface ProxyConfig
@@ -15,6 +16,8 @@ export interface ProxyConfig
 	challengeDescription: string;
 	showCompletedChallenges: boolean;
 	showChallengesWithUnmetRequirements: boolean;
+	mode: ProxyConfigMode;
 	destinationPrefix: string;
+	staticHTML: string;
 	authentications: ProxyAuthenticationData[];
 }

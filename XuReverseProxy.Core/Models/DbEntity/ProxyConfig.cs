@@ -18,7 +18,9 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
     public bool ShowCompletedChallenges { get; set; }
     public bool ShowChallengesWithUnmetRequirements { get; set; }
 
+    public ProxyConfigMode Mode { get; set; }
     public string? DestinationPrefix { get; set; }
+    public string? StaticHTML { get; set; }
     public ICollection<ProxyAuthenticationData> Authentications { get; } = new List<ProxyAuthenticationData>();
 
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
@@ -31,4 +33,11 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
             .Replace("{{ProxyConfig.ChallengeDescription}}", transformer(ChallengeDescription), StringComparison.OrdinalIgnoreCase)
             .Replace("{{ProxyConfig.DestinationPrefix}}", transformer(DestinationPrefix), StringComparison.OrdinalIgnoreCase);
     }
+}
+
+[GenerateFrontendModel]
+public enum ProxyConfigMode
+{
+    Forward = 0,
+    StaticHTML
 }

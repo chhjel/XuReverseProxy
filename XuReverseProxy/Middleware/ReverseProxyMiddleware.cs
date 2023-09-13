@@ -61,7 +61,7 @@ public class ReverseProxyMiddleware
         if (ipData?.IP != null && await ipBlockService.IsIPBlockedAsync(ipData.IP))
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.IPBlockedHtml);
-            await SetResponse(context, html, runtimeServerConfig.IPBlockedResponseCode);
+            await SetResponseAsync(context, html, runtimeServerConfig.IPBlockedResponseCode);
             return;
         }
 
@@ -90,7 +90,7 @@ public class ReverseProxyMiddleware
         else if (!runtimeServerConfig.EnableForwarding)
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
-            await SetResponse(context, html, StatusCodes.Status404NotFound);
+            await SetResponseAsync(context, html, StatusCodes.Status404NotFound);
             return;
         }
 
@@ -103,7 +103,7 @@ public class ReverseProxyMiddleware
         if (proxyConfig == null)
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
-            await SetResponse(context, html, StatusCodes.Status404NotFound);
+            await SetResponseAsync(context, html, StatusCodes.Status404NotFound);
             return;
         }
 
@@ -117,7 +117,7 @@ public class ReverseProxyMiddleware
             if (clientIdentity == null)
             {
                 var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
-                await SetResponse(context, html, StatusCodes.Status404NotFound);
+                await SetResponseAsync(context, html, StatusCodes.Status404NotFound);
                 return;
             }
         }
@@ -127,7 +127,7 @@ public class ReverseProxyMiddleware
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.ClientBlockedHtml, clientIdentity)
                 ?.Replace("{{blocked_message}}", clientIdentity.BlockedMessage, StringComparison.OrdinalIgnoreCase);
-            await SetResponse(context, html, runtimeServerConfig.ClientBlockedResponseCode);
+            await SetResponseAsync(context, html, runtimeServerConfig.ClientBlockedResponseCode);
             return;
         }
 
@@ -175,7 +175,14 @@ public class ReverseProxyMiddleware
         async Task forwardRequest()
         {
             if (clientIdentity != null) await proxyClientIdentityService.TryUpdateLastAccessedAtAsync(clientIdentity.Id);
-            await ForwardRequestAsync(context, forwarder, proxyConfig, serverConfig.CurrentValue);
+            if (proxyConfig.Mode == ProxyConfigMode.Forward)
+            {
+                await ForwardRequestAsync(context, forwarder, proxyConfig, serverConfig.CurrentValue);
+            }
+            else if (proxyConfig.Mode == ProxyConfigMode.StaticHTML)
+            {
+                await SetResponseAsync(context, proxyConfig.StaticHTML);
+            }
         }
     }
 
@@ -343,7 +350,7 @@ public class ReverseProxyMiddleware
         return false;
     }
 
-    private static async Task SetResponse(HttpContext context, string? html, int statusCode = StatusCodes.Status200OK)
+    private static async Task SetResponseAsync(HttpContext context, string? html, int statusCode = StatusCodes.Status200OK)
     {
         context.Response.StatusCode = statusCode;
         await context.Response.WriteAsync(html ?? string.Empty);
