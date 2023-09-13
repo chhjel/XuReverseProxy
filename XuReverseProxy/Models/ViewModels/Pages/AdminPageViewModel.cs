@@ -9,6 +9,7 @@ public class AdminPageViewModel
     [GenerateFrontendModel]
     public class AdminPageFrontendModel
     {
+        public string? ServerName { get; set; }
         public string? RootDomain { get; set; }
         public string? ServerScheme { get; set; }
         public int? ServerPort { get; set; }
