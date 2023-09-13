@@ -97,7 +97,7 @@ export default class ProxyConfigEditor extends Vue {
 		</div>
 
 		<!-- MODE: FORWARD -->
-		<div class="block block--dark mt-2" v-if="modeIsForward">
+		<div class="block block--dark mt-2" v-show="modeIsForward">
 			<div class="block-title">Forward requests</div>
 			<text-input-component label="Destination prefix" v-model:value="localValue.destinationPrefix" />
 			<div class="forward-summary">
@@ -112,7 +112,7 @@ export default class ProxyConfigEditor extends Vue {
 			</div>
 		</div>
 		<!-- MODE: STATIC HTML -->
-		<div class="block block--dark mt-2" v-if="modeIsStaticHTML">
+		<div class="block block--dark mt-2" v-show="modeIsStaticHTML">
 			<div class="block-title">Serve static HTML</div>
 			<code-input-component v-model:value="localValue.staticHTML" language="html" class="mt-2" height="400px" :readOnly="disabled" />
 			<div class="forward-summary">
