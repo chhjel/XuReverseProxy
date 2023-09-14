@@ -22,6 +22,9 @@ public class ProxyChallengeTypeAdminLogin : ProxyChallengeTypeBase
     [InvokableProxyAuthMethod]
     public async Task<VerifyAdminLoginResponseModel> VerifyLoginAsync(ProxyChallengeInvokeContext context, VerifyAdminLoginRequestModel request)
     {
+        // Delay a bit to make timing attacks harder
+        await AuthUtils.RandomAuthDelay();
+
         if (request.Username == null || request.Password == null) return new(false, "Wrong credentials");
 
         var userManager = context.GetService<UserManager<ApplicationUser>>();

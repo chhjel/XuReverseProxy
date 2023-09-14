@@ -181,7 +181,7 @@ export default class ProxyClientPage extends Vue {
 						<b>{{ solvedConfig.proxyConfig?.name }}</b>
 					</router-link>
 					<span> - {{ createAuthSummary(solvedConfig.auth) }}</span>
-					<span v-if="solvedConfig?.solvedData?.solvedAtUtc"> - Solved at: {{ formatDate(solvedConfig?.solvedData?.solvedAtUtc) }}</span>
+					<span v-if="solvedConfig?.solvedData?.solvedAtUtc"> - Completed at: {{ formatDate(solvedConfig?.solvedData?.solvedAtUtc) }}</span>
 					<span v-if="solvedConfig?.solvedData?.solvedId != solvedConfig?.auth?.solvedId"> - SolvedId was changed.</span>
 				</div>
 			</div>

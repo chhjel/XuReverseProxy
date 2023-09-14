@@ -1,5 +1,8 @@
 import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
 
+export const LoggedOutMessage: string = 'You have been logged out, please refresh the page if you want to continue.';
+export const LoggedOutMessage_IpChanged: string = 'Your login session has been terminated due to activity detected from a different IP address. For security purposes, all active sessions have been logged out. Please refresh the page if you want to continue.';
+
 export const EmptyGuid: string = '00000000-0000-0000-0000-000000000000';
 
 export interface ProxyAuthChallengeTypeOption {

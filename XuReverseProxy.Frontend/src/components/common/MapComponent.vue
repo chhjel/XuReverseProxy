@@ -8,6 +8,7 @@
 import { Vue, Prop, Ref } from "vue-property-decorator";
 import { Options } from "vue-class-component";
 import * as L from 'leaflet';
+import { nextTick } from "vue";
 
 @Options({
     components: {}
@@ -46,6 +47,11 @@ export default class MapComponent extends Vue {
                 .setContent(this.note)
                 .openOn(map);
         }
+
+        // Hacky "fix" for some gray issues
+        nextTick(() => {
+            window.dispatchEvent(new Event('resize'));
+        })
     }
 
     ////////////////

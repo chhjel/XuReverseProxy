@@ -140,7 +140,10 @@ export default class PagingComponent extends Vue
         background-color: var(--color--panel-light);
         border-radius: 0;
         margin-right: 5px;
-
+        
+        @media (max-width: 599px) {
+            padding: 10px 25px;
+        }
 
         &:not(.active) {
             cursor: pointer;

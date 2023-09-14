@@ -1,3 +1,5 @@
+import { LoggedOutMessage, LoggedOutMessage_IpChanged } from "@utils/Constants";
+
 export default class ServiceBase {
     public static simulatedDelay: number = 0;
     public status: LoadStatus = new LoadStatus();
@@ -37,7 +39,16 @@ export default class ServiceBase {
             try {
                 const response = await promise;
                 if (response.redirected && response.url.includes('/auth/login')) {
-                    throw Error('You have been logged out, please refresh the page if you want to continue.');
+                    if (response.url.includes('err=ip_changed'))
+                        throw Error(LoggedOutMessage_IpChanged);
+                    else
+                        throw Error(LoggedOutMessage);
+                }
+                else if (response.status == 401 && response.headers.get('__xurp_err') == "92") {
+                    throw Error(LoggedOutMessage_IpChanged);
+                }
+                else if (response.status == 401) {
+                    throw Error(LoggedOutMessage);
                 }
 
                 let data = null;

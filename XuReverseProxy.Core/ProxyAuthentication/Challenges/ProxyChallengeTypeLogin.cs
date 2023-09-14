@@ -28,6 +28,9 @@ public class ProxyChallengeTypeLogin : ProxyChallengeTypeBase
     [InvokableProxyAuthMethod]
     public async Task<VerifyLoginResponseModel> VerifyLoginAsync(ProxyChallengeInvokeContext context, VerifyLoginRequestModel request)
     {
+        // Delay a bit to make timing attacks harder
+        await AuthUtils.RandomAuthDelay();
+
         var expectedUsername = PlaceholderUtils.ResolvePlaceholders(Username, context.ClientIdentity, context.ProxyConfig);
         var expectedPassword = PlaceholderUtils.ResolvePlaceholders(Password, context.ClientIdentity, context.ProxyConfig);
 

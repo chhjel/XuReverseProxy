@@ -70,7 +70,7 @@ export default class ProxyClientsPage extends Vue {
 
 <template>
 	<div class="proxyclients-page">
-		<loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce" />
+		<loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 		
 		<div v-if="service.status.hasDoneAtLeastOnce">
 			<p>Note: Clients are only created for proxies with authentication.</p>

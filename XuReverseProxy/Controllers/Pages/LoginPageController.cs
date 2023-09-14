@@ -68,15 +68,14 @@ public class LoginPageController : Controller
     [HttpPost("/auth/login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        // Delay a bit to make timing attacks harder
+        await AuthUtils.RandomAuthDelay();
+
         if (!ModelState.IsValid) return BadRequest();
         else if (_serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
 
         IActionResult createResult(bool success, string? redirect = null, string? error = null)
             => Json(new LoginResponse { Success = success, Redirect = redirect, Error = error });
-
-#if DEBUG // delay a bit to test frontend
-        await Task.Delay(500);
-#endif
 
         // todo: support consuming RecoveryCode to bypass password/mfa
         // - on consumption, allow setting new password/mfa secret

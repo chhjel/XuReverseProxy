@@ -34,7 +34,7 @@ public class IPWhoIsIPLookupService : IIPLookupService
 
             var result = new IPLookupResult
             {
-                Success = !string.IsNullOrWhiteSpace(response?.Ip),
+                Success = !string.IsNullOrWhiteSpace(response?.Ip) && response?.Success == true,
                 IP = response?.Ip,
                 Continent = response?.Continent,
                 Country = response?.Country,
@@ -95,10 +95,10 @@ public class IPWhoIsIPLookupService : IIPLookupService
         public bool IsEu { get; set; }
 
         [JsonProperty("postal")]
-        public long Postal { get; set; }
+        public string? Postal { get; set; }
 
         [JsonProperty("calling_code")]
-        public long CallingCode { get; set; }
+        public string? CallingCode { get; set; }
 
         [JsonProperty("capital")]
         public string? Capital { get; set; }

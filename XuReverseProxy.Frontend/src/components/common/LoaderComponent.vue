@@ -160,6 +160,7 @@ export default class LoaderComponent extends Vue {
         font-family: monospace;
         font-size: 14px;
         max-width: 600px;
+        margin-bottom: 10px;
     }
         
     @keyframes pulse {

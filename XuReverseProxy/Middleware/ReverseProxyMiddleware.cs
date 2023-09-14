@@ -76,9 +76,14 @@ public class ReverseProxyMiddleware
             {
                 context.Response.Clear();
                 if (context.Request.Method == HttpMethod.Get.Method)
+                {
                     context.Response.Redirect("/auth/login?err=ip_changed");
+                }
                 else
+                {
+                    context.Response.Headers["__xurp_err"] = "92";
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                }
 
                 return;
             }

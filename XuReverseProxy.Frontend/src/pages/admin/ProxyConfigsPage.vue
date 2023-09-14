@@ -90,6 +90,9 @@ export default class ProxyConfigsPage extends Vue {
 	getResultingProxyUrl(config: ProxyConfig): string {
 		return createProxyConfigResultingProxyUrl(config, this.options.serverScheme, this.options.serverPort, this.options.serverDomain);
 	}
+
+	configModeIsForward(config: ProxyConfig): boolean { return config.mode == ProxyConfigMode.Forward; }
+	configModeIsStaticHTML(config: ProxyConfig): boolean { return config.mode == ProxyConfigMode.StaticHTML; }
 }
 </script>
 
@@ -104,10 +107,14 @@ export default class ProxyConfigsPage extends Vue {
 						<div class="material-icons icon" :class="getConfigIconClasses(config)">{{ getConfigIcon(config) }}</div>
 						<div class="proxyconfig__name">{{ config.name }} <span class="proxyconfig__status">{{ getConfigStatus(config) }}</span></div>
 					</div>
-					<div class="proxyconfig__forwardsummary">
+					<div class="proxyconfig__forwardsummary" v-if="configModeIsForward(config)">
 						<code>{{ getResultingProxyUrl(config) }}</code>
 						<span class="ml-2 mr-2">forwards to</span>
 						<code>{{ config.destinationPrefix }}</code>
+					</div>
+					<div class="proxyconfig__forwardsummary" v-if="configModeIsStaticHTML(config)">
+						<code>{{ getResultingProxyUrl(config) }}</code>
+						<span class="ml-2">serves static HTML</span>
 					</div>
 				</router-link>
 			</div>

@@ -116,7 +116,7 @@ export default class RadioButtonComponent extends Vue {
   }
 
   input[type='radio']:checked {
-    background: var(--color--primary-lighten);
+    background: var(--color--success-base);
     border-color: var(--color--panel-light);
   }
 
