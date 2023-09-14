@@ -120,7 +120,7 @@ export default class IPDetailsComponent extends Vue {
             </div>
             <div v-else-if="ipLookupData == null || !ipLookupData.success" class="block mb-4">
 				<div class="block-title">IP details</div>
-                <p>IP location was not found.</p>
+                <p>The IP was unable to be resolved into geographical coordinates.</p>
             </div>
 
             <div v-if="isValidIp">
