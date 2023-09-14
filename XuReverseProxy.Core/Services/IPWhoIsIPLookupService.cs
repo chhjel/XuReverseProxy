@@ -34,7 +34,7 @@ public class IPWhoIsIPLookupService : IIPLookupService
 
             var result = new IPLookupResult
             {
-                Success = !string.IsNullOrWhiteSpace(response?.Ip),
+                Success = !string.IsNullOrWhiteSpace(response?.Ip) && response?.Success == true,
                 IP = response?.Ip,
                 Continent = response?.Continent,
                 Country = response?.Country,

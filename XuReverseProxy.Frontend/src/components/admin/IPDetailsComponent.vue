@@ -113,13 +113,14 @@ export default class IPDetailsComponent extends Vue {
 		<loader-component :status="statuses" v-if="!ipLookupService.status.hasDoneAtLeastOnce" />
 
         <div v-if="ipLookupService.status.hasDoneAtLeastOnce">
-            <div v-if="ipLookupData == null">
-                <h2>IP location was not found.</h2>
-            </div>
 
             <div v-if="isLocalhost" class="block mb-4">
-				<div class="block-title">IP details</div>
+                <div class="block-title">IP details</div>
                 <p>Can't show any more details for localhost.</p>
+            </div>
+            <div v-else-if="ipLookupData == null || !ipLookupData.success" class="block mb-4">
+				<div class="block-title">IP details</div>
+                <p>IP location was not found.</p>
             </div>
 
             <div v-if="isValidIp">
