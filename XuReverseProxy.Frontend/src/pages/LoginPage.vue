@@ -9,6 +9,7 @@ import { LoginResponse } from "@generated/Models/Web/LoginResponse";
 import LoginService from "@services/LoginService";
 import { CreateAccountResponse } from "@generated/Models/Web/CreateAccountResponse";
 import { Ecc, QrCode } from '@utils/QRCodeUtil';
+import { LoggedOutMessage_IpChanged } from "@utils/Constants";
 
 @Options({
 	components: {
@@ -132,7 +133,7 @@ export default class LoginPage extends Vue {
 		if (this.loginService.status.hasDoneAtLeastOnce)
 			return '';
 		else if (this.errorCode == 'ip_changed') 
-			return 'Your login session has been terminated due to activity detected from a different IP address. For security purposes, all active sessions have been logged out.';
+			return LoggedOutMessage_IpChanged;
 		else
 			return '';
 	}
