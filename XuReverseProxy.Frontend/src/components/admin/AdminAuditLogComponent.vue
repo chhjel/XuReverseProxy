@@ -116,7 +116,7 @@ export default class AdminAuditLogComponent extends Vue {
 
 <template>
 	<div class="admin-audit-log">
-		<loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce" />
+		<loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 
 		<div v-if="service.status.hasDoneAtLeastOnce">
             <paging-component class="pagination mb-1"
