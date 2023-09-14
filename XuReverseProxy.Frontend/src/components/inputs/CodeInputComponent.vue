@@ -1,12 +1,18 @@
 <script lang="ts">
-import { Vue, Prop, Watch } from "vue-property-decorator";
+import { Vue, Prop, Watch, Ref } from "vue-property-decorator";
 import { Options } from "vue-class-component";
 // or import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 // if shipping only a subset of the features & languages is desired
 import * as monaco from 'monaco-editor'
+import DialogComponent from "@components/common/DialogComponent.vue";
+import ButtonComponent from "./ButtonComponent.vue";
+import IdUtils from "@utils/IdUtils";
+import { isThisISOWeek } from "date-fns";
 
 @Options({
     components: {
+        DialogComponent,
+        ButtonComponent
     }
 })
 export default class CodeInputComponent extends Vue {
@@ -34,8 +40,13 @@ export default class CodeInputComponent extends Vue {
     @Prop({ required: false, default: "" })
     title!: string;
 
+    @Ref('iframe')
+    iframe: HTMLIFrameElement;
+
     isFullscreen: boolean = false;
     isEditorInited: boolean = false;
+    isPreviewing: boolean = false;
+    id: string = IdUtils.generateId();
 
     editor!: monaco.editor.IStandaloneCodeEditor;
 
@@ -91,6 +102,8 @@ export default class CodeInputComponent extends Vue {
             height: this.height
         };
     }
+
+    get allowPreviewHtml(): boolean { return this.language == 'html'; }
     
     ////////////////////////////////////////////////////////////
     //// EVENTHANDLERS /////////////////////////////////////////
@@ -236,6 +249,11 @@ export default class CodeInputComponent extends Vue {
             this.editor.layout();
         }
     }
+
+    togglePreview(): void {
+        this.isPreviewing = !this.isPreviewing;
+        if (this.isPreviewing) this.iframe.srcdoc = this.value;
+    }
 }
 </script>
 
@@ -248,14 +266,32 @@ export default class CodeInputComponent extends Vue {
             <div class="editor-component__loader-bar" v-if="!isEditorInited">
                 Loading...
             </div>
-            <div v-if="!isFullscreen" class="editor-component__gofullscreen" @click="isFullscreen = true">[fullscreen]</div>
+            <div class="editor-component__actions" v-if="!isFullscreen">
+                <div v-if="allowPreviewHtml" @click="togglePreview">[preview]</div>
+                <div @click="isFullscreen = true">[fullscreen]</div>
+            </div>
             <div v-if="isFullscreen" class="editor-component__fullscreen-bar">
                 <div class="spacer"></div>
-                <div class="editor-component__gosmall" @click="isFullscreen = false">[Exit fullscreen]</div>
+                <div class="editor-component__actions-fullscreen">
+                    <div v-if="allowPreviewHtml" @click="togglePreview">[preview]</div>
+                    <div @click="isFullscreen = false">[Exit fullscreen]</div>
+                </div>
             </div>
 
             <div ref="editorElement" class="editor-component__editor"></div>
         </div>
+        
+		<!-- Preview Dialog -->
+		<dialog-component v-model:value="isPreviewing" max-width="2000">
+			<template #header>HTML Preview</template>
+			<template #footer>
+				<button-component @click="isPreviewing = false" :disabled="readOnly" class="secondary">Close</button-component>
+			</template>
+            <div>
+                <iframe :id="`${id}-preview`" ref="iframe"
+                    style="width: calc(100vw - 200px); height: calc(100vh - 240px); border: 2px solid var(--color--secondary); background: #fff;"></iframe>
+            </div>
+		</dialog-component>
     </div>
 </template>
 
@@ -297,7 +333,7 @@ export default class CodeInputComponent extends Vue {
         display: flex;
     }
 
-    &__gofullscreen {
+    &__actions {
         cursor: pointer;
         position: absolute;
         top: -19px;
@@ -307,21 +343,30 @@ export default class CodeInputComponent extends Vue {
         font-size: 12px;
         color: var(--color--secondary-lighten);
         padding: 2px;
+        display: flex;
 
-        &:hover {
-            color: var(--color--info-base);
+        > div {
+            margin-left: 10px;
+
+            &:hover {
+                color: var(--color--info-base);
+            }
         }
     }
     
-    &__gosmall {
+    &__actions-fullscreen {
+        display: flex;
         cursor: pointer;
         color: var(--color--secondary-lighten);
-        align-self: center;
         font-size: 22px;
-        margin-right: 10px;
-
-        &:hover {
-            color: var(--color--info-base);
+        
+        > div {
+            align-self: center;
+            margin-right: 10px;
+            
+            &:hover {
+                color: var(--color--info-base);
+            }
         }
     }
 }
