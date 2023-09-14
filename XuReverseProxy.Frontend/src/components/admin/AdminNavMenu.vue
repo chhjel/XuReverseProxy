@@ -1,12 +1,16 @@
 <script lang="ts">
+import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
 import { Options } from "vue-class-component";
-import { Vue } from 'vue-property-decorator'
+import { Inject, Vue } from 'vue-property-decorator'
 
 @Options({
 	components: {
 	}
 })
 export default class AdminNavMenu extends Vue {
+  	@Inject()
+	readonly options!: AdminPageFrontendModel;
+	
 	async mounted() {
 	}
 }
@@ -14,6 +18,8 @@ export default class AdminNavMenu extends Vue {
 
 <template>
 	<div>
+		<div class="logo-text">{{ (options.serverName || 'XuReverseProxy') }}</div>
+
 		<nav class="admin-nav-desktop">
 			<router-link to="/proxyconfigs">Proxies</router-link> |
 			<router-link to="/clients">Clients</router-link> |
@@ -38,10 +44,25 @@ export default class AdminNavMenu extends Vue {
 </template>
 
 <style scoped lang="scss">
+.logo-text {
+	font-size: 48px;
+	font-weight: 600;
+	margin-bottom: 2px;
+	margin-left: -5px;
+	user-select: none;
+  
+	@media (max-width: 599px) {
+		font-size: 24px;
+		margin-left: 0;
+		margin-bottom: 16px;
+	}
+}
+
 .admin-nav-desktop {
 	display: flex;
 	overflow-y: auto;
-	padding-bottom: 5px;
+	padding-bottom: 8px;
+	border-bottom: 2px solid var(--color--secondary-darken);
 	@media (max-width: 599px) { display: none; }
 
 	a {

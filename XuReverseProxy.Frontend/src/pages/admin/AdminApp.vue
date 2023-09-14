@@ -76,7 +76,7 @@ export default class DashboardPage extends Vue {
 
 	@media (max-width: 800px) {
 		padding: 10px;
-		margin-top: 20px;
+		margin-top: 10px;
 	}
 }
 </style>
