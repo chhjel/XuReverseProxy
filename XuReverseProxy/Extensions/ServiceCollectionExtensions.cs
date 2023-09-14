@@ -128,6 +128,7 @@ public static class ServiceCollectionExtensions
             options.Cookie.Name = IdentityCookieName;
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
             options.ExpireTimeSpan = TimeSpan.FromMinutes(adminCookieLifetimeMinutes);
             options.SlidingExpiration = true;
             options.LoginPath = new PathString("/auth/login");
@@ -141,7 +142,12 @@ public static class ServiceCollectionExtensions
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
                 options =>
                 {
-                    options.Cookie = new CookieBuilder() { Name = AuthCookieName };
+                    options.Cookie = new CookieBuilder() { 
+                        Name = AuthCookieName,
+                        HttpOnly = true,
+                        IsEssential = true,
+                        SameSite = SameSiteMode.Lax
+                    };
                     options.LoginPath = new PathString("/auth/login");
                     options.AccessDeniedPath = new PathString("/auth/denied");
                     options.ReturnUrlParameter = "return";
@@ -158,7 +164,12 @@ public static class ServiceCollectionExtensions
             options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
         }).AddJsonOptions(options => JsonConfig.ApplyDefaultOptions(options.JsonSerializerOptions));
         services.AddMvc();
-        services.AddAntiforgery(opts => opts.Cookie.Name = AuthCookieName);
+        services.AddAntiforgery(options => {
+            options.Cookie.Name = AntiForgeryCookieName;
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+        });
         services.AddHttpClient();
         services.AddHttpForwarder();
         services.AddHttpContextAccessor();
