@@ -80,7 +80,7 @@ export default class ServerConfigPage extends Vue {
 		if (item == null) return;
 
 		const oldValue = item.value;
-		const newValue = !JSON.parse(item.value);
+		const newValue = !JSON.parse(item.value.toLowerCase());
 		item.value = `${(newValue)}`;
 
 		const result = await this.service.CreateOrUpdateAsync(item);
@@ -131,13 +131,21 @@ export default class ServerConfigPage extends Vue {
 					:value="getConfigBool('EnableForwarding')"
 					@click="toggleConfig('EnableForwarding')"
 					class="mt-2 mb-2" />
-					
+				
 				<checkbox-component 
 					label="Require admin login for manual approval page"
 					offLabel="Require admin login for manual approval page"
 					:disabled="isLoading"
 					:value="getConfigBool('EnableManualApprovalPageAuthentication')"
 					@click="toggleConfig('EnableManualApprovalPageAuthentication')"
+					class="mt-2 mb-2" />
+				
+				<checkbox-component 
+					label="Enable memory logging"
+					offLabel="Enable memory logging"
+					:disabled="isLoading"
+					:value="getConfigBool('EnableMemoryLogging')"
+					@click="toggleConfig('EnableMemoryLogging')"
 					class="mt-2 mb-2" />
 			</div>
 

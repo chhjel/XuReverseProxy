@@ -40,6 +40,7 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
             var validationResult = await ValidateEntityAsync(entity);
             if (!validationResult.Success) return validationResult;
 
+            _dbContext.EnsureDetached(entity);
             var result = _dbContext.Update(entity);
             await _dbContext.SaveChangesAsync();
 

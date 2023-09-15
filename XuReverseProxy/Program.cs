@@ -1,3 +1,4 @@
+using XuReverseProxy.Core.Logging;
 using XuReverseProxy.Extensions;
 
 namespace XuReverseProxy
@@ -8,6 +9,7 @@ namespace XuReverseProxy
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
+            builder.Logging.AddMemoryLogger();
 
             // Add services to the container.
             builder.Services.Add3rdPartyServices(builder.Configuration, builder.Environment);

@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using QoDL.Toolkit.Core.Util;
 using QoDL.Toolkit.Web.Core.Utils;
 using XuReverseProxy.Core.Extensions;
+using XuReverseProxy.Core.Logging;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
 
@@ -27,15 +29,17 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
     public const string ClientIdCookieName = "___xupid";
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ApplicationDbContext _dbContext;
+    private readonly ILogger<ProxyClientIdentityService> _logger;
     private readonly IMemoryCache _memoryCache;
     private readonly IDataProtector _dataProtector;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext,
+    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, ILogger<ProxyClientIdentityService> logger,
         IMemoryCache memoryCache, IDataProtectionProvider dataProtectorProvider, IHttpContextAccessor httpContextAccessor)
     {
         _serverConfig = serverConfig;
         _dbContext = dbContext;
+        _logger = logger;
         _memoryCache = memoryCache;
         _dataProtector = dataProtectorProvider.CreateProtector("XuReverseProxy");
         _httpContextAccessor = httpContextAccessor;
@@ -60,6 +64,8 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
             identityId = Guid.NewGuid();
             isNewIdentity = true;
             context.Response.Cookies.Append(ClientIdCookieName, _dataProtector.Protect(identityId.ToString()), CreateClientCookieOptions());
+
+            if (MemoryLogger.Enabled) _logger.LogInformation("Creating new client identity '{identityId}' from {Method} request to '{path}'", identityId, context.Request.Method, context.Request.Path);
         }
 
         // Extend client cookie periodically

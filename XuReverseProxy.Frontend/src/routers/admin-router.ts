@@ -9,6 +9,7 @@ import ProxyClientPage from '@pages/admin/ProxyClientPage.vue';
 import ScheduledTasksPage from '@pages/admin/ScheduledTasksPage.vue';
 import AdminAuditLogPage from '@pages/admin/AdminAuditLogPage.vue';
 import ClientAuditLogPage from '@pages/admin/ClientAuditLogPage.vue';
+import ServerLogPage from '@pages/admin/ServerLogPage.vue';
 import { nextTick } from 'vue';
 
 const routes: Readonly<RouteRecordRaw[]> = [
@@ -21,6 +22,7 @@ const routes: Readonly<RouteRecordRaw[]> = [
     { name: "jobs", path: "/jobs", meta: { title: 'Jobs' }, component: ScheduledTasksPage },
     { name: "admin-audit-log", path: "/admin-audit-log", meta: { title: 'Admin Audit Log' }, component: AdminAuditLogPage },
     { name: "client-audit-log", path: "/client-audit-log", meta: { title: 'Client Audit Log' }, component: ClientAuditLogPage },
+    { name: "server-log", path: "/server-log", meta: { title: 'Server Log' }, component: ServerLogPage },
     { name: "404", path: "/:catchAll(.*)", meta: { title: '404' }, component: Admin404Page },
 ]
 

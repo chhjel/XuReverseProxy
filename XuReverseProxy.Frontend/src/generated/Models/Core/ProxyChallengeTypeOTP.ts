@@ -4,6 +4,7 @@
 
 export interface ProxyChallengeTypeOTP
 {
+	name: string;
 	description: string;
 	webHookUrl: string;
 	webHookRequestMethod: string;

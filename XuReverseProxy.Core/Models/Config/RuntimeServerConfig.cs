@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using QoDL.Toolkit.Web.Core.Utils;
 using System.Globalization;
+using XuReverseProxy.Core.Logging;
 using XuReverseProxy.Core.Models.DbEntity;
 
 namespace XuReverseProxy.Core.Models.Config;
@@ -19,11 +20,19 @@ public class RuntimeServerConfig
         set => SetConfigBool(nameof(EnableForwarding), value);
     }
 
+    // todo: move to server config?
     /// <summary></summary>
     public bool EnableManualApprovalPageAuthentication
     {
         get => GetConfigBool(nameof(EnableManualApprovalPageAuthentication), defaultValue: false);
         set => SetConfigBool(nameof(EnableManualApprovalPageAuthentication), value);
+    }
+
+    /// <summary></summary>
+    public bool EnableMemoryLogging
+    {
+        get => MemoryLogger.Enabled;
+        set => MemoryLogger.Enabled = value;
     }
 
     /// <summary></summary>

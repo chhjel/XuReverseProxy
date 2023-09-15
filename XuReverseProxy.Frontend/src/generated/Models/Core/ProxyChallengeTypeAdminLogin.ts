@@ -4,5 +4,6 @@
 
 export interface ProxyChallengeTypeAdminLogin
 {
+	name: string;
 	description: string;
 }

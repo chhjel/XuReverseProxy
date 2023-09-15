@@ -26,7 +26,8 @@ export default class AdminNavMenu extends Vue {
 			<router-link to="/serverconfig">Server config</router-link> |
 			<router-link to="/jobs">Jobs</router-link> |
 			<router-link to="/admin-audit-log">Admin log</router-link> |
-			<router-link to="/client-audit-log">Client log</router-link>
+			<router-link to="/client-audit-log">Client log</router-link> |
+			<router-link to="/server-log">Server log</router-link>
 			<div class="spacer"></div>
 			<a href="/auth/logout" class="logout">[Logout]</a>
 		</nav>
@@ -38,6 +39,7 @@ export default class AdminNavMenu extends Vue {
 			<router-link to="/jobs">Jobs</router-link>
 			<router-link to="/admin-audit-log">Admin log</router-link>
 			<router-link to="/client-audit-log">Client log</router-link>
+			<router-link to="/server-log">Server log</router-link>
 			<a href="/auth/logout" class="logout">Logout</a>
 		</nav>
 	</div>
