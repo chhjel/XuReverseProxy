@@ -9,6 +9,7 @@ namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 [GenerateFrontendModel]
 public class ProxyChallengeTypeAdminLogin : ProxyChallengeTypeBase
 {
+    public override string Name { get; } = "Admin login";
     public string? Description { get; set; }
 
     public override Task<object> CreateFrontendChallengeModelAsync(ProxyChallengeInvokeContext context)

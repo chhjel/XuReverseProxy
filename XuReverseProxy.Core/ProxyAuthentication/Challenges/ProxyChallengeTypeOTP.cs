@@ -8,6 +8,7 @@ namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 [GenerateFrontendModel]
 public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
 {
+    public override string Name { get; } = "One-time-password";
     public string? Description { get; set; }
     public string? WebHookUrl { get; set; }
     public string? WebHookRequestMethod { get; set; }
