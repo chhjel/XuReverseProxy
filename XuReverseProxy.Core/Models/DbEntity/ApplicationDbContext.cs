@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using XuReverseProxy.Core.Abstractions;
 
 namespace XuReverseProxy.Core.Models.DbEntity;
 
@@ -91,5 +92,15 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
         builder.Entity<ProxyAuthenticationData>().HasIndex(x => x.ProxyConfigId);
         builder.Entity<ProxyAuthenticationCondition>().HasIndex(x => x.AuthenticationDataId);
         builder.Entity<RuntimeServerConfigItem>().HasIndex(x => x.Key);
+    }
+
+    public bool IsAttached<T>(T entity) where T : class, IHasId
+        => Set<T>().Local.Any(e => e.Id == entity.Id);
+
+    public void EnsureDetached<T>(T entity) where T : class, IHasId
+    {
+        var match = Set<T>().Local.FirstOrDefault(e => e.Id == entity.Id);
+        if (match == null) return;
+        Entry(match).State = EntityState.Detached;
     }
 }

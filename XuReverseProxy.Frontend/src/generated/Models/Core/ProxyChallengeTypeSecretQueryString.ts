@@ -4,5 +4,6 @@
 
 export interface ProxyChallengeTypeSecretQueryString
 {
+	name: string;
 	secret: string;
 }

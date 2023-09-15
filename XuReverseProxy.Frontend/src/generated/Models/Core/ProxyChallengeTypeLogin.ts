@@ -4,6 +4,7 @@
 
 export interface ProxyChallengeTypeLogin
 {
+	name: string;
 	description: string;
 	username: string;
 	password: string;
