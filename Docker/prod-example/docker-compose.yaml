@@ -11,6 +11,7 @@ services:
     image: christianwut/xureverseproxy:latest
     environment:
       # See comments in https://github.com/chhjel/XuReverseProxy/blob/main/XuReverseProxy/appsettings.json for more details
+      - ServerConfig__Name=XuReverseProxy
       # ServerConfig__Domain configs below should reflect the public url the proxy should be available on.
       - ServerConfig__Domain__Scheme=https://
       - ServerConfig__Domain__Port=443

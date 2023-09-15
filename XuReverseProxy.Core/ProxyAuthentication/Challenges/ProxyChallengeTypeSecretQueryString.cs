@@ -7,6 +7,7 @@ namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 [GenerateFrontendModel]
 public class ProxyChallengeTypeSecretQueryString : ProxyChallengeTypeBase
 {
+    public override string Name { get; } = "Secret query string";
     public string? Secret { get; set; }
 
     public override Task<object> CreateFrontendChallengeModelAsync(ProxyChallengeInvokeContext context)

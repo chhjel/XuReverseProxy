@@ -10,6 +10,7 @@ namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 [GenerateFrontendModel]
 public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
 {
+    public override string Name { get; } = "Manual approval";
     public string? WebHookUrl { get; set; }
     public string? WebHookRequestMethod { get; set; }
 

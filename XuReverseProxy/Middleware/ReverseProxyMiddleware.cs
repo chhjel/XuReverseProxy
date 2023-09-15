@@ -72,7 +72,7 @@ public class ReverseProxyMiddleware
 
             // Validate that admin IP has not changed since login if enabled
             if (serverConfig.CurrentValue.Security.BindAdminCookieToIP
-                && await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager))
+                && await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager, runtimeServerConfig))
             {
                 context.Response.Clear();
                 if (context.Request.Method == HttpMethod.Get.Method)
@@ -191,8 +191,18 @@ public class ReverseProxyMiddleware
         }
     }
 
-    private static async Task<bool> CheckForChangedUserIP(HttpContext context, ApplicationDbContext applicationDbContext, TKIPData? ipData, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+    private static async Task<bool> CheckForChangedUserIP(HttpContext context, ApplicationDbContext applicationDbContext, TKIPData? ipData,
+        UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RuntimeServerConfig serverConfig)
     {
+        // Don't logout on manual approval page if it doesnt require admin auth
+        if (!serverConfig.EnableManualApprovalPageAuthentication)
+        {
+            var isIgnored = context.Request.Path.ToString().StartsWith("/dist/", StringComparison.OrdinalIgnoreCase)
+                || context.Request.Path.ToString().Equals("/favicon.ico", StringComparison.OrdinalIgnoreCase)
+                || context.Request.Path.ToString().StartsWith("/proxyAuth/approve/", StringComparison.OrdinalIgnoreCase);
+            if (isIgnored) return false;
+        }
+
         var userId = context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return false;
 
