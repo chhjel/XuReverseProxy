@@ -267,14 +267,14 @@ export default class ProxyConfigPage extends Vue {
 
 			<!-- Auths -->
 			<div class="block mt-4 mb-5">
-				<div class="block-title">Required authorizations</div>
-				<div v-if="proxyConfig.authentications.length == 0">No authorization challenges configured - the proxy is open for all.</div>
+				<div class="block-title">Required authentications</div>
+				<div v-if="proxyConfig.authentications.length == 0">No authentications challenges configured - the proxy is open for all.</div>
 				<draggable
 					v-if="proxyConfig"
 					v-model="proxyConfig.authentications"
 					item-key="id"
         			handle=".handle"
-					class="authorization"
+					class="authentication"
 					:disabled="isLoading"
 					@end="onAuthDragEnd">
 					<template #item="{element}">
@@ -299,7 +299,7 @@ export default class ProxyConfigPage extends Vue {
 						</div>
 					</template>
 				</draggable>
-				<button-component @click="onAddAuthClicked" small secondary class="add-auth-button ml-0" icon="add">Add authorization</button-component>
+				<button-component @click="onAddAuthClicked" small secondary class="add-auth-button ml-0" icon="add">Add authentication</button-component>
 			</div>
 
 			<!-- Auth Dialog -->
@@ -353,7 +353,7 @@ export default class ProxyConfigPage extends Vue {
 		}
 	}
 
-	.authorization{
+	.authentication {
 		border-bottom: 2px solid var(--color--panel-light);
     	padding-bottom: 8px;
 	}

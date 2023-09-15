@@ -83,7 +83,7 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
         </div>
 
         <div class="mt-3">
-            Authorization is required:
+            Authentication is required:
             <div><code style="font-size: 16px;" class="ml-2">{{ createAuthCondSummary(localValue) }}</code></div>
         </div>
 	</div>
