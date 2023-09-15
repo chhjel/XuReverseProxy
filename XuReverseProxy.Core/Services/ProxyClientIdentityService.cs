@@ -140,7 +140,8 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
             Expires = DateTimeOffset.Now + TimeSpan.FromMinutes(serverConfig.Security.ClientCookieLifetimeInMinutes),
             Secure = true,
             HttpOnly = true,
-            IsEssential = true
+            IsEssential = true,
+            SameSite = SameSiteMode.Lax
         };
     }
 
