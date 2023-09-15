@@ -289,7 +289,7 @@ export default class CodeInputComponent extends Vue {
 			</template>
             <div>
                 <iframe :id="`${id}-preview`" ref="iframe"
-                    style="width: calc(100vw - 200px); height: calc(100vh - 240px); border: 2px solid var(--color--secondary); background: #fff;"></iframe>
+                    style="width: calc(100vw - 50px); height: calc(100vh - 240px); border: 2px solid var(--color--secondary); background: #fff;"></iframe>
             </div>
 		</dialog-component>
     </div>
