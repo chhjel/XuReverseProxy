@@ -9,5 +9,21 @@ namespace XuReverseProxy.Controllers.API;
 public class ServerLogController : Controller
 {
     [HttpGet]
-    public List<MemoryLogger.LoggedEvent> GetLog() => MemoryLogger.GetEvents();
+    public List<MemoryLogger.LoggedEvent> GetLog()
+    {
+        try
+        {
+            return MemoryLogger.GetEvents()
+                .Select(x => new MemoryLogger.LoggedEvent(x.TimestampUtc, x.LogLevel, x.EventId, null, x.Message))
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            return new List<MemoryLogger.LoggedEvent>
+            {
+                new MemoryLogger.LoggedEvent(DateTime.UtcNow, LogLevel.Critical, 0, null, "Failed to load log events."),
+                new MemoryLogger.LoggedEvent(DateTime.UtcNow, LogLevel.Critical, 0, null, ex.ToString())
+            };
+        }
+    }
 }
