@@ -77,13 +77,13 @@ export const ClientIdentityPlaceholders: Array<PlaceholderInfo> = [
     { name: 'Client.BlockedMessage', description: 'Text entered when blocking the client if any.' }
 ];
 export const CommonPlaceholders: Array<PlaceholderInfo> = [
-    { name: 'weekday', description: 'Current day of the week. E.g. Monday.' },
-    { name: 'monthName', description: 'Name of the current month.' },
-    { name: 'dayOfMonth', description: 'Current day of the month.' },
-    { name: 'hour', description: 'Current hour (24h).' },
-    { name: 'minute', description: 'Current minute.' },
-    { name: 'month', description: 'Current month number.' },
-    { name: 'year', description: 'Current year.' }
+    { name: 'Weekday', description: 'Current day of the week. E.g. Monday.' },
+    { name: 'MonthName', description: 'Name of the current month.' },
+    { name: 'DayOfMonth', description: 'Current day of the month.' },
+    { name: 'Hour', description: 'Current hour (24h).' },
+    { name: 'Minute', description: 'Current minute.' },
+    { name: 'Month', description: 'Current month number.' },
+    { name: 'Year', description: 'Current year.' }
 ];
 
 export const ClientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = [
