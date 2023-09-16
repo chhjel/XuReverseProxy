@@ -11,6 +11,7 @@ import { EmptyGuid } from "@utils/Constants";
 import { createProxyConfigResultingProxyUrl } from "@utils/ProxyConfigUtils";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
 import { ProxyConfigMode } from "@generated/Enums/Core/ProxyConfigMode";
+import ServerConfigService from "@services/ServerConfigService";
 
 @Options({
 	components: {
@@ -26,6 +27,7 @@ export default class ProxyConfigsPage extends Vue {
 	
     proxyConfigService: ProxyConfigService = new ProxyConfigService();
 	proxyConfigs: Array<ProxyConfig> = [];
+	globalProxyEnabled: boolean | null = null;
 
 	async mounted() {
 		const result = await this.proxyConfigService.GetAllFullAsync();
@@ -33,6 +35,8 @@ export default class ProxyConfigsPage extends Vue {
 			console.error(result.message);
 		}
 		this.proxyConfigs = result.data || [];
+		
+		this.globalProxyEnabled = await new ServerConfigService().IsConfigFlagEnabledAsync("EnableForwarding");
 	}
 
 	async addNewProxyConfig() {
@@ -70,7 +74,8 @@ export default class ProxyConfigsPage extends Vue {
 	}
 
 	getConfigStatus(config: ProxyConfig): string {
-		if (!config.enabled) return '(disabled)';
+		if (this.globalProxyEnabled === false) return '(all configs disabled)';
+		else if (!config.enabled) return '(disabled)';
 		else '';
 	}
 
@@ -82,7 +87,7 @@ export default class ProxyConfigsPage extends Vue {
 
 	getConfigIconClasses(config: ProxyConfig): any {
 		let classes: any = {};
-		if (!config.enabled) classes['disabled'] = true;
+		if (!config.enabled || this.globalProxyEnabled === false) classes['disabled'] = true;
 		if (config.authentications.length) classes['has-auth'] = true;
 		return classes;
 	}
