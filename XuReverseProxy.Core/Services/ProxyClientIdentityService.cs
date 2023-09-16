@@ -61,6 +61,8 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
             || !TryUnprotect(valueFromCookie, out var clientIdRaw)
             || !Guid.TryParse(clientIdRaw, out Guid identityId))
         {
+            if (!AllowCreatingNewClientFrom(context)) return null;
+
             identityId = Guid.NewGuid();
             isNewIdentity = true;
             context.Response.Cookies.Append(ClientIdCookieName, _dataProtector.Protect(identityId.ToString()), CreateClientCookieOptions());
@@ -122,6 +124,26 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
 
         return identity;
     }
+
+    // Browsers send a request to some of these without cookies, causing lots of extra clients created.
+    // todo: find a better way to fix this.
+    private static readonly HashSet<string> _pathsNotAllowedIdentityCreation = new(new[]
+    {
+        "/favicon.ico",
+        "/apple-touch-icon.png",
+        "/robots.txt",
+        "/sitemap.xml",
+        "/humans.txt",
+        "/crossdomain.xml",
+        "/browserconfig.xml",
+        "/manifest.json",
+        "/applet/manifest.json",
+        "/ads.txt"
+    });
+    private bool AllowCreatingNewClientFrom(HttpContext context)
+        => context.Request.Method == HttpMethod.Get.Method
+        && !_pathsNotAllowedIdentityCreation.Contains(context.Request.Path)
+        && !context.Request.Path.ToString().StartsWith("/.well-known/");
 
     private bool TryUnprotect(string? protectedValue, out string unprotectedValue)
     {
