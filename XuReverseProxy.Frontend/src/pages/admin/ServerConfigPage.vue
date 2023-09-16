@@ -141,8 +141,8 @@ export default class ServerConfigPage extends Vue {
 					class="mt-2 mb-2" />
 				
 				<checkbox-component 
-					label="Enable memory logging"
-					offLabel="Enable memory logging"
+					label="Enable memory logging for debugging"
+					offLabel="Enable memory logging for debugging"
 					:disabled="isLoading"
 					:value="getConfigBool('EnableMemoryLogging')"
 					@click="toggleConfig('EnableMemoryLogging')"
