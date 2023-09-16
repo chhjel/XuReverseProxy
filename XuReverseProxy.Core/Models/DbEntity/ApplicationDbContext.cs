@@ -30,6 +30,7 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     public DbSet<BlockedIpData> BlockedIpDatas { get; set; }
     public DbSet<AdminAuditLogEntry> AdminAuditLogEntries { get; set; }
     public DbSet<ClientAuditLogEntry> ClientAuditLogEntries { get; set; }
+    public DbSet<NotificationRule> NotificationRules { get; set; }
 
     // IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
