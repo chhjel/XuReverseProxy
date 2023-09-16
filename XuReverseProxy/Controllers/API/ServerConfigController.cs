@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QoDL.Toolkit.Core.Extensions;
 using XuReverseProxy.Core.Logging;
 using XuReverseProxy.Core.Models.Config;
@@ -12,6 +13,13 @@ public class ServerConfigController : EFCrudControllerBase<RuntimeServerConfigIt
     public ServerConfigController(ApplicationDbContext context)
         : base(context, () => context.RuntimeServerConfigItems)
     {
+    }
+
+    [HttpPost("configValue")]
+    public async Task<string?> GetConfigValue([FromBody] string key)
+    {
+        if (key == nameof(RuntimeServerConfig.EnableMemoryLogging)) return MemoryLogger.Enabled.ToString().ToLowerInvariant();
+        else return (await _entities().FirstOrDefaultAsync(x => x.Key == key))?.Value;
     }
 
     public override async Task<GenericResultData<List<RuntimeServerConfigItem>>> GetAllEntitiesAsync()
