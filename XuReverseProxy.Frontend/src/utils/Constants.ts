@@ -72,6 +72,7 @@ export const AuthDataPlaceholders: Array<PlaceholderInfo> = [
 ];
 export const ClientIdentityPlaceholders: Array<PlaceholderInfo> = [
     { name: 'Client.IP', description: 'IP of the client.' },
+    { name: 'Client.Note', description: 'Client note if any.' },
     { name: 'Client.UserAgent', description: 'UserAgent value of the client.' },
     { name: 'Client.BlockedMessage', description: 'Text entered when blocking the client if any.' }
 ];

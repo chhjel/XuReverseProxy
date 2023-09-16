@@ -29,6 +29,7 @@ public class ProxyClientIdentity : IProvidesPlaceholders, IHasId
     {
         return template
             .Replace("{{Client.IP}}", transformer(IP), StringComparison.OrdinalIgnoreCase)
+            .Replace("{{Client.Note}}", transformer(Note), StringComparison.OrdinalIgnoreCase)
             .Replace("{{Client.UserAgent}}", transformer(UserAgent), StringComparison.OrdinalIgnoreCase)
             .Replace("{{Client.BlockedMessage}}", transformer(BlockedMessage), StringComparison.OrdinalIgnoreCase);
     }
