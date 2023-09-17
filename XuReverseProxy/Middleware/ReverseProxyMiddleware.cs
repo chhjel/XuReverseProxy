@@ -98,7 +98,7 @@ public class ReverseProxyMiddleware
             {
                 await notificationService.TryNotifyEvent(NotificationTrigger.AdminRequests,
                     new Dictionary<string, string?> {
-                    { "Url", context.Request.GetDisplayUrl() }
+                        { "Url", context.Request.GetDisplayUrl() }
                     }, adminUser);
             }
 

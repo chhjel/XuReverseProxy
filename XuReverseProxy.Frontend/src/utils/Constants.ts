@@ -1,3 +1,4 @@
+import { NotificationTrigger } from './../generated/Enums/Core/NotificationTrigger';
 import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
 
 export const LoggedOutMessage: string = 'You have been logged out, please refresh the page if you want to continue.';
@@ -59,6 +60,10 @@ export interface PlaceholderInfo {
     name: string;
     description: string;
 }
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
 export const ProxyConfigPlaceholders: Array<PlaceholderInfo> = [
     { name: 'ProxyConfig.Name', description: 'Name of the config.' },
     { name: 'ProxyConfig.Subdomain', description: 'Subdomain where the proxy is configured, or empty if its using the root domain.' },
@@ -76,6 +81,10 @@ export const ClientIdentityPlaceholders: Array<PlaceholderInfo> = [
     { name: 'Client.UserAgent', description: 'UserAgent value of the client.' },
     { name: 'Client.BlockedMessage', description: 'Text entered when blocking the client if any.' }
 ];
+export const UserPlaceholders: Array<PlaceholderInfo> = [
+    { name: 'User.Username', description: 'Username.' },
+    { name: 'User.IP', description: 'Latest IP of the user.' },
+];
 export const CommonPlaceholders: Array<PlaceholderInfo> = [
     { name: 'Weekday', description: 'Current day of the week. E.g. Monday.' },
     { name: 'MonthName', description: 'Name of the current month.' },
@@ -85,6 +94,9 @@ export const CommonPlaceholders: Array<PlaceholderInfo> = [
     { name: 'Month', description: 'Current month number.' },
     { name: 'Year', description: 'Current year.' }
 ];
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
 
 export const ClientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = [
     { name: 'Blocked client', placeholders: ClientIdentityPlaceholders },
@@ -105,3 +117,66 @@ export const OTPRequestUrlPlaceholders: Array<PlaceholderGroupInfo> = [
     { name: 'Proxy config', placeholders: ProxyConfigPlaceholders },
     { name: 'Common', placeholders: CommonPlaceholders }
 ];
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
+export const AdminLoginSuccessNotificationPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: '', placeholders: [
+        { name: 'Username', description: 'Username that logged in.' },
+    ] },
+    { name: 'Common', placeholders: CommonPlaceholders }
+];
+export const AdminLoginFailedNotificationPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: '', placeholders: [
+        { name: 'Username', description: 'Username that failed to login.' },
+    ] },
+    { name: 'Common', placeholders: CommonPlaceholders }
+];
+export const AdminRequestsNotificationPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: '', placeholders: [
+        { name: 'Url', description: 'Current url.' },
+    ] },
+    { name: 'User', placeholders: UserPlaceholders },
+    { name: 'Common', placeholders: CommonPlaceholders }
+];
+export const AdminSessionIPChangedNotificationPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: '', placeholders: [
+        { name: 'OldIP', description: 'The old IP-' },
+        { name: 'NewIP', description: 'The new IP-' }
+    ] },
+    { name: 'User', placeholders: UserPlaceholders },
+    { name: 'Common', placeholders: CommonPlaceholders }
+];
+export const NewClientNotificationPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: '', placeholders: [
+        { name: 'Url', description: 'Current url.' },
+    ] },
+    { name: 'Client', placeholders: ClientIdentityPlaceholders },
+    { name: 'Common', placeholders: CommonPlaceholders }
+];
+export const ClientRequestNotificationPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: '', placeholders: [
+        { name: 'Url', description: 'Current url.' },
+    ] },
+    { name: 'Client', placeholders: ClientIdentityPlaceholders },
+    { name: 'Proxy config', placeholders: ProxyConfigPlaceholders },
+    { name: 'Common', placeholders: CommonPlaceholders }
+];
+export const ClientCompletedChallengeNotificationPlaceholders: Array<PlaceholderGroupInfo> = [
+    { name: 'Client', placeholders: ClientIdentityPlaceholders },
+    { name: 'Proxy config', placeholders: ProxyConfigPlaceholders },
+    { name: 'Auth data', placeholders: AuthDataPlaceholders },
+    { name: 'Common', placeholders: CommonPlaceholders },
+];
+
+export function getPlaceholdersForNotificationType(type: NotificationTrigger): Array<PlaceholderGroupInfo> {
+    if (type == NotificationTrigger.AdminLoginSuccess) return AdminLoginSuccessNotificationPlaceholders;
+    else if (type == NotificationTrigger.AdminLoginFailed) return AdminLoginFailedNotificationPlaceholders;
+    else if (type == NotificationTrigger.AdminRequests) return AdminRequestsNotificationPlaceholders;
+    else if (type == NotificationTrigger.AdminSessionIPChanged) return AdminSessionIPChangedNotificationPlaceholders;
+    else if (type == NotificationTrigger.NewClient) return NewClientNotificationPlaceholders;
+    else if (type == NotificationTrigger.ClientRequest) return ClientRequestNotificationPlaceholders;
+    else if (type == NotificationTrigger.ClientCompletedChallenge) return ClientCompletedChallengeNotificationPlaceholders;
+    else return [];
+}
