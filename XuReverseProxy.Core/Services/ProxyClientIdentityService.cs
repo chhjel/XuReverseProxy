@@ -137,13 +137,13 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         "/crossdomain.xml",
         "/browserconfig.xml",
         "/manifest.json",
-        "/applet/manifest.json",
         "/ads.txt"
     });
     private bool AllowCreatingNewClientFrom(HttpContext context)
         => context.Request.Method == HttpMethod.Get.Method
         && !_pathsNotAllowedIdentityCreation.Contains(context.Request.Path)
-        && !context.Request.Path.ToString().StartsWith("/.well-known/");
+        && !context.Request.Path.ToString().StartsWith("/.well-known/")
+        && !context.Request.Path.ToString().StartsWith("/applet/");
 
     private bool TryUnprotect(string? protectedValue, out string unprotectedValue)
     {
