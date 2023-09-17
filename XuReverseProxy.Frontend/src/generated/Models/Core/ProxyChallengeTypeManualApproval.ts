@@ -2,9 +2,10 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
+import { CustomRequestData } from './CustomRequestData';
+
 export interface ProxyChallengeTypeManualApproval
 {
 	name: string;
-	webHookUrl: string;
-	webHookRequestMethod: string;
+	requestData: CustomRequestData;
 }

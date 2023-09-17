@@ -405,6 +405,9 @@ namespace XuReverseProxy.Core.Migrations
                     b.Property<string>("WebHookBody")
                         .HasColumnType("text");
 
+                    b.Property<string>("WebHookHeaders")
+                        .HasColumnType("text");
+
                     b.Property<string>("WebHookMethod")
                         .HasColumnType("text");
 

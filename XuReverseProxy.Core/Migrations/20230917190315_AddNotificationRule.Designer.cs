@@ -12,8 +12,8 @@ using XuReverseProxy.Core.Models.DbEntity;
 namespace XuReverseProxy.Core.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230917173547_AddNotificationRuleDistinctPattern")]
-    partial class AddNotificationRuleDistinctPattern
+    [Migration("20230917190315_AddNotificationRule")]
+    partial class AddNotificationRule
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -406,6 +406,9 @@ namespace XuReverseProxy.Core.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("WebHookBody")
+                        .HasColumnType("text");
+
+                    b.Property<string>("WebHookHeaders")
                         .HasColumnType("text");
 
                     b.Property<string>("WebHookMethod")

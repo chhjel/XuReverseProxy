@@ -15,6 +15,7 @@ public class NotificationRule : IHasId
 
     public string? WebHookUrl { get; set; }
     public string? WebHookMethod { get; set; }
+    public string? WebHookHeaders { get; set; }
     public string? WebHookBody { get; set; }
 
     /// <summary>

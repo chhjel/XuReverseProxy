@@ -22,7 +22,9 @@ namespace XuReverseProxy.Core.Migrations
                     AlertType = table.Column<int>(type: "integer", nullable: false),
                     WebHookUrl = table.Column<string>(type: "text", nullable: true),
                     WebHookMethod = table.Column<string>(type: "text", nullable: true),
+                    WebHookHeaders = table.Column<string>(type: "text", nullable: true),
                     WebHookBody = table.Column<string>(type: "text", nullable: true),
+                    CooldownDistinctPattern = table.Column<string>(type: "text", nullable: true),
                     Cooldown = table.Column<TimeSpan>(type: "interval", nullable: true),
                     LastNotifiedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     LastNotifyResult = table.Column<string>(type: "text", nullable: true)

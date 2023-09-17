@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using System.Web;
 using XuReverseProxy.Core.Abstractions;
+using XuReverseProxy.Core.Models.Common;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.Utils;
 
@@ -77,8 +78,8 @@ public class NotificationService : INotificationService
     {
         if (string.IsNullOrWhiteSpace(rule.WebHookUrl)) return;
 
-        var method = HttpMethod.Get;
         string? url = rule.WebHookUrl;
+        string method = HttpMethod.Get.Method;
         try
         {
             var httpClient = _httpClientFactory.CreateClient();
@@ -88,18 +89,24 @@ public class NotificationService : INotificationService
             }
             url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, placeholderProviders);
 
-            if (!string.IsNullOrWhiteSpace(rule.WebHookMethod)) method = new HttpMethod(rule.WebHookMethod);
+            var requestData = new CustomRequestData
+            {
+                RequestMethod = string.IsNullOrWhiteSpace(rule.WebHookMethod) ? HttpMethod.Get.Method : new HttpMethod(rule.WebHookMethod).Method,
+                Url = url,
+                Body = rule.WebHookBody,
+                Headers = rule.WebHookHeaders
+            };
 
-            var httpRequestMessage = new HttpRequestMessage(method, url);
-            // todo: body
+            var httpRequestMessage = requestData?.CreateRequest();
+            if (httpRequestMessage == null) return;
             await httpClient.SendAsync(httpRequestMessage);
 
-            rule.LastNotifyResult = $"Sent {method.Method} request to '{url}'.";
+            rule.LastNotifyResult = $"Sent {method} request to '{url}'.";
             await _dbContext.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            rule.LastNotifyResult = $"Exception while attempting to send {method.Method} request to '{url}': {ex}";
+            rule.LastNotifyResult = $"Exception while attempting to send {method} request to '{url}': {ex}";
         }
         finally
         {

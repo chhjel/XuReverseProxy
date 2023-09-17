@@ -1,5 +1,6 @@
 ﻿using System.Web;
 using XuReverseProxy.Core.Attributes;
+using XuReverseProxy.Core.Models.Common;
 using XuReverseProxy.Core.ProxyAuthentication.Attributes;
 using XuReverseProxy.Core.Utils;
 
@@ -10,8 +11,7 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
 {
     public override string Name { get; } = "One-time-password";
     public string? Description { get; set; }
-    public string? WebHookUrl { get; set; }
-    public string? WebHookRequestMethod { get; set; }
+    public CustomRequestData? RequestData { get; set; }
 
     private const string _dataKeyOtp = "code";
     private const string _dataKeyLastSentAt = "sentAt";
@@ -32,7 +32,7 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
     [InvokableProxyAuthMethod]
     public async Task<TrySendOTPResponseModel> TrySendOTPAsync(ProxyChallengeInvokeContext context, TrySendOTPRequestModel _)
     {
-        if (string.IsNullOrWhiteSpace(WebHookUrl)) return new(false, "Webhook not configured");
+        if (string.IsNullOrWhiteSpace(RequestData?.Url)) return new(false, "Webhook not configured");
 
         var lastSentAt = new DateTime(long.Parse(await context.GetDataAsync(_dataKeyLastSentAt) ?? "0"), DateTimeKind.Utc);
         if (DateTime.UtcNow - lastSentAt < TimeSpan.FromMinutes(5)) return new(false, "Code was sent recently, wait a bit before trying again.");
@@ -81,15 +81,14 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
     {
         var httpClient = context.GetService<IHttpClientFactory>().CreateClient();
 
-        var url = WebHookUrl?.Replace("{{code}}", code);
+        var url = RequestData?.Url?.Replace("{{code}}", code);
         url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, context.ClientIdentity, context.ProxyConfig, context.AuthenticationData);
 
-        var method = HttpMethod.Get;
-        if (!string.IsNullOrWhiteSpace(WebHookRequestMethod)) method = new HttpMethod(WebHookRequestMethod);
-        
         try
         {
-            var httpRequestMessage = new HttpRequestMessage(method, url);
+            var httpRequestMessage = RequestData?.CreateRequest(url);
+            if (httpRequestMessage == null) return new(false, "Webhook not configured.");
+
             await httpClient.SendAsync(httpRequestMessage);
             return new(true, null);
         }

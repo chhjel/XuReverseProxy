@@ -8,6 +8,7 @@ import ExpandableComponent from "@components/common/ExpandableComponent.vue";
 import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponent.vue";
 import { PlaceholderInfo, PlaceholderGroupInfo, OTPRequestUrlPlaceholders } from "@utils/Constants";
 import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
+import CustomRequestDataEditor from "@components/inputs/CustomRequestDataEditor.vue";
 
 @Options({
 	components: {
@@ -15,7 +16,8 @@ import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
 		ButtonComponent,
         CodeInputComponent,
 		ExpandableComponent,
-		PlaceholderInfoComponent
+		PlaceholderInfoComponent,
+        CustomRequestDataEditor
 	}
 })
 export default class ProxyChallengeTypeOTPEditor extends Vue {
@@ -26,21 +28,19 @@ export default class ProxyChallengeTypeOTPEditor extends Vue {
 	disabled: boolean;
 	
 	localValue: ProxyChallengeTypeOTP | null = null;
-    @Ref() readonly urlEditor!: any;
-    urlPlaceholdersExtra: Array<PlaceholderInfo> = [{
+    
+    placeholdersExtra: Array<PlaceholderInfo> = [{
 		name: "code",
 		description: "Generated one-time code."
 	}];
-	urlPlaceholders: Array<PlaceholderGroupInfo> = OTPRequestUrlPlaceholders;
+	placeholders: Array<PlaceholderGroupInfo> = OTPRequestUrlPlaceholders;
 
     mounted(): void {
         this.updateLocalValue();
-        if (!this.localValue.webHookRequestMethod) this.localValue.webHookRequestMethod = 'GET';
+        if (!this.localValue.requestData) this.localValue.requestData = { url: '', body: '', headers: '', requestMethod: '' };
+        if (!this.localValue.requestData.requestMethod) this.localValue.requestData.requestMethod = 'GET';
+        if (!this.localValue.requestData.url) this.localValue.requestData.url = 'https://www.your-otp-service.com?code={{code}}';
         this.emitLocalValue();
-    }
-
-    insertUrlPlaceholder(val: string): void {
-        this.urlEditor.insertText(val);
     }
 
     /////////////////
@@ -70,16 +70,10 @@ export default class ProxyChallengeTypeOTPEditor extends Vue {
 	<div class="proxy-challenge-otp-edit" v-if="localValue">
         <p>When the user clicks the button to send a one-time code a request is sent to the webhook url.</p>
 		<text-input-component label="Description" v-model:value="localValue.description" :disabled="disabled" />
-		<text-input-component label="WebHook request method" v-model:value="localValue.webHookRequestMethod" :disabled="disabled" class="mt-2" />
-        <code-input-component v-model:value="localValue.webHookUrl" language="" :disabled="disabled" class="mt-2"
-            height="100px" :wordWrap="true" label="WebHook url" ref="urlEditor" :readOnly="disabled" />
-        <expandable-component header="Supported placeholders">
-            <placeholder-info-component
-                urlPlaceholdersExtra
-                :placeholders="urlPlaceholders" 
-                :additionalPlaceholders="urlPlaceholdersExtra" 
-                @insertPlaceholder="insertUrlPlaceholder" />
-        </expandable-component>
+        <CustomRequestDataEditor v-if="localValue" 
+            v-model:value="localValue.requestData"
+            :placeholders="placeholders" 
+            :additionalPlaceholders="placeholdersExtra" />
 	</div>
 </template>
 
