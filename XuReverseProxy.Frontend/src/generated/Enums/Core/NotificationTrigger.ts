@@ -3,8 +3,10 @@
 //     the code is regenerated.
 
 export enum NotificationTrigger {
-	AdminLogin = "AdminLogin",
+	AdminLoginSuccess = "AdminLoginSuccess",
+	AdminLoginFailed = "AdminLoginFailed",
 	AdminRequests = "AdminRequests",
+	AdminSessionIPChanged = "AdminSessionIPChanged",
 	NewClient = "NewClient",
 	ClientRequest = "ClientRequest",
 	ClientCompletedChallenge = "ClientCompletedChallenge"
