@@ -17,6 +17,10 @@ public class NotificationRule : IHasId
     public string? WebHookMethod { get; set; }
     public string? WebHookBody { get; set; }
 
+    /// <summary>
+    /// E.g. "{{IP}}" to limit e.g. 1 per minute per ip.
+    /// </summary>
+    public string? CooldownDistinctPattern { get; set; }
     public TimeSpan? Cooldown { get; set; }
 
     public DateTime? LastNotifiedAtUtc { get; set; }

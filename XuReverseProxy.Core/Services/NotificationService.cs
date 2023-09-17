@@ -1,4 +1,6 @@
-﻿using System.Web;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using System.Web;
 using XuReverseProxy.Core.Abstractions;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.Utils;
@@ -15,11 +17,13 @@ public class NotificationService : INotificationService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IMemoryCache _memoryCache;
 
-    public NotificationService(ApplicationDbContext dbContext, IHttpClientFactory httpClientFactory)
+    public NotificationService(ApplicationDbContext dbContext, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
     {
         _dbContext = dbContext;
         _httpClientFactory = httpClientFactory;
+        _memoryCache = memoryCache;
     }
 
     public async Task TryNotifyEvent(NotificationTrigger trigger, params IProvidesPlaceholders?[] placeholderProviders)
@@ -28,17 +32,37 @@ public class NotificationService : INotificationService
     public async Task TryNotifyEvent(NotificationTrigger trigger, Dictionary<string, string?>? placeholders, params IProvidesPlaceholders?[] placeholderProviders)
     {
         var now = DateTime.UtcNow;
-        var matchingRules = _dbContext.NotificationRules.Where(x => x.Enabled
-            && x.TriggerType == trigger
-            && (x.Cooldown == null || x.LastNotifiedAtUtc == null || (now - x.LastNotifiedAtUtc) > x.Cooldown));
-        
+        var matchingRules = await _dbContext.NotificationRules.Where(x => x.Enabled && x.TriggerType == trigger)
+            .ToListAsync();
+
         foreach (var rule in matchingRules)
         {
-            rule.LastNotifiedAtUtc = DateTime.UtcNow;
-            rule.LastNotifyResult = "Notified";
+            if (HandleRuleCooldown(rule, placeholders, placeholderProviders)) continue;
 
             await NotifyAsync(rule, placeholders, placeholderProviders);
         }
+    }
+
+    /// <summary>
+    /// Returns true if the rule is on cooldown. Sets cooldown if enabled.
+    /// </summary>
+    private bool HandleRuleCooldown(NotificationRule rule, Dictionary<string, string?>? placeholders, IProvidesPlaceholders?[] placeholderProviders)
+    {
+        if (!(rule.Cooldown > TimeSpan.Zero)) return false;
+
+        var distinctCacheKey = $"_notify_distinction_{rule.Id}";
+        if (!string.IsNullOrWhiteSpace(rule.CooldownDistinctPattern))
+        {
+            var distinctPattern = rule.CooldownDistinctPattern;
+            if (placeholders != null) distinctPattern = PlaceholderUtils.ResolvePlaceholders(distinctPattern, placeholders);
+            distinctPattern = PlaceholderUtils.ResolvePlaceholders(distinctPattern, placeholderProviders);
+            distinctCacheKey = $"{distinctCacheKey}_{distinctPattern}";
+        }
+
+        if (_memoryCache.TryGetValue(distinctCacheKey, out _)) return true;
+
+        _memoryCache.Set(distinctCacheKey, (byte)0x01, rule.Cooldown.Value);
+        return false;
     }
 
     private async Task NotifyAsync(NotificationRule rule, Dictionary<string, string?>? placeholders, IProvidesPlaceholders?[] placeholderProviders)
@@ -54,15 +78,15 @@ public class NotificationService : INotificationService
         if (string.IsNullOrWhiteSpace(rule.WebHookUrl)) return;
 
         var method = HttpMethod.Get;
-        string? url = string.Empty;
+        string? url = rule.WebHookUrl;
         try
         {
             var httpClient = _httpClientFactory.CreateClient();
             if (placeholders?.Any() == true)
             {
-                url = PlaceholderUtils.ResolvePlaceholders(rule.WebHookUrl, transformer: HttpUtility.UrlEncode, placeholders);
+                url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, placeholders);
             }
-            url = PlaceholderUtils.ResolvePlaceholders(rule.WebHookUrl, transformer: HttpUtility.UrlEncode, placeholderProviders);
+            url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, placeholderProviders);
 
             if (!string.IsNullOrWhiteSpace(rule.WebHookMethod)) method = new HttpMethod(rule.WebHookMethod);
 

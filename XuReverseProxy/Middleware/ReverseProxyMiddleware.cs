@@ -94,10 +94,13 @@ public class ReverseProxyMiddleware
                 }
             }
 
-            await notificationService.TryNotifyEvent(NotificationTrigger.AdminRequests,
-                new Dictionary<string, string?> {
+            if (context.User.Identity?.IsAuthenticated == true)
+            {
+                await notificationService.TryNotifyEvent(NotificationTrigger.AdminRequests,
+                    new Dictionary<string, string?> {
                     { "Url", context.Request.GetDisplayUrl() }
-                }, adminUser);
+                    }, adminUser);
+            }
 
             await _nextMiddleware(context);
             return;

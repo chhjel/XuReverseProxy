@@ -15,6 +15,7 @@ export interface NotificationRule
 	webHookUrl: string;
 	webHookMethod: string;
 	webHookBody: string;
+	cooldownDistinctPattern: string;
 	cooldown: any;
 	lastNotifiedAtUtc: Date;
 	lastNotifyResult: string;
