@@ -21,6 +21,22 @@ public static class PlaceholderUtils
         return template;
     }
 
+    public static string? ResolvePlaceholders(string? template, Dictionary<string, string?> placeholders)
+        => ResolvePlaceholders(template, null, placeholders);
+
+    public static string? ResolvePlaceholders(string? template, Func<string?, string?>? transformer, Dictionary<string, string?> placeholders)
+    {
+        if (string.IsNullOrWhiteSpace(template)) return template;
+        transformer ??= v => v ?? string.Empty;
+        string mod(string val) => transformer?.Invoke(val) ?? val;
+
+        foreach (var placeholder in placeholders)
+        {
+            template = template?.Replace($"{{{{{placeholder.Key}}}}}", placeholder.Value == null ? string.Empty : mod(placeholder.Value), StringComparison.OrdinalIgnoreCase);
+        }
+        return template;
+    }
+
     private static readonly CultureInfo _placeholderLocale = CultureInfo.CreateSpecificCulture("en");
     public static string? ResolveCommonPlaceholders(string? template, Func<string?, string?>? transformer = null)
     {

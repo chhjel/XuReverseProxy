@@ -8,6 +8,7 @@ namespace XuReverseProxy.Core.Services;
 public interface INotificationService
 {
     Task TryNotifyEvent(NotificationTrigger trigger, params IProvidesPlaceholders?[] placeholderProviders);
+    Task TryNotifyEvent(NotificationTrigger trigger, Dictionary<string, string?>? placeholders, params IProvidesPlaceholders?[] placeholderProviders);
 }
 
 public class NotificationService : INotificationService
@@ -22,6 +23,9 @@ public class NotificationService : INotificationService
     }
 
     public async Task TryNotifyEvent(NotificationTrigger trigger, params IProvidesPlaceholders?[] placeholderProviders)
+        => await TryNotifyEvent(trigger, null, placeholderProviders);
+
+    public async Task TryNotifyEvent(NotificationTrigger trigger, Dictionary<string, string?>? placeholders, params IProvidesPlaceholders?[] placeholderProviders)
     {
         var now = DateTime.UtcNow;
         var matchingRules = _dbContext.NotificationRules.Where(x => x.Enabled
@@ -33,19 +37,19 @@ public class NotificationService : INotificationService
             rule.LastNotifiedAtUtc = DateTime.UtcNow;
             rule.LastNotifyResult = "Notified";
 
-            await NotifyAsync(rule, placeholderProviders);
+            await NotifyAsync(rule, placeholders, placeholderProviders);
         }
     }
 
-    private async Task NotifyAsync(NotificationRule rule, IProvidesPlaceholders?[] placeholderProviders)
+    private async Task NotifyAsync(NotificationRule rule, Dictionary<string, string?>? placeholders, IProvidesPlaceholders?[] placeholderProviders)
     {
         if (rule.AlertType == NotificationAlertType.WebHook)
-            await NotifyWebHookAsync(rule, placeholderProviders);
+            await NotifyWebHookAsync(rule, placeholders, placeholderProviders);
         else
             throw new NotImplementedException($"Alert type '{rule.AlertType}' not implemented.");
     }
 
-    private async Task NotifyWebHookAsync(NotificationRule rule, IProvidesPlaceholders?[] placeholderProviders)
+    private async Task NotifyWebHookAsync(NotificationRule rule, Dictionary<string, string?>? placeholders, IProvidesPlaceholders?[] placeholderProviders)
     {
         if (string.IsNullOrWhiteSpace(rule.WebHookUrl)) return;
 
@@ -54,11 +58,16 @@ public class NotificationService : INotificationService
         try
         {
             var httpClient = _httpClientFactory.CreateClient();
+            if (placeholders?.Any() == true)
+            {
+                url = PlaceholderUtils.ResolvePlaceholders(rule.WebHookUrl, transformer: HttpUtility.UrlEncode, placeholders);
+            }
             url = PlaceholderUtils.ResolvePlaceholders(rule.WebHookUrl, transformer: HttpUtility.UrlEncode, placeholderProviders);
 
             if (!string.IsNullOrWhiteSpace(rule.WebHookMethod)) method = new HttpMethod(rule.WebHookMethod);
 
             var httpRequestMessage = new HttpRequestMessage(method, url);
+            // todo: body
             await httpClient.SendAsync(httpRequestMessage);
 
             rule.LastNotifyResult = $"Sent {method.Method} request to '{url}'.";

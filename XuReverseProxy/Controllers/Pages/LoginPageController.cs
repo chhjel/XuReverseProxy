@@ -6,9 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using QoDL.Toolkit.Core.Util;
 using QoDL.Toolkit.Web.Core.Utils;
+using XuReverseProxy.Core.Abstractions;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
+using XuReverseProxy.Core.Services;
 using XuReverseProxy.Core.Utils;
 using XuReverseProxy.Models.ViewModels.Pages;
 
@@ -21,14 +23,16 @@ public class LoginPageController : Controller
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly ApplicationDbContext _dbContext;
+    private readonly INotificationService _notificationService;
 
     public LoginPageController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
-        IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext)
+        IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, INotificationService notificationService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _serverConfig = serverConfig;
         _dbContext = dbContext;
+        _notificationService = notificationService;
     }
 
     [HttpGet("/auth/login")]
@@ -82,7 +86,12 @@ public class LoginPageController : Controller
 
         (var success, var error) = await TryLoginUser(request.Username, request.Password, request.TOTP);
         if (!success)
+        {
+            await _notificationService.TryNotifyEvent(NotificationTrigger.AdminLoginFailed, request);
             return createResult(false, error: error);
+        }
+
+        await _notificationService.TryNotifyEvent(NotificationTrigger.AdminLoginSuccess, request);
 
         var returnPath = request.ReturnPath;
         if (returnPath?.StartsWith("/") != true) returnPath = $"/";
@@ -197,13 +206,19 @@ public class LoginPageController : Controller
 
     #region Request models
     [GenerateFrontendModel]
-    public class LoginRequest
+    public class LoginRequest : IProvidesPlaceholders
     {
         public required string Username { get; set; }
         public required string Password { get; set; }
         public string? TOTP { get; set; }
         public string? RecoveryCode { get; set; }
         public string? ReturnPath { get; set; }
+
+        public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
+        {
+            return template
+                .Replace("{{Username}}", transformer(Username), StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     [GenerateFrontendModel]

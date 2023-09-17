@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -33,9 +34,10 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
     private readonly IMemoryCache _memoryCache;
     private readonly IDataProtector _dataProtector;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly INotificationService _notificationService;
 
     public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, ILogger<ProxyClientIdentityService> logger,
-        IMemoryCache memoryCache, IDataProtectionProvider dataProtectorProvider, IHttpContextAccessor httpContextAccessor)
+        IMemoryCache memoryCache, IDataProtectionProvider dataProtectorProvider, IHttpContextAccessor httpContextAccessor, INotificationService notificationService)
     {
         _serverConfig = serverConfig;
         _dbContext = dbContext;
@@ -43,6 +45,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         _memoryCache = memoryCache;
         _dataProtector = dataProtectorProvider.CreateProtector("XuReverseProxy");
         _httpContextAccessor = httpContextAccessor;
+        _notificationService = notificationService;
     }
 
     public async Task<ProxyClientIdentity?> GetProxyClientIdentityAsync(Guid id)
@@ -97,6 +100,10 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
             };
             await _dbContext.ProxyClientIdentities.AddAsync(identity);
             await _dbContext.SaveChangesAsync();
+            await _notificationService.TryNotifyEvent(NotificationTrigger.NewClient,
+                new Dictionary<string, string?> {
+                    { "Url", context.Request.GetDisplayUrl() }
+                }, identity);
             return identity;
         }
 

@@ -26,11 +26,13 @@ public class NotificationRule : IHasId
 [GenerateFrontendModel]
 public enum NotificationTrigger
 {
-    AdminLogin = 0,
-    AdminRequests = 1,
-    NewClient = 2,
-    ClientRequest = 3,
-    ClientCompletedChallenge = 4
+    AdminLoginSuccess = 0,
+    AdminLoginFailed = 1,
+    AdminRequests = 10,
+    AdminSessionIPChanged = 11,
+    NewClient = 20,
+    ClientRequest = 30,
+    ClientCompletedChallenge = 40
 }
 
 [GenerateFrontendModel]
