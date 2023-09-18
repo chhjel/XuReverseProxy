@@ -178,8 +178,8 @@ export const AdminRequestsNotificationPlaceholders: Array<PlaceholderGroupInfo> 
 ];
 export const AdminSessionIPChangedNotificationPlaceholders: Array<PlaceholderGroupInfo> = [
     { name: '', placeholders: [
-        { name: 'OldIP', description: 'The old IP-' },
-        { name: 'NewIP', description: 'The new IP-' }
+        { name: 'OldIP', description: 'The old IP.' },
+        { name: 'NewIP', description: 'The new IP.' }
     ] },
     { name: 'User', placeholders: UserPlaceholders },
     { name: 'Common', placeholders: CommonPlaceholders }
