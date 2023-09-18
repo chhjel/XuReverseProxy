@@ -13,6 +13,7 @@ import { EmptyGuid, NotificationAlertTypeOptions, NotificationTriggerOptions } f
 import { NotificationTrigger } from "@generated/Enums/Core/NotificationTrigger";
 import { NotificationAlertType } from "@generated/Enums/Core/NotificationAlertType";
 import DateFormats from "@utils/DateFormats";
+import { SortByThenBy } from "@utils/SortUtils";
 
 @Options({
 	components: {
@@ -41,10 +42,11 @@ export default class NotificationsPage extends Vue {
 	}
 
 	get sortedRules(): Array<NotificationRule> {
-		return this.rules.sort((a,b) => 
-			(!a.enabled ? 999999 : 0)
-			|| a.name?.localeCompare(b.name)
-		);
+		return this.rules.sort((a,b) => SortByThenBy(a, b, 
+			x => x.enabled, x => x.name,
+			(a, b) => <any>b.enabled - <any>a.enabled,
+			(a, b) => a.name?.localeCompare(b.name)
+		));
 	}
 
 	getRuleStatus(rule: NotificationRule): string {
