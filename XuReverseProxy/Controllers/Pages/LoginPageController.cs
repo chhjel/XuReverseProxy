@@ -115,10 +115,13 @@ public class LoginPageController : Controller
         await Task.Delay(500);
 #endif
 
+        var rawIp = TKRequestUtils.GetIPAddress(Request.HttpContext);
+        var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
         var user = new ApplicationUser
         {
             UserName = request.Username,
-            TOTPSecretKey = enableTotp ? request.TOTPSecret : null
+            TOTPSecretKey = enableTotp ? request.TOTPSecret : null,
+            LastConnectedFromIP = ipData?.IP
         };
         var createUserResult = await _userManager.CreateAsync(user, request.Password);
         if (createUserResult.Succeeded == false)
