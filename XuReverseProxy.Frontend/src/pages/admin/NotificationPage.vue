@@ -88,7 +88,7 @@ export default class NotificationPage extends Vue {
 	}
 
 	async deleteRule() {
-		if (!confirm('Delete this proxy config?')) return;
+		if (!confirm('Delete this rule?')) return;
 
 		const result = await this.service.DeleteAsync(this.rule.id);
 		if (!result.success) {
