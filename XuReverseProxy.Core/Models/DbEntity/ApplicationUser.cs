@@ -14,6 +14,7 @@ public class ApplicationUser : IdentityUser, IProvidesPlaceholders
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {
         return template
+            .Replace("{{User.Id}}", transformer(Id), StringComparison.OrdinalIgnoreCase)
             .Replace("{{User.Username}}", transformer(UserName), StringComparison.OrdinalIgnoreCase)
             .Replace("{{User.IP}}", transformer(LastConnectedFromIP), StringComparison.OrdinalIgnoreCase);
     }

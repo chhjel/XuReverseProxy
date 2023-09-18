@@ -5,13 +5,13 @@ import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
 import { CustomRequestData } from "@generated/Models/Core/CustomRequestData";
 import ExpandableComponent from "@components/common/ExpandableComponent.vue";
 import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponent.vue";
-import { PlaceholderGroupInfo, PlaceholderInfo } from "@utils/Constants";
+import { HttpRequestMethodOptions, PlaceholderGroupInfo, PlaceholderInfo } from "@utils/Constants";
 
 @Options({
 	components: {
 		CodeInputComponent,
 		ExpandableComponent,
-		PlaceholderInfoComponent,
+		PlaceholderInfoComponent
 	}
 })
 export default class CustomRequestDataEditor extends Vue {
@@ -28,6 +28,7 @@ export default class CustomRequestDataEditor extends Vue {
     additionalPlaceholders: Array<PlaceholderInfo>
 	
 	localValue: CustomRequestData | null = null;
+    httpRequestMethodOptions: Array<any> = HttpRequestMethodOptions;
     
     @Ref() readonly urlEditor!: any;
     @Ref() readonly headersEditor!: any;
@@ -71,16 +72,25 @@ export default class CustomRequestDataEditor extends Vue {
 <template>
 	<div class="request-data-edit" v-if="localValue">
 		<div class="block block--dark mt-2">
-			<code-input-component label="Method" language="" v-model:value="localValue.requestMethod" class="mt-2" height="50px" 
-                :readOnly="disabled" />
-			<code-input-component label="Url" language="" v-model:value="localValue.url" class="mt-2" height="50px"
-                :readOnly="disabled" ref="urlEditor" @focus="placeholderTarget = 'url'"  />
+            <div class="block-title">WebHook</div>
+            <div class="mt-2">
+                <label class="mr-2">Request method</label>
+                <select v-model="localValue.requestMethod" :disabled="disabled">
+                    <option v-for="methodOption in httpRequestMethodOptions" 
+                        :value="methodOption.value">{{ methodOption.name }}</option>
+                </select>
+            </div>
+			<code-input-component label="Url" language="" v-model:value="localValue.url" class="mt-2" height="100px"
+                :readOnly="disabled" ref="urlEditor" @focus="placeholderTarget = 'url'" wordWrap="true" />
 			<code-input-component label="Headers" language="" v-model:value="localValue.headers" class="mt-2" height="200px"
                 :readOnly="disabled" ref="headersEditor" @focus="placeholderTarget = 'headers'"  />
+            <code class="display-block">One header per line, e.g:</code>
+            <code class="display-block">Accept: application/json</code>
+            <code class="display-block">Content-Type: application/json</code>
 			<code-input-component label="Body" v-model:value="localValue.body" language="json" class="mt-2" height="400px"
                 :readOnly="disabled" ref="bodyEditor" @focus="placeholderTarget = 'body'"  />
             
-            <expandable-component header="Supported placeholders">
+            <expandable-component header="Supported placeholders (url, body & headers)">
                 <placeholder-info-component
                     :placeholders="placeholders" 
                     :additionalPlaceholders="additionalPlaceholders" 

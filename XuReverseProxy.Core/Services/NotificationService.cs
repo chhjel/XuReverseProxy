@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using System.Web;
 using XuReverseProxy.Core.Abstractions;
 using XuReverseProxy.Core.Models.Common;
@@ -19,12 +20,14 @@ public class NotificationService : INotificationService
     private readonly ApplicationDbContext _dbContext;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _memoryCache;
+    private readonly ILogger<NotificationService> _logger;
 
-    public NotificationService(ApplicationDbContext dbContext, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
+    public NotificationService(ApplicationDbContext dbContext, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ILogger<NotificationService> logger)
     {
         _dbContext = dbContext;
         _httpClientFactory = httpClientFactory;
         _memoryCache = memoryCache;
+        _logger = logger;
     }
 
     public async Task TryNotifyEvent(NotificationTrigger trigger, params IProvidesPlaceholders?[] placeholderProviders)
@@ -107,6 +110,7 @@ public class NotificationService : INotificationService
         catch (Exception ex)
         {
             rule.LastNotifyResult = $"Exception while attempting to send {method} request to '{url}': {ex}";
+            _logger.LogError(ex, "Failed to send webhook notification to '{url}'", url);
         }
         finally
         {

@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System;
 using System.Web;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Common;
@@ -70,13 +72,14 @@ public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
     {
         if (string.IsNullOrWhiteSpace(RequestData?.Url)) return new RequestApprovalResponseModel(false, "WebHook not configured");
 
+        string? url = "";
         try
         {
             var serverConfig = context.GetService<IOptionsMonitor<ServerConfig>>();
             var approvalUrl = $"{serverConfig.CurrentValue.Domain.GetFullAdminDomain()}/proxyAuth/approve/{context.ClientIdentity.Id}/{context.ProxyConfig.Id}/{context.AuthenticationData.Id}/{context.SolvedId}";
 
             var httpClient = context.GetService<IHttpClientFactory>().CreateClient();
-            var url = RequestData?.Url?.Replace("{{url}}", HttpUtility.UrlEncode(approvalUrl));
+            url = RequestData?.Url?.Replace("{{url}}", HttpUtility.UrlEncode(approvalUrl));
             url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, context.ClientIdentity, context.ProxyConfig, context.AuthenticationData);
 
             var httpRequestMessage = RequestData?.CreateRequest(url);
@@ -88,8 +91,10 @@ public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
             await context.SetDataAsync(DataKeyRequestedAt, DateTime.UtcNow.Ticks.ToString());
             return new RequestApprovalResponseModel(true, null);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
+            var logger = context.GetService<ILogger<ProxyChallengeTypeManualApproval>>();
+            logger.LogError(ex, "Failed to send manual approval webhook to '{url}'", url);
             var error =
 #if DEBUG
                 $"Something failed while attempting to request access. {ex.Message}";

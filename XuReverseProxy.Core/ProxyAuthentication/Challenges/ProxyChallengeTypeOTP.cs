@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using Microsoft.Extensions.Logging;
+using System.Web;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Common;
 using XuReverseProxy.Core.ProxyAuthentication.Attributes;
@@ -94,6 +95,8 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
         }
         catch (Exception ex)
         {
+            var logger = context.GetService<ILogger<ProxyChallengeTypeOTP>>();
+            logger.LogError(ex, "Failed to send OTP webhook to '{url}'", url);
             var error =
 #if DEBUG
                 $"Something failed while attempting to send OTP-code. {ex.Message}";

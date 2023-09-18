@@ -4,6 +4,9 @@ public static class TotpUtils
 {
     public static string GenerateNewKey() => Base32.GenerateBase32();
 
+    /// <summary>
+    /// Validate code without any edge handling, the code will only work within a single timestep.
+    /// </summary>
     public static bool ValidateCode(string? secret, string? token)
     {
         if (secret == null || !int.TryParse(token, out var code))

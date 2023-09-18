@@ -26,6 +26,7 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {
         return template
+            .Replace("{{ProxyConfig.Id}}", transformer(Id.ToString()), StringComparison.OrdinalIgnoreCase)
             .Replace("{{ProxyConfig.Name}}", transformer(Name), StringComparison.OrdinalIgnoreCase)
             .Replace("{{ProxyConfig.Subdomain}}", transformer(Subdomain), StringComparison.OrdinalIgnoreCase)
             .Replace("{{ProxyConfig.Port}}", transformer(Port?.ToString()), StringComparison.OrdinalIgnoreCase)

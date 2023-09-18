@@ -70,7 +70,7 @@ public class SchedulerHostedService : HostedService
 
                     try
                     {
-                        var result = await task.Task.ExecuteAsync(cancellationToken, status);
+                        var result = await task.Task.ExecuteAsync(status, cancellationToken);
                         result.StoppedAtUtc = DateTime.UtcNow;
 
                         LatestResults[taskType] = result;
@@ -88,7 +88,8 @@ public class SchedulerHostedService : HostedService
                             StoppedAtUtc = DateTime.UtcNow
                         };
 
-                        _logger.LogError(ex, $"Task '{task.Task.GetType().Name}' threw an exception.");
+                        var taskName = task.Task.GetType().Name;
+                        _logger.LogError(ex, "Task '{taskName}' threw an exception.", taskName);
                         UnobservedTaskExceptionEventArgs args = new(ex as AggregateException ?? new AggregateException(ex));
 
                         UnobservedTaskException?.Invoke(this, args);

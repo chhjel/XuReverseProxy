@@ -20,6 +20,15 @@ public class RuntimeServerConfig
         set => SetConfigBool(nameof(EnableForwarding), value);
     }
 
+    /// <summary>
+    /// Global killswitch to disable all notifications temporarily.
+    /// </summary>
+    public bool EnableNotifications
+    {
+        get => GetConfigBool(nameof(EnableNotifications), defaultValue: true);
+        set => SetConfigBool(nameof(EnableNotifications), value);
+    }
+
     // todo: move to server config?
     /// <summary></summary>
     public bool EnableManualApprovalPageAuthentication
@@ -87,6 +96,7 @@ public class RuntimeServerConfig
     {
 #pragma warning disable CA2245 // Do not assign a property to itself. Reason: setter updates db.
         EnableForwarding = EnableForwarding;
+        EnableNotifications = EnableNotifications;
         EnableManualApprovalPageAuthentication = EnableManualApprovalPageAuthentication;
         NotFoundHtml = NotFoundHtml;
         ClientBlockedHtml = ClientBlockedHtml;

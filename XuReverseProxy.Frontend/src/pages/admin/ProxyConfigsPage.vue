@@ -74,7 +74,7 @@ export default class ProxyConfigsPage extends Vue {
 	}
 
 	getConfigStatus(config: ProxyConfig): string {
-		if (this.globalProxyEnabled === false) return '(all configs disabled)';
+		if (this.globalProxyEnabled === false) return '(forwarding disabled in server config)';
 		else if (!config.enabled) return '(disabled)';
 		else '';
 	}

@@ -1,3 +1,4 @@
+import { NotificationAlertType } from './../generated/Enums/Core/NotificationAlertType';
 import { NotificationTrigger } from './../generated/Enums/Core/NotificationTrigger';
 import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
 
@@ -5,6 +6,17 @@ export const LoggedOutMessage: string = 'You have been logged out, please refres
 export const LoggedOutMessage_IpChanged: string = 'Your login session has been terminated due to activity detected from a different IP address. For security purposes, all active sessions have been logged out. Please refresh the page if you want to continue.';
 
 export const EmptyGuid: string = '00000000-0000-0000-0000-000000000000';
+
+export const HttpRequestMethodOptions: Array<any> = [
+    { value: 'GET', name: 'GET' },
+    { value: 'POST', name: 'POST' },
+    { value: 'PUT', name: 'PUT' },
+    { value: 'DELETE', name: 'DELETE' },
+    { value: 'HEAD', name: 'HEAD' },
+    { value: 'CONNECT', name: 'CONNECT' },
+    { value: 'OPTIONS', name: 'OPTIONS' },
+    { value: 'TRACE', name: 'TRACE' }
+];
 
 export interface ProxyAuthChallengeTypeOption {
     typeId: string;
@@ -52,6 +64,29 @@ export const ProxyAuthConditionTypeOptions: Array<ProxyAuthConditionTypeOption> 
     }
 ];
 
+export interface NotificationAlertTypeOption {
+    value: NotificationAlertType;
+    name: string;
+}
+export const NotificationAlertTypeOptions: Array<NotificationAlertTypeOption> = [
+    { value: NotificationAlertType.WebHook, name: 'WebHook' }
+];
+export interface NotificationTriggerOption {
+    value: NotificationTrigger;
+    name: string;
+}
+export const NotificationTriggerOptions: Array<NotificationTriggerOption> = [
+	{ value: NotificationTrigger.AdminLoginSuccess, name: 'Admin login' },
+	{ value: NotificationTrigger.AdminLoginFailed, name: 'Admin login failed' },
+	{ value: NotificationTrigger.AdminRequests, name: 'Admin request' },
+	{ value: NotificationTrigger.AdminSessionIPChanged, name: 'Admin session IP changed' },
+	{ value: NotificationTrigger.NewClient, name: 'New client created' },
+	{ value: NotificationTrigger.ClientRequest, name: 'Client request' },
+	{ value: NotificationTrigger.ClientCompletedChallenge, name: 'Client completed an authentication challenge' }
+];
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
 export interface PlaceholderGroupInfo {
     name: string;
     placeholders: Array<PlaceholderInfo>;
@@ -61,10 +96,8 @@ export interface PlaceholderInfo {
     description: string;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
-
 export const ProxyConfigPlaceholders: Array<PlaceholderInfo> = [
+    { name: 'ProxyConfig.Id', description: 'Id of the config.' },
     { name: 'ProxyConfig.Name', description: 'Name of the config.' },
     { name: 'ProxyConfig.Subdomain', description: 'Subdomain where the proxy is configured, or empty if its using the root domain.' },
     { name: 'ProxyConfig.Port', description: 'Port-number the proxy is configured to listen to, or empty for any port.' },
@@ -73,15 +106,18 @@ export const ProxyConfigPlaceholders: Array<PlaceholderInfo> = [
     { name: 'ProxyConfig.DestinationPrefix', description: 'Proxy target.' }
 ];
 export const AuthDataPlaceholders: Array<PlaceholderInfo> = [
+    { name: 'Auth.Id', description: 'Id of the auth.' },
     { name: 'Auth.ChallengeTypeId', description: 'Id of the auth challenge type.' }
 ];
 export const ClientIdentityPlaceholders: Array<PlaceholderInfo> = [
-    { name: 'Client.IP', description: 'IP of the client.' },
+    { name: 'Client.Id', description: 'Id of the client.' },
     { name: 'Client.Note', description: 'Client note if any.' },
+    { name: 'Client.IP', description: 'IP of the client.' },
     { name: 'Client.UserAgent', description: 'UserAgent value of the client.' },
     { name: 'Client.BlockedMessage', description: 'Text entered when blocking the client if any.' }
 ];
 export const UserPlaceholders: Array<PlaceholderInfo> = [
+    { name: 'User.Id', description: 'Id of the user.' },
     { name: 'User.Username', description: 'Username.' },
     { name: 'User.IP', description: 'Latest IP of the user.' },
 ];

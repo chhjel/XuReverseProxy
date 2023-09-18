@@ -131,6 +131,14 @@ export default class ServerConfigPage extends Vue {
 					:value="getConfigBool('EnableForwarding')"
 					@click="toggleConfig('EnableForwarding')"
 					class="mt-2 mb-2" />
+					
+				<checkbox-component 
+					label="Notifications enabled"
+					offLabel="Notifications disabled"
+					:disabled="isLoading"
+					:value="getConfigBool('EnableNotifications')"
+					@click="toggleConfig('EnableNotifications')"
+					class="mt-2 mb-2" />
 				
 				<checkbox-component 
 					label="Require admin login for manual approval page"

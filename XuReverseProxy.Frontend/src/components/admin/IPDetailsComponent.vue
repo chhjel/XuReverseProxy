@@ -116,7 +116,7 @@ export default class IPDetailsComponent extends Vue {
 
             <div v-if="isLocalhost" class="block mb-4">
                 <div class="block-title">IP details</div>
-                <p>Can't show any more details for localhost.</p>
+                <p>Can't show any details for localhost.</p>
             </div>
             <div v-else-if="ipLookupData == null || !ipLookupData.success" class="block mb-4">
 				<div class="block-title">IP details</div>

@@ -28,6 +28,7 @@ public class ProxyClientIdentity : IProvidesPlaceholders, IHasId
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {
         return template
+            .Replace("{{Client.Id}}", transformer(Id.ToString()), StringComparison.OrdinalIgnoreCase)
             .Replace("{{Client.IP}}", transformer(IP), StringComparison.OrdinalIgnoreCase)
             .Replace("{{Client.Note}}", transformer(Note), StringComparison.OrdinalIgnoreCase)
             .Replace("{{Client.UserAgent}}", transformer(UserAgent), StringComparison.OrdinalIgnoreCase)
