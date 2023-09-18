@@ -6,9 +6,11 @@ import ServerLogService from "@services/ServerLogService";
 import { LoggedEvent } from "@generated/Models/Core/LoggedEvent";
 import DateFormats from "@utils/DateFormats";
 import ServerConfigService from "@services/ServerConfigService";
+import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 
 @Options({
 	components: {
+		ButtonComponent
 	}
 })
 export default class ServerLogPage extends Vue {
@@ -21,14 +23,18 @@ export default class ServerLogPage extends Vue {
 
     @Ref() readonly logContainer!: HTMLElement;
 
-
 	async mounted() {
-		this.entries = await this.service.GetLogAsync();
 		this.memoryLoggingEnabled = await new ServerConfigService().IsConfigFlagEnabledAsync("EnableMemoryLogging");
+		await this.loadData();
+	}
 
+	async loadData() {
+		this.entries = await this.service.GetLogAsync();
 		this.logContainer.scrollTop = this.logContainer.scrollHeight;
 	}
 	
+	get isLoading(): boolean { return this.service.status.inProgress; }
+
 	formatDate(raw: Date | string): string {
 		return DateFormats.defaultDateTime(raw);
 	}
@@ -49,8 +55,15 @@ export default class ServerLogPage extends Vue {
 <template>
 	<div class="log-page">
 		<p v-if="memoryLoggingEnabled === false">- Memory logging is currently disabled -</p>
-		<p v-else class="mt-0">Showing latest {{ entries.length }} log entries (max 1000).</p>
-		<div class="log-entries block mb-0" ref="logContainer">
+
+		<div v-if="memoryLoggingEnabled === true" class="flexbox center-vertical">
+			<p v-if="entries.length == 0">- Nothing has been logged yet -</p>
+			<p v-else>Showing latest {{ entries.length }} log entries (max 1000).</p>
+			<div class="spacer"></div>
+			<button-component icon="refresh" :disabled="isLoading" :inProgress="isLoading"
+				iconOnly secondary @click="loadData" class="mr-0"></button-component>
+		</div>
+		<div class="log-entries block mb-0" ref="logContainer" v-show="entries.length > 0">
 			<div v-for="entry in entries">
 				<code class="log-row" :class="getRowClasses(entry)" >[{{ formatDate(entry.timestampUtc) }}] [{{ entry.logLevel }}] {{ entry.message }}</code>
 				<code class="log-row" :class="getRowClasses(entry)" v-if="entry.exception">{{ entry.exception }}</code>
@@ -64,11 +77,11 @@ export default class ServerLogPage extends Vue {
 	padding-top: 20px;
 
 	.log-entries {
-		height: calc(100vh - 272px);
+		height: calc(100vh - 285px);
   		overflow: auto;
 		
 		@media (max-width: 869px) {
-			height: calc(100vh - 250px);
+			height: calc(100vh - 315px);
 		}
 
 		>div:last-child {
