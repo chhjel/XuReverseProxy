@@ -1,0 +1,23 @@
+code {
+    &.overflow-ellipsis {
+        max-width: 100%;
+        overflow: hidden;
+        display: inline-block;
+        text-overflow: ellipsis;
+    }
+
+    &.overflow-x-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        display: inline-block;
+        padding-bottom: 12px;
+    }
+
+    &.display-block {
+        display: block;
+    }
+
+    &.no-wrap {
+        white-space: nowrap;
+    }
+}

@@ -24,6 +24,12 @@ export default class ButtonComponent extends Vue {
 
     @Prop({ required: false, default: false })
     small: boolean;
+
+    @Prop({ required: false, default: false })
+    iconOnly: boolean;
+
+    @Prop({ required: false, default: false })
+    inProgress: boolean;
     
     localValue: string = "";
 
@@ -34,13 +40,17 @@ export default class ButtonComponent extends Vue {
     get isSmall(): boolean { return ValueUtils.IsToggleTrue(this.small); }
     get isSecondary(): boolean { return ValueUtils.IsToggleTrue(this.secondary); }
     get isDanger(): boolean { return ValueUtils.IsToggleTrue(this.danger); }
+    get isIconOnly(): boolean { return ValueUtils.IsToggleTrue(this.iconOnly); }
+    get isInProgress(): boolean { return ValueUtils.IsToggleTrue(this.inProgress); }
 
     get rootClasses(): any {
         let classes: any = {
             'disabled': this.isDisabled,
             'secondary': this.isSecondary,
             'danger': this.isDanger,
-            'small': this.isSmall
+            'small': this.isSmall,
+            'icon-only': this.isIconOnly,
+            'in-progress': this.isInProgress
         };
         return classes;
     }
@@ -116,6 +126,29 @@ export default class ButtonComponent extends Vue {
         .icon {
             font-size: 18px;
         }
+    }
+
+    &.icon-only {
+        min-width: inherit;
+        min-height: inherit;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+    }
+
+    .icon {
+        transition: transform 0.5s;
+    }
+    &.in-progress {
+        .icon {
+            animation: spin-animation 0.75s infinite;
+            color: var(--color--text-dark);
+        }
+    }
+
+    @keyframes spin-animation {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(359deg); }
     }
 }
 </style>

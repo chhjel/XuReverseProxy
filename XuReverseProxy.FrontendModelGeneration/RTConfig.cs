@@ -1,9 +1,11 @@
+using Microsoft.Extensions.Logging;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Fluent;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Config;
+using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Middleware;
 
 namespace XuReverseProxy.FrontendModelGeneration;
@@ -24,11 +26,14 @@ public static class RTConfig
         builder.Substitute(typeof(MethodInfo), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(PropertyInfo), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(Regex), new RtSimpleTypeName("any"));
+        builder.Substitute(typeof(TimeOnly), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(TimeSpan), new RtSimpleTypeName("any"));
+        builder.Substitute(typeof(EventId), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(KeyValuePair<,>), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(Stream), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(HttpResponseMessage), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(Exception), new RtSimpleTypeName("any"));
+        builder.Substitute(typeof(ProxyClientIdentityData), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(DateTime), new RtSimpleTypeName("Date"));
         builder.Substitute(typeof(DateTimeOffset), new RtSimpleTypeName("Date"));
         builder.Substitute(typeof(List<KeyValuePair<string, string>>), new RtSimpleTypeName("{ [key: string] : string; }"));

@@ -37,7 +37,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
         _serviceProvider = serviceProvider;
     }
 
-    public async Task<ScheduledTaskResult> ExecuteAsync(CancellationToken cancellationToken, ScheduledTaskStatus status)
+    public async Task<ScheduledTaskResult> ExecuteAsync(ScheduledTaskStatus status, CancellationToken cancellationToken)
     {
         var result = new ScheduledTaskResult() { JobType = GetType(), StartedAtUtc = DateTime.UtcNow, Result = string.Empty };
         _logger.LogInformation($"Starting ClientIdentityCleanupTask.");
@@ -60,7 +60,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted not accessed: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation($"RemoveIfNotAccessedInMinutes.Deleted = {deletedCount}");
+                _logger.LogInformation("RemoveIfNotAccessedInMinutes.Deleted = {deletedCount}", deletedCount);
         }
 
         if (config.RemoveIfNotAttemptedAccessedInMinutes > 0)
@@ -74,7 +74,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted not attempted accessed: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation($"RemoveIfNotAttemptedAccessedInMinutes.Deleted = {deletedCount}");
+                _logger.LogInformation("RemoveIfNotAttemptedAccessedInMinutes.Deleted = {deletedCount}", deletedCount);
         }
 
         if (config.RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes > 0)
@@ -88,7 +88,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted never accessed and not attempted accessed in some time: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation($"RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes.Deleted = {deletedCount}");
+                _logger.LogInformation("RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes.Deleted = {deletedCount}", deletedCount);
         }
 
         status.Message = $"Done. Total deleted: {totalDeleted}.";

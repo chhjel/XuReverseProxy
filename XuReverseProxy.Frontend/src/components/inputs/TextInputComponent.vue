@@ -61,6 +61,8 @@ export default class TextInputComponent extends Vue {
     {
         const [start, end] = [this.inputElement.selectionStart, this.inputElement.selectionEnd];
         this.inputElement.setRangeText(val, start, end, 'select');
+        this.localValue = this.inputElement.value;
+        this.emitLocalValue();
     }
 
     /////////////////

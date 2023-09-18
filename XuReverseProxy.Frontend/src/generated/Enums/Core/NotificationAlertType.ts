@@ -2,11 +2,6 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-import { CustomRequestData } from './CustomRequestData';
-
-export interface ProxyChallengeTypeOTP
-{
-	name: string;
-	description: string;
-	requestData: CustomRequestData;
+export enum NotificationAlertType {
+	WebHook = "WebHook"
 }

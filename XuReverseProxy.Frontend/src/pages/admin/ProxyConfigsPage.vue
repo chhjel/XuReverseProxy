@@ -12,6 +12,7 @@ import { createProxyConfigResultingProxyUrl } from "@utils/ProxyConfigUtils";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
 import { ProxyConfigMode } from "@generated/Enums/Core/ProxyConfigMode";
 import ServerConfigService from "@services/ServerConfigService";
+import { SortByThenBy } from "@utils/SortUtils";
 
 @Options({
 	components: {
@@ -67,14 +68,15 @@ export default class ProxyConfigsPage extends Vue {
 	}
 
 	get sortedConfigs(): Array<ProxyConfig> {
-		return this.proxyConfigs.sort((a,b) => 
-			(!a.enabled ? 999999 : 0)
-			|| a.name?.localeCompare(b.name)
-		);
+		return this.proxyConfigs.sort((a,b) => SortByThenBy(a, b, 
+			x => x.enabled, x => x.name,
+			(a, b) => <any>b.enabled - <any>a.enabled,
+			(a, b) => a.name?.localeCompare(b.name)
+		));
 	}
 
 	getConfigStatus(config: ProxyConfig): string {
-		if (this.globalProxyEnabled === false) return '(all configs disabled)';
+		if (this.globalProxyEnabled === false) return '(forwarding disabled in server config)';
 		else if (!config.enabled) return '(disabled)';
 		else '';
 	}

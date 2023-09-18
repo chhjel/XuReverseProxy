@@ -37,7 +37,7 @@ public class AuditLogsCleanupTask : IScheduledTask
         _serviceProvider = serviceProvider;
     }
 
-    public async Task<ScheduledTaskResult> ExecuteAsync(CancellationToken cancellationToken, ScheduledTaskStatus status)
+    public async Task<ScheduledTaskResult> ExecuteAsync(ScheduledTaskStatus status, CancellationToken cancellationToken)
     {
         var result = new ScheduledTaskResult() { JobType = GetType(), StartedAtUtc = DateTime.UtcNow, Result = string.Empty };
         _logger.LogInformation($"Starting AuditLogsCleanupJob.");
@@ -60,7 +60,7 @@ public class AuditLogsCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted admin events: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation($"Deleted admin events = {deletedCount}");
+                _logger.LogInformation("Deleted admin events = {deletedCount}", deletedCount);
         }
 
         if (config.MaxClientEntryAgeInHours > 0)
@@ -74,7 +74,7 @@ public class AuditLogsCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted client events: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation($"Deleted client events = {deletedCount}");
+                _logger.LogInformation("Deleted client events = {deletedCount}", deletedCount);
         }
 
         status.Message = $"Done. Total deleted: {totalDeleted}.";

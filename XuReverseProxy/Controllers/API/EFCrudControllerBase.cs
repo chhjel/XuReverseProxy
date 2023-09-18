@@ -25,8 +25,6 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
         _entities = entities;
     }
 
-    // todo: /paged endpoint for e.g. clients
-
     /// <summary>
     /// Create or update entity.
     /// </summary>

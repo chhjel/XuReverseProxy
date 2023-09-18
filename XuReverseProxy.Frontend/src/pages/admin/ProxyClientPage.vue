@@ -95,6 +95,44 @@ export default class ProxyClientPage extends Vue {
 		});
 	}
 
+	get manualApprovalsInProgress(): Array<any> {
+		let items: Array<any> = [];
+		this.proxyConfigAuths.forEach(auth => {
+			if (auth.challengeTypeId == 'ProxyChallengeTypeManualApproval') {
+				const config = this.proxyConfigs.find(x => x.id == auth.proxyConfigId);
+				if (config == null) return;
+
+				const authData = this.client.data.filter(d => d.authenticationId == auth.id);
+				if (!authData.some(x => x.key == "requested" && x.value == "true")) return;
+				else if (this.client.solvedChallenges.some(x => x.authenticationId == auth.id && x.solvedId == auth.solvedId)) return;
+
+				const label = `Awaiting manual approval [${authData.find(x => x.key == 'easyCode')?.value}]`;
+				const link = `/proxyAuth/approve/${this.client.id}/${auth.proxyConfigId}/${auth.id}/${auth.solvedId}`;
+				items.push({
+					proxyConfig: config,
+					label: label,
+					link: link
+				})
+			}
+			else if (auth.challengeTypeId == 'ProxyChallengeTypeOTP') {
+				const config = this.proxyConfigs.find(x => x.id == auth.proxyConfigId);
+				if (config == null) return;
+
+				const authData = this.client.data.filter(d => d.authenticationId == auth.id);
+				if (!authData.some(x => x.key == "code")) return;
+				else if (this.client.solvedChallenges.some(x => x.authenticationId == auth.id && x.solvedId == auth.solvedId)) return;
+
+				const label = `Awaiting OTP input [${authData.find(x => x.key == 'code')?.value}]`;
+				items.push({
+					proxyConfig: config,
+					label: label,
+					link: ''
+				})
+			}
+		});
+		return items;
+	}
+
 	get isLoading(): boolean { return this.statuses.some(x => x.inProgress); }
 	
 	async updateClientNote(): Promise<any> {
@@ -173,6 +211,19 @@ export default class ProxyClientPage extends Vue {
 			<!-- IP Details -->
 			<IPDetailsComponent :ip="client.ip" :key="client.ip || 'empty'" />
 
+			<!-- Challenges in progress -->
+			<div class="block overflow-x-scroll mb-4" v-if="manualApprovalsInProgress.length > 0">
+				<div class="block-title mb-2">Challenges in progress</div>
+				<div v-for="approval in manualApprovalsInProgress">
+					<router-link :to="`/proxyconfigs/${approval.proxyConfig?.id}`">
+						<b>{{ approval.proxyConfig?.name }}</b>
+					</router-link>
+					 - 
+					<a :href="approval.link" v-if="approval.link">{{ approval.label }}</a>
+					<span v-if="!approval.link">{{ approval.label }}</span>
+				</div>
+			</div>
+
 			<!-- Solved data -->
 			<div class="block overflow-x-scroll mb-4" v-if="clientAuthData.length > 0">
 				<div class="block-title mb-2">Solved challenges</div>
@@ -189,7 +240,7 @@ export default class ProxyClientPage extends Vue {
 			<!-- Audit log -->
 			<div class="block overflow-x-scroll mb-4">
 				<div class="block-title mb-2">Log</div>
-				<client-audit-log-component :clientId="clientId" />
+				<client-audit-log-component :clientId="clientId" class="audit-log" />
 			</div>
 		</div>
 	</div>
@@ -201,6 +252,12 @@ export default class ProxyClientPage extends Vue {
 
 	.meta {
 		font-size: 12px;
+	}
+
+	.audit-log {
+		position: relative;
+		z-index: 1;
+		margin-top: -44px;
 	}
 
 	.ipdetails-location {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -45,7 +46,8 @@ public class ReverseProxyMiddleware
         IMemoryCache memoryCache,
         IIPBlockService ipBlockService,
         UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
+        SignInManager<ApplicationUser> signInManager,
+        INotificationService notificationService)
     {
         // Check for special cases first
         if (await TryHandleInternalRequestAsync(context, _nextMiddleware))
@@ -71,21 +73,33 @@ public class ReverseProxyMiddleware
             if (!context.Items.ContainsKey("IsAdminPage")) context.Items.Add("IsAdminPage", true);
 
             // Validate that admin IP has not changed since login if enabled
-            if (serverConfig.CurrentValue.Security.BindAdminCookieToIP
-                && await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager, runtimeServerConfig))
+            ApplicationUser? adminUser = null;
+            if (serverConfig.CurrentValue.Security.BindAdminCookieToIP)
             {
-                context.Response.Clear();
-                if (context.Request.Method == HttpMethod.Get.Method)
+                (var ipChanged, adminUser) = await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager, runtimeServerConfig, notificationService);
+                if (ipChanged)
                 {
-                    context.Response.Redirect("/auth/login?err=ip_changed");
-                }
-                else
-                {
-                    context.Response.Headers["__xurp_err"] = "92";
-                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                }
+                    context.Response.Clear();
+                    if (context.Request.Method == HttpMethod.Get.Method)
+                    {
+                        context.Response.Redirect("/auth/login?err=ip_changed");
+                    }
+                    else
+                    {
+                        context.Response.Headers["__xurp_err"] = "ip_changed";
+                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    }
 
-                return;
+                    return;
+                }
+            }
+
+            if (context.User.Identity?.IsAuthenticated == true)
+            {
+                await notificationService.TryNotifyEvent(NotificationTrigger.AdminRequests,
+                    new Dictionary<string, string?> {
+                        { "Url", context.Request.GetDisplayUrl() }
+                    }, adminUser);
             }
 
             await _nextMiddleware(context);
@@ -179,6 +193,11 @@ public class ReverseProxyMiddleware
 
         async Task forwardRequest()
         {
+            await notificationService.TryNotifyEvent(NotificationTrigger.ClientRequest,
+                new Dictionary<string, string?> {
+                    { "Url", context.Request.GetDisplayUrl() }
+                }, clientIdentity, proxyConfig);
+
             if (clientIdentity != null) await proxyClientIdentityService.TryUpdateLastAccessedAtAsync(clientIdentity.Id);
             if (proxyConfig.Mode == ProxyConfigMode.Forward)
             {
@@ -191,8 +210,8 @@ public class ReverseProxyMiddleware
         }
     }
 
-    private static async Task<bool> CheckForChangedUserIP(HttpContext context, ApplicationDbContext applicationDbContext, TKIPData? ipData,
-        UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RuntimeServerConfig serverConfig)
+    private static async Task<(bool ipChanged, ApplicationUser? user)> CheckForChangedUserIP(HttpContext context, ApplicationDbContext applicationDbContext, TKIPData? ipData,
+        UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RuntimeServerConfig serverConfig, INotificationService notificationService)
     {
         // Don't logout on manual approval page if it doesnt require admin auth
         if (!serverConfig.EnableManualApprovalPageAuthentication)
@@ -200,14 +219,14 @@ public class ReverseProxyMiddleware
             var isIgnored = context.Request.Path.ToString().StartsWith("/dist/", StringComparison.OrdinalIgnoreCase)
                 || context.Request.Path.ToString().Equals("/favicon.ico", StringComparison.OrdinalIgnoreCase)
                 || context.Request.Path.ToString().StartsWith("/proxyAuth/approve/", StringComparison.OrdinalIgnoreCase);
-            if (isIgnored) return false;
+            if (isIgnored) return (false, null);
         }
 
         var userId = context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null) return false;
+        if (userId == null) return (false, null);
 
-        if ((await applicationDbContext.Users.FirstOrDefaultAsync(x => x.Id == userId)) is not ApplicationUser user) return false;
-        if (ipData != null && user.LastConnectedFromIP == ipData.IP) return false;
+        if ((await applicationDbContext.Users.FirstOrDefaultAsync(x => x.Id == userId)) is not ApplicationUser user) return (false, null);
+        if (ipData != null && user.LastConnectedFromIP == ipData.IP) return (false, user);
 
         await userManager.UpdateSecurityStampAsync(user);
         await signInManager.SignOutAsync();
@@ -215,7 +234,14 @@ public class ReverseProxyMiddleware
         applicationDbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(context, $"Session IP changed from '{user.LastConnectedFromIP}' to '{ipData?.IP}' causing all user sessions to be terminated."));
         await applicationDbContext.SaveChangesAsync();
 
-        return true;
+        await notificationService.TryNotifyEvent(NotificationTrigger.AdminSessionIPChanged, 
+            new Dictionary<string, string?> {
+                { "OldIP", user.LastConnectedFromIP },
+                { "NewIP", ipData?.IP }
+            },
+            user);
+
+        return (true, user);
     }
 
     private enum AuthCheckResult

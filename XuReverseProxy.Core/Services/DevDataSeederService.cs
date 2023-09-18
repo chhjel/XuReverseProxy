@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using XuReverseProxy.Core.Extensions;
+using XuReverseProxy.Core.Models.Common;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication.Challenges;
 using XuReverseProxy.Core.Utils;
@@ -107,8 +108,11 @@ public class DevDataSeederService : IDevDataSeeder
             //SolvedDuration = TimeSpan.FromMinutes(5),
             ChallengeJson = JsonSerializer.Serialize(new ProxyChallengeTypeOTP
             {
-                WebHookUrl = null,
-                WebHookRequestMethod = "GET"
+                RequestData = new CustomRequestData
+                {
+                    Url = null,
+                    RequestMethod = "GET"
+                }
             }, JsonConfig.DefaultOptions)
         };
         var manualAuth = new ProxyAuthenticationData
@@ -118,8 +122,11 @@ public class DevDataSeederService : IDevDataSeeder
             //SolvedDuration = TimeSpan.FromMinutes(5),
             ChallengeJson = JsonSerializer.Serialize(new ProxyChallengeTypeManualApproval
             {
-                WebHookUrl = null,
-                WebHookRequestMethod = "GET"
+                RequestData = new CustomRequestData
+                {
+                    Url = null,
+                    RequestMethod = "GET"
+                }
             }, JsonConfig.DefaultOptions)
         };
         var secretAuth1 = new ProxyAuthenticationData

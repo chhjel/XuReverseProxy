@@ -62,7 +62,7 @@ export default class ProxyChallengeTypeLoginEditor extends Vue {
         this.localValue.totpSecret = result;
     }
     
-    placeholderTarget: string = '';
+    placeholderTarget: 'user' | 'password' | '' = '';
 	insertPlaceholder(val: string): void {
         if (this.placeholderTarget == 'user') this.usernameInput.insertText(val);
         else if (this.placeholderTarget == 'password') this.passwordInput.insertText(val);

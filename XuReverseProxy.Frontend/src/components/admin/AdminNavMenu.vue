@@ -1,5 +1,6 @@
 <script lang="ts">
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
+import ServerConfigService from "@services/ServerConfigService";
 import { Options } from "vue-class-component";
 import { Inject, Vue } from 'vue-property-decorator'
 
@@ -11,7 +12,10 @@ export default class AdminNavMenu extends Vue {
   	@Inject()
 	readonly options!: AdminPageFrontendModel;
 	
+	memoryLoggingEnabled: boolean = false;
+
 	async mounted() {
+		this.memoryLoggingEnabled = await new ServerConfigService().IsConfigFlagEnabledAsync("EnableMemoryLogging");
 	}
 }
 </script>
@@ -23,11 +27,13 @@ export default class AdminNavMenu extends Vue {
 		<nav class="admin-nav-desktop">
 			<router-link to="/proxyconfigs">Proxies</router-link> |
 			<router-link to="/clients">Clients</router-link> |
+			<router-link to="/notifications">Notifications</router-link> |
 			<router-link to="/serverconfig">Server config</router-link> |
 			<router-link to="/jobs">Jobs</router-link> |
 			<router-link to="/admin-audit-log">Admin log</router-link> |
-			<router-link to="/client-audit-log">Client log</router-link> |
-			<router-link to="/server-log">Server log</router-link>
+			<router-link to="/client-audit-log">Client log</router-link>
+			<span v-if="memoryLoggingEnabled"> | </span>
+			<router-link to="/server-log" v-if="memoryLoggingEnabled">Server log</router-link>
 			<div class="spacer"></div>
 			<a href="/auth/logout" class="logout">[Logout]</a>
 		</nav>
@@ -35,11 +41,12 @@ export default class AdminNavMenu extends Vue {
 		<nav class="admin-nav-mobile">
 			<router-link to="/proxyconfigs">Proxies</router-link>
 			<router-link to="/clients">Clients</router-link>
+			<router-link to="/notifications">Notifications</router-link>
 			<router-link to="/serverconfig">Server config</router-link>
 			<router-link to="/jobs">Jobs</router-link>
 			<router-link to="/admin-audit-log">Admin log</router-link>
 			<router-link to="/client-audit-log">Client log</router-link>
-			<router-link to="/server-log">Server log</router-link>
+			<router-link to="/server-log" v-if="memoryLoggingEnabled">Server log</router-link>
 			<a href="/auth/logout" class="logout">Logout</a>
 		</nav>
 	</div>
@@ -53,7 +60,7 @@ export default class AdminNavMenu extends Vue {
 	margin-left: -5px;
 	user-select: none;
   
-	@media (max-width: 599px) {
+	@media (max-width: 869px) {
 		font-size: 24px;
 		margin-left: 0;
 		margin-bottom: 16px;
@@ -65,7 +72,7 @@ export default class AdminNavMenu extends Vue {
 	overflow-y: auto;
 	padding-bottom: 8px;
 	border-bottom: 2px solid var(--color--secondary-darken);
-	@media (max-width: 599px) { display: none; }
+	@media (max-width: 869px) { display: none; }
 
 	a {
 		margin-right: 5px;
@@ -90,7 +97,7 @@ export default class AdminNavMenu extends Vue {
 	overflow-y: auto;
 	padding-bottom: 10px;
 	border-bottom: 3px solid var(--color--secondary-darken);
-	@media (min-width: 600px) { display: none; }
+	@media (min-width: 870px) { display: none; }
 
 	a {
 		margin-right: 5px;

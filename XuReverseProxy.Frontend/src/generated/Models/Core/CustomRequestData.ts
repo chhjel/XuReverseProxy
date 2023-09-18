@@ -2,11 +2,10 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-import { CustomRequestData } from './CustomRequestData';
-
-export interface ProxyChallengeTypeOTP
+export interface CustomRequestData
 {
-	name: string;
-	description: string;
-	requestData: CustomRequestData;
+	requestMethod: string;
+	url: string;
+	headers: string;
+	body: string;
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Vue, Prop } from "vue-property-decorator";
+import { Vue, Prop, Watch } from "vue-property-decorator";
 import { Options } from "vue-class-component";
 import { PlaceholderGroupInfo, PlaceholderInfo } from "@utils/Constants";
 
@@ -16,6 +16,15 @@ export default class PlaceholderInfoComponent extends Vue {
     allPlaceholderData: Array<PlaceholderInfo> = [];
 
     mounted(): void {
+        this.rebuildData();
+    }
+
+    onInsertClicked(data: PlaceholderInfo) {
+        this.$emit('insertPlaceholder', `{{${data.name}}}`);
+    }
+
+    rebuildData(): void {
+        this.allPlaceholderData = [];
         this.additionalPlaceholders.forEach(d => {
             this.allPlaceholderData.push(d);
         })
@@ -26,8 +35,14 @@ export default class PlaceholderInfoComponent extends Vue {
         });
     }
 
-    onInsertClicked(data: PlaceholderInfo) {
-        this.$emit('insertPlaceholder', `{{${data.name}}}`);
+    @Watch('placeholders', { deep: true })
+    onPlaceholdersChanged(): void {
+        this.rebuildData();
+    }
+
+    @Watch('additionalPlaceholders', { deep: true })
+    onAdditionalPlaceholdersChanged(): void {
+        this.rebuildData();
     }
 }
 </script>

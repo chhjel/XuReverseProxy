@@ -19,16 +19,9 @@ export default class DashboardPage extends Vue {
 	@Provide()
 	options: AdminPageFrontendModel;
 	
-	wide: boolean = false;
-
 	async mounted() {
         document.addEventListener('keyup', this.onDocumentKeyDownOrDown);
         document.addEventListener('keydown', this.onDocumentKeyDownOrDown);
-		this.$router.afterEach(x => {
-			this.wide = (x.name === 'clients' 
-				|| x.name == 'admin-audit-log'
-				|| x.name == 'client-audit-log');
-		});
 	}
 
     beforeUnmount(): void {
@@ -44,7 +37,6 @@ export default class DashboardPage extends Vue {
 
 	get rootClasses(): any {
 		let classes: any = {};
-		classes['wide'] = this.wide;
 		return classes;
 	}
 }
@@ -68,15 +60,9 @@ export default class DashboardPage extends Vue {
 		max-width: 100%;
 	}
 
-	&:not(.wide) {
-		.admin-app__content {
-			max-width: 1000px;
-		}
-	}
-
 	@media (max-width: 800px) {
 		padding: 10px;
-		margin-top: 10px;
+		padding-top: 20px;
 	}
 }
 </style>

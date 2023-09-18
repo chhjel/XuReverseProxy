@@ -24,16 +24,18 @@ public class ProxyChallengeService : IProxyChallengeService
     private readonly IProxyClientIdentityService _proxyClientIdentityService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IProxyAuthenticationChallengeFactory _proxyAuthenticationChallengeFactory;
+    private readonly INotificationService _notificationService;
 
     public ProxyChallengeService(ApplicationDbContext dbContext,
         IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker, IProxyClientIdentityService proxyClientIdentityService,
-        IHttpContextAccessor httpContextAccessor, IProxyAuthenticationChallengeFactory proxyAuthenticationChallengeFactory)
+        IHttpContextAccessor httpContextAccessor, IProxyAuthenticationChallengeFactory proxyAuthenticationChallengeFactory, INotificationService notificationService)
     {
         _dbContext = dbContext;
         _proxyAuthenticationConditionChecker = proxyAuthenticationConditionChecker;
         _proxyClientIdentityService = proxyClientIdentityService;
         _httpContextAccessor = httpContextAccessor;
         _proxyAuthenticationChallengeFactory = proxyAuthenticationChallengeFactory;
+        _notificationService = notificationService;
     }
 
     public async Task<bool> IsChallengeSolvedAsync(Guid identityId, ProxyAuthenticationData auth)
@@ -107,6 +109,7 @@ public class ProxyChallengeService : IProxyChallengeService
             await _dbContext.SaveChangesAsync();
         }
 
+        await _notificationService.TryNotifyEvent(NotificationTrigger.ClientCompletedChallenge, identity, auth, proxyConfig);
         return true;
     }
 

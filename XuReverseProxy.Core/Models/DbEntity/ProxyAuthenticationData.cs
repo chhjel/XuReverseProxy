@@ -33,6 +33,7 @@ public class ProxyAuthenticationData : IHasId, IProvidesPlaceholders
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {
         return template
+            .Replace("{{Auth.Id}}", transformer(Id.ToString()), StringComparison.OrdinalIgnoreCase)
             .Replace("{{Auth.ChallengeTypeId}}", transformer(ChallengeTypeId), StringComparison.OrdinalIgnoreCase);
     }
 }
