@@ -125,6 +125,12 @@ export default class ClientAuditLogComponent extends Vue {
 		<loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 
 		<div v-if="service.status.hasDoneAtLeastOnce">
+			<div class="flexbox center-vertical">
+				<div class="spacer"></div>
+				<button-component icon="refresh" :disabled="isLoading" :inProgress="isLoading"
+					title="Refresh" iconOnly secondary @click="loadData" class="mr-0"></button-component>
+			</div>
+
             <paging-component class="pagination mb-1"
                     :count="totalItemCount"
                     :pageSize="filter.pageSize"
@@ -134,7 +140,6 @@ export default class ClientAuditLogComponent extends Vue {
                     :hideIfSinglePage="true"
                     @change="onPageIndexChanged"
                     />
-
 			<div class="table-wrapper">
 				<table>
 					<tr>

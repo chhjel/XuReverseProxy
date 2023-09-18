@@ -16,4 +16,8 @@ code {
     &.display-block {
         display: block;
     }
+
+    &.no-wrap {
+        white-space: nowrap;
+    }
 }

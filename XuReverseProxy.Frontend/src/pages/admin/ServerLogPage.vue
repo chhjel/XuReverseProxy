@@ -61,7 +61,7 @@ export default class ServerLogPage extends Vue {
 			<p v-else>Showing latest {{ entries.length }} log entries (max 1000).</p>
 			<div class="spacer"></div>
 			<button-component icon="refresh" :disabled="isLoading" :inProgress="isLoading"
-				iconOnly secondary @click="loadData" class="mr-0"></button-component>
+				title="Refresh" iconOnly secondary @click="loadData" class="mr-0"></button-component>
 		</div>
 		<div class="log-entries block mb-0" ref="logContainer" v-show="entries.length > 0">
 			<div v-for="entry in entries">

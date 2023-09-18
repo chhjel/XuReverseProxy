@@ -125,7 +125,7 @@ export default class NotificationsPage extends Vue {
 					<div class="rule__lastresult" v-if="rule.lastNotifiedAtUtc">
 						<span class="mr-2">Last notified at</span>
 						<code>{{ formatDate(rule.lastNotifiedAtUtc) }}</code>
-						<code class="overflow-ellipsis" v-if="rule.lastNotifyResult"> * {{ rule.lastNotifyResult }}</code>
+						<code class="overflow-ellipsis no-wrap" v-if="rule.lastNotifyResult"> * {{ rule.lastNotifyResult }}</code>
 					</div>
 				</router-link>
 			</div>
