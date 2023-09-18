@@ -1,5 +1,6 @@
 <script lang="ts">
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
+import ServerConfigService from "@services/ServerConfigService";
 import { Options } from "vue-class-component";
 import { Inject, Vue } from 'vue-property-decorator'
 
@@ -11,7 +12,10 @@ export default class AdminNavMenu extends Vue {
   	@Inject()
 	readonly options!: AdminPageFrontendModel;
 	
+	memoryLoggingEnabled: boolean = false;
+
 	async mounted() {
+		this.memoryLoggingEnabled = await new ServerConfigService().IsConfigFlagEnabledAsync("EnableMemoryLogging");
 	}
 }
 </script>
@@ -27,8 +31,9 @@ export default class AdminNavMenu extends Vue {
 			<router-link to="/serverconfig">Server config</router-link> |
 			<router-link to="/jobs">Jobs</router-link> |
 			<router-link to="/admin-audit-log">Admin log</router-link> |
-			<router-link to="/client-audit-log">Client log</router-link> |
-			<router-link to="/server-log">Server log</router-link>
+			<router-link to="/client-audit-log">Client log</router-link>
+			<span v-if="memoryLoggingEnabled"> | </span>
+			<router-link to="/server-log" v-if="memoryLoggingEnabled">Server log</router-link>
 			<div class="spacer"></div>
 			<a href="/auth/logout" class="logout">[Logout]</a>
 		</nav>
@@ -41,7 +46,7 @@ export default class AdminNavMenu extends Vue {
 			<router-link to="/jobs">Jobs</router-link>
 			<router-link to="/admin-audit-log">Admin log</router-link>
 			<router-link to="/client-audit-log">Client log</router-link>
-			<router-link to="/server-log">Server log</router-link>
+			<router-link to="/server-log" v-if="memoryLoggingEnabled">Server log</router-link>
 			<a href="/auth/logout" class="logout">Logout</a>
 		</nav>
 	</div>

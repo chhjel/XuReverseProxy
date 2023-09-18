@@ -14,7 +14,7 @@ public class ServerLogController : Controller
         try
         {
             return MemoryLogger.GetEvents()
-                .Select(x => new MemoryLogger.LoggedEvent(x.TimestampUtc, x.LogLevel, x.EventId, null, x.Message))
+                .Select(x => new MemoryLogger.LoggedEvent(x.TimestampUtc, x.LogLevel, x.EventId, null, x.Message + (x.Exception != null ? $" - Exception: {x.Exception}" : null)))
                 .ToList();
         }
         catch (Exception ex)
