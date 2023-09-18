@@ -75,7 +75,7 @@ export default class NotificationsPage extends Vue {
 			triggerType: NotificationTrigger.AdminLoginSuccess,
 			alertType: NotificationAlertType.WebHook,
 			webHookUrl: '',
-			webHookMethod: '',
+			webHookMethod: 'GET',
 			webHookHeaders: '',
 			webHookBody: '',
 			cooldownDistinctPattern: '',
