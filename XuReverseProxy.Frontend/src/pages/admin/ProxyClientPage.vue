@@ -189,7 +189,7 @@ export default class ProxyClientPage extends Vue {
 			<!-- Audit log -->
 			<div class="block overflow-x-scroll mb-4">
 				<div class="block-title mb-2">Log</div>
-				<client-audit-log-component :clientId="clientId" />
+				<client-audit-log-component :clientId="clientId" class="audit-log" />
 			</div>
 		</div>
 	</div>
@@ -201,6 +201,12 @@ export default class ProxyClientPage extends Vue {
 
 	.meta {
 		font-size: 12px;
+	}
+
+	.audit-log {
+		position: relative;
+		z-index: 1;
+		margin-top: -44px;
 	}
 
 	.ipdetails-location {

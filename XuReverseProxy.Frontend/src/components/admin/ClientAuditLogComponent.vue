@@ -121,7 +121,7 @@ export default class ClientAuditLogComponent extends Vue {
 </script>
 
 <template>
-	<div class="admin-audit-log">
+	<div class="client-audit-log">
 		<loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 
 		<div v-if="service.status.hasDoneAtLeastOnce">
@@ -190,7 +190,7 @@ export default class ClientAuditLogComponent extends Vue {
 </template>
 
 <style scoped lang="scss">
-.admin-audit-log {
+.client-audit-log {
 	.table-wrapper {
 		overflow-x: auto;
 	}
