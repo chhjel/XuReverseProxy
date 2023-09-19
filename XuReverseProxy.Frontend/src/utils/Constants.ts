@@ -1,3 +1,4 @@
+import { BlockedIpDataType } from './../generated/Enums/Core/BlockedIpDataType';
 import { NotificationAlertType } from './../generated/Enums/Core/NotificationAlertType';
 import { NotificationTrigger } from './../generated/Enums/Core/NotificationTrigger';
 import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
@@ -83,6 +84,16 @@ export const NotificationTriggerOptions: Array<NotificationTriggerOption> = [
 	{ value: NotificationTrigger.NewClient, name: 'New client created' },
 	{ value: NotificationTrigger.ClientRequest, name: 'Client request' },
 	{ value: NotificationTrigger.ClientCompletedChallenge, name: 'Client completed an authentication challenge' }
+];
+
+export interface BlockedIpDataTypeOption {
+    value: BlockedIpDataType;
+    name: string;
+}
+export const BlockedIpDataTypeOptions: Array<BlockedIpDataTypeOption> = [
+    { value: BlockedIpDataType.IP, name: 'Single IP' },
+    { value: BlockedIpDataType.IPRegex, name: 'RegEx' },
+    { value: BlockedIpDataType.CIDRRange, name: 'CIDR range' }
 ];
 
 //////////////////////////////////////////////////////////////////////////////////////

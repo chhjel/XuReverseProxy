@@ -15,6 +15,11 @@ Currently supported proxy authentication methods:
 
 [Example server configuration](Docker/prod-example/README.md)
 
+## Known issues
+
+* Project is a work in progress. It should be functional and safe to use but lacking some UX. E.g. the UI is lacking dedicated input components for dates and timespans.
+* IP block CIDR range logic does not handle all cases yet.
+
 ## Local development setup
 
 * Database

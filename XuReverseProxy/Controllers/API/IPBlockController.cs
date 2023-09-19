@@ -9,11 +9,12 @@ namespace XuReverseProxy.Controllers.API;
 
 [Authorize]
 [Route("/api/[controller]")]
-public class IPBlockController : Controller
+public class IPBlockController : EFCrudControllerBase<BlockedIpData>
 {
     private readonly IIPBlockService _ipBlockService;
 
-    public IPBlockController(IIPBlockService ipBlockService)
+    public IPBlockController(ApplicationDbContext context, IIPBlockService ipBlockService)
+        : base(context, () => context.BlockedIpDatas)
     {
         _ipBlockService = ipBlockService;
     }
@@ -24,7 +25,7 @@ public class IPBlockController : Controller
 
     [HttpPost("GetMatchingBlockedIpDataFor")]
     public async Task<BlockedIpData?> GetMatchingBlockedIpDataForAsync([FromBody] string ip)
-        => await _ipBlockService.GetMatchingBlockedIpDataForAsync(ip);
+        => await _ipBlockService.GetMatchingBlockedIpDataForAsync(ip, allowDisabled: false);
 
     [HttpPost("BlockIP")]
     public async Task<BlockedIpData> BlockIPAsync([FromBody] BlockIPRequestModel request)
@@ -55,4 +56,10 @@ public class IPBlockController : Controller
         => TKIPAddressUtils.IpMatchesOrIsWithinCidrRange(request.IP, request.IPCidr);
     [GenerateFrontendModel]
     public record TestCidrRangeRequestModel(string IP, string IPCidr);
+
+    [HttpPost("IPMatchesRegex")]
+    public bool IPMatchesRegex([FromBody] IPMatchesRegexRequestModel request)
+        => _ipBlockService.TryRegexMatch(request.IPRegEx, request.IP);
+    [GenerateFrontendModel]
+    public record IPMatchesRegexRequestModel(string IP, string IPRegEx);
 }

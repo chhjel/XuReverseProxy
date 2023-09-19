@@ -8,7 +8,9 @@ public class BlockedIpData : IHasId
 {
     public Guid Id { get; set; }
     public Guid? RelatedClientId { get; set; }
+    public string? Name { get; set; }
     public BlockedIpDataType Type { get; set; }
+    public bool Enabled { get; set; }
     public string? IP { get; set; }
     public string? IPRegex { get; set; }
     public string? CidrRange { get; set; }

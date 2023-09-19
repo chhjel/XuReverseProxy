@@ -8,7 +8,9 @@ export interface BlockedIpData
 {
 	id: string;
 	relatedClientId: string;
+	name: string;
 	type: BlockedIpDataType;
+	enabled: boolean;
 	ip: string;
 	ipRegex: string;
 	cidrRange: string;
