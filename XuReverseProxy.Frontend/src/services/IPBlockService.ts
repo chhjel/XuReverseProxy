@@ -1,13 +1,17 @@
+import { IPMatchesRegexRequestModel } from './../generated/Models/Web/IPMatchesRegexRequestModel';
 import { TestCidrRangeRequestModel } from './../generated/Models/Web/TestCidrRangeRequestModel';
 import { RemoveIPBlockByIdRequestModel } from './../generated/Models/Web/RemoveIPBlockByIdRequestModel';
 import { BlockIPRequestModel } from './../generated/Models/Web/BlockIPRequestModel';
 import { BlockIPRegexRequestModel } from './../generated/Models/Web/BlockIPRegexRequestModel';
 import { BlockIPCidrRangeRequestModel } from './../generated/Models/Web/BlockIPCidrRangeRequestModel';
-import ServiceBase, { FetchResult, LoadStatus } from "./ServiceBase";
+import { FetchResult, LoadStatus } from "./ServiceBase";
 import { BlockedIpData } from "@generated/Models/Core/BlockedIpData";
+import EFCrudServiceBase from './EFCrudServiceBase';
 
-export default class IPBlockService extends ServiceBase {
-    private _baseUrl: string = `/api/ipBlock`;
+export default class IPBlockService  extends EFCrudServiceBase<BlockedIpData> {
+    constructor() {
+        super('ipBlock');
+    }
 
     public async IsIPBlockedAsync(ip: string, status: LoadStatus | null = null): Promise<boolean> {
         const url = `${this._baseUrl}/IsIPBlocked`;
@@ -52,6 +56,13 @@ export default class IPBlockService extends ServiceBase {
 
     public async IsIPInCidrRangeAsync(payload: TestCidrRangeRequestModel, status: LoadStatus | null = null): Promise<boolean> {
         const url = `${this._baseUrl}/IsIPInCidrRange`;
+        const request = this.fetchExt(url, "POST", payload);
+        const result = await this.awaitWithStatus<boolean>(request, status);
+        return result.data;
+    }
+
+    public async IPMatchesRegexAsync(payload: IPMatchesRegexRequestModel, status: LoadStatus | null = null): Promise<boolean> {
+        const url = `${this._baseUrl}/IPMatchesRegex`;
         const request = this.fetchExt(url, "POST", payload);
         const result = await this.awaitWithStatus<boolean>(request, status);
         return result.data;

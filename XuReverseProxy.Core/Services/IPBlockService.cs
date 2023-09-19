@@ -8,11 +8,12 @@ namespace XuReverseProxy.Core.Services;
 public interface IIPBlockService
 {
     Task<bool> IsIPBlockedAsync(string ip);
-    Task<BlockedIpData?> GetMatchingBlockedIpDataForAsync(string ip);
+    Task<BlockedIpData?> GetMatchingBlockedIpDataForAsync(string ip, bool allowDisabled);
     Task<BlockedIpData> BlockIPAsync(string ip, string note, Guid? relatedClientId);
     Task<BlockedIpData> BlockIPRegexAsync(string ipRegex, string note, Guid? relatedClientId);
     Task<BlockedIpData> BlockIPCidrRangeAsync(string ipCidr, string note, Guid? relatedClientId);
     Task RemoveIPBlockByIdAsync(Guid id);
+    bool TryRegexMatch(string pattern, string value);
 }
 
 public class IPBlockService : IIPBlockService
@@ -27,13 +28,15 @@ public class IPBlockService : IIPBlockService
     }
 
     public async Task<bool> IsIPBlockedAsync(string ip)
-        => (await GetMatchingBlockedIpDataForAsync(ip)) != null;
+        => (await GetMatchingBlockedIpDataForAsync(ip, allowDisabled: false)) != null;
 
-    public async Task<BlockedIpData?> GetMatchingBlockedIpDataForAsync(string ip)
+    public async Task<BlockedIpData?> GetMatchingBlockedIpDataForAsync(string ip, bool allowDisabled)
     {
         var ipdatas = await _dbContext.BlockedIpDatas.ToListAsync();
         foreach (var ipdata in ipdatas)
         {
+            if (!allowDisabled && !ipdata.Enabled) continue;
+
             if (ipdata.IP?.Equals(ip, StringComparison.OrdinalIgnoreCase) == true)
                 return await handleMatch(ipdata);
             else if (!string.IsNullOrWhiteSpace(ipdata.IPRegex) && TryRegexMatch(ipdata.IPRegex, ip))
@@ -44,22 +47,23 @@ public class IPBlockService : IIPBlockService
 
         return null;
 
-        async Task<BlockedIpData> handleMatch(BlockedIpData item)
+        async Task<BlockedIpData?> handleMatch(BlockedIpData item)
         {
-            await cleanupIfNeeded(item);
+            if (await cleanupIfExpired(item)) return null;
             return item;
         }
         
-        async Task cleanupIfNeeded(BlockedIpData item)
+        async Task<bool> cleanupIfExpired(BlockedIpData item)
         {
-            if (item.BlockedUntilUtc == null || item.BlockedUntilUtc > DateTime.UtcNow) return;
-            _dbContext.Remove(item);
+            if (item.BlockedUntilUtc == null || item.BlockedUntilUtc > DateTime.UtcNow) return false;
+            item.Enabled = false;
             await _dbContext.SaveChangesAsync();
+            return true;
         }
     }
 
     private static readonly TKCachedRegexContainer _regexCache = new();
-    private static bool TryRegexMatch(string pattern, string value) {
+    public bool TryRegexMatch(string pattern, string value) {
         try
         {
             var regex = _regexCache.GetRegex(pattern, false);
@@ -71,6 +75,7 @@ public class IPBlockService : IIPBlockService
     public async Task<BlockedIpData> BlockIPAsync(string ip, string note, Guid? relatedClientId)
     {
         var data = CreateNewIpData(note, relatedClientId);
+        data.Name = $"Block '{ip}'";
         data.Type = BlockedIpDataType.IP;
         data.IP = ip;
         _dbContext.Add(data);
@@ -84,6 +89,7 @@ public class IPBlockService : IIPBlockService
     public async Task<BlockedIpData> BlockIPRegexAsync(string ipRegex, string note, Guid? relatedClientId)
     {
         var data = CreateNewIpData(note, relatedClientId);
+        data.Name = $"Block regex '{ipRegex}'";
         data.Type = BlockedIpDataType.IPRegex;
         data.IPRegex = ipRegex;
         _dbContext.Add(data);
@@ -97,6 +103,7 @@ public class IPBlockService : IIPBlockService
     public async Task<BlockedIpData> BlockIPCidrRangeAsync(string ipCidr, string note, Guid? relatedClientId)
     {
         var data = CreateNewIpData(note, relatedClientId);
+        data.Name = $"Block CIDR range '{ipCidr}'";
         data.Type = BlockedIpDataType.CIDRRange;
         data.CidrRange = ipCidr;
         _dbContext.Add(data);
@@ -110,6 +117,7 @@ public class IPBlockService : IIPBlockService
     private static BlockedIpData CreateNewIpData(string? note, Guid? relatedClientId)
         => new()
         {
+            Enabled = true,
             BlockedAt = DateTime.UtcNow,
             Note = note,
             RelatedClientId = relatedClientId

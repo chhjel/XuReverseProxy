@@ -117,7 +117,7 @@ public class ManualApprovalProxyAuthPageController : Controller
         var ipBlockType = BlockedIpDataType.None;
         if (!string.IsNullOrWhiteSpace(client.IP))
         {
-            var blockedIpData = await _iPBlockService.GetMatchingBlockedIpDataForAsync(client.IP);
+            var blockedIpData = await _iPBlockService.GetMatchingBlockedIpDataForAsync(client.IP, allowDisabled: false);
             clientIPIsBlocked = blockedIpData != null;
             clientIpBlockId = blockedIpData?.Id;
             canUnblockIP = !string.IsNullOrWhiteSpace(blockedIpData?.IP);

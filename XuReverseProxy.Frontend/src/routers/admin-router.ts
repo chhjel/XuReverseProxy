@@ -12,6 +12,9 @@ import ClientAuditLogPage from '@pages/admin/ClientAuditLogPage.vue';
 import ServerLogPage from '@pages/admin/ServerLogPage.vue';
 import NotificationsPage from '@pages/admin/NotificationsPage.vue';
 import NotificationPage from '@pages/admin/NotificationPage.vue';
+import BlockedIPsPage from '@pages/admin/BlockedIPsPage.vue';
+import BlockedIPPage from '@pages/admin/BlockedIPPage.vue';
+
 import { nextTick } from 'vue';
 
 const routes: Readonly<RouteRecordRaw[]> = [
@@ -23,6 +26,8 @@ const routes: Readonly<RouteRecordRaw[]> = [
     { name: "client", path: "/client/:clientId", meta: { title: 'Client' }, component: ProxyClientPage },
     { name: "notifications", path: "/notifications", meta: { title: 'Notifications' }, component: NotificationsPage },
     { name: "notification", path: "/notification/:notificationId", meta: { title: 'Notification' }, component: NotificationPage },
+    { name: "blocked-ips", path: "/blocked-ips", meta: { title: 'Blocked IPs' }, component: BlockedIPsPage },
+    { name: "blocked-ip", path: "/blocked-ip/:blockedId", meta: { title: 'Blocked IP' }, component: BlockedIPPage },
     { name: "jobs", path: "/jobs", meta: { title: 'Jobs' }, component: ScheduledTasksPage },
     { name: "admin-audit-log", path: "/admin-audit-log", meta: { title: 'Admin Audit Log' }, component: AdminAuditLogPage },
     { name: "client-audit-log", path: "/client-audit-log", meta: { title: 'Client Audit Log' }, component: ClientAuditLogPage },

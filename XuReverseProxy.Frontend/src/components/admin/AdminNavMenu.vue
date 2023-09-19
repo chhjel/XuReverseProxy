@@ -28,6 +28,7 @@ export default class AdminNavMenu extends Vue {
 			<router-link to="/proxyconfigs">Proxies</router-link> |
 			<router-link to="/clients">Clients</router-link> |
 			<router-link to="/notifications">Notifications</router-link> |
+			<router-link to="/blocked-ips">IP Block</router-link> |
 			<router-link to="/serverconfig">Server config</router-link> |
 			<router-link to="/jobs">Jobs</router-link> |
 			<router-link to="/admin-audit-log">Admin log</router-link> |
@@ -42,6 +43,7 @@ export default class AdminNavMenu extends Vue {
 			<router-link to="/proxyconfigs">Proxies</router-link>
 			<router-link to="/clients">Clients</router-link>
 			<router-link to="/notifications">Notifications</router-link>
+			<router-link to="/blocked-ips">IP Block</router-link>
 			<router-link to="/serverconfig">Server config</router-link>
 			<router-link to="/jobs">Jobs</router-link>
 			<router-link to="/admin-audit-log">Admin log</router-link>
