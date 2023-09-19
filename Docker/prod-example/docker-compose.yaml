@@ -24,7 +24,7 @@ services:
       #- ServerConfig__Security__InvalidateAllSessionsOnAdminLogin=false
       #- ServerConfig__Security__InvalidateAllSessionsOnAdminLogout=true
       #- ServerConfig__Security__ValidateUpstreamCertificateIssues=false
-      #- ServerConfig__Security__AdminCookieLifetimeInMinutes=360
+      #- ServerConfig__Security__AdminCookieLifetimeInMinutes=15
       #- ServerConfig__Security__ClientCookieLifetimeInMinutes=576000
       # Jobs default values:
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__Enabled=true
@@ -32,8 +32,8 @@ services:
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNotAttemptedAccessedInMinutes= # default not used
       #- ServerConfig__Jobs__ClientIdentityCleanupJob__RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes=10080 # 7 days
       #- ServerConfig__Jobs__AuditLogCleanupJob__Enabled=true
-      #- MaxAdminEntryAgeInHours=730 # 30 days
-      #- MaxClientEntryAgeInHours=730 # 30 days
+      #- ServerConfig__Jobs__AuditLogCleanupJob__MaxAdminEntryAgeInHours=730 # 30 days
+      #- ServerConfig__Jobs__AuditLogCleanupJob__MaxClientEntryAgeInHours=730 # 30 days
       # Other
       - Logging__LogLevel__Default=Information
       - ASPNETCORE_URLS=https://+:443;http://+:80
