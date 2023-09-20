@@ -1,12 +1,6 @@
 .input-wrapper {
     display: flex;
     flex-direction: column;
-    
-    label {
-        margin-top: 2px;
-        margin-bottom: 2px;
-        color: var(--color--text-dark);
-    }
 
     input, textarea {
         flex-grow: 1;
@@ -20,6 +14,15 @@
 
     textarea {
         font-size: 0.9rem;
+    }
+}
+
+.input-wrapper,
+.input-header {
+    label {
+        margin-top: 2px;
+        margin-bottom: 2px;
+        color: var(--color--text-dark);
     }
 }
 

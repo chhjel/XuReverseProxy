@@ -2,9 +2,13 @@
 import { Options } from "vue-class-component";
 import { Prop, Ref, Vue, Watch } from 'vue-property-decorator'
 import ProgressbarComponent from "@components/common/ProgressbarComponent.vue";
+import InputHeaderComponent from "./InputHeaderComponent.vue";
 
 @Options({
-	components: { ProgressbarComponent }
+	components: {
+        ProgressbarComponent,
+        InputHeaderComponent
+    }
 })
 export default class TextInputComponent extends Vue {
     @Prop({ required: true })
@@ -18,6 +22,9 @@ export default class TextInputComponent extends Vue {
 
     @Prop({ required: false, default: '' })
     label: string;
+
+    @Prop({ required: false, default: '' })
+    description: string;
 
     @Prop({ required: false, default: '' })
     autocomplete: string;
@@ -100,7 +107,7 @@ export default class TextInputComponent extends Vue {
 
 <template>
   <div class="input-wrapper" :class="wrapperClasses">
-    <label v-if="label">{{ label }}</label>
+    <input-header-component :label="label" :description="description" />
 
     <input
         :type="type"
