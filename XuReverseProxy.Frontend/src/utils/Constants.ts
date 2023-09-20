@@ -3,6 +3,13 @@ import { NotificationAlertType } from './../generated/Enums/Core/NotificationAle
 import { NotificationTrigger } from './../generated/Enums/Core/NotificationTrigger';
 import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
 
+
+declare var PRODUCTION: boolean;
+declare var DEVELOPMENT: boolean;
+
+export const isProductionEnv: boolean = PRODUCTION;
+export const isDevelopmentEnv: boolean = DEVELOPMENT;
+
 export const LoggedOutMessage: string = 'You have been logged out, please refresh the page if you want to continue.';
 export const LoggedOutMessage_IpChanged: string = 'Your login session has been terminated due to activity detected from a different IP address. For security purposes, all active sessions have been logged out. Please refresh the page if you want to continue.';
 

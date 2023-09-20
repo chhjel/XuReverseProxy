@@ -16,6 +16,7 @@ import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 import DateFormats from "@utils/DateFormats";
 import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponent.vue";
 import ExpandableComponent from "@components/common/ExpandableComponent.vue";
+import TimeSpanInputComponent from "@components/inputs/TimeSpanInputComponent.vue";
 
 @Options({
 	components: {
@@ -25,7 +26,8 @@ import ExpandableComponent from "@components/common/ExpandableComponent.vue";
 		CheckboxComponent,
 		CustomRequestDataEditor,
 		ExpandableComponent,
-		PlaceholderInfoComponent
+		PlaceholderInfoComponent,
+		TimeSpanInputComponent
 	}
 })
 export default class NotificationPage extends Vue {
@@ -118,8 +120,13 @@ export default class NotificationPage extends Vue {
 
 				<checkbox-component label="Enabled" offLabel="Disabled" v-model:value="rule.enabled" class="mt-1 mb-2"  :disabled="isLoading" warnColorOff />
 				<text-input-component label="Name" v-model:value="rule.name" :disabled="isLoading" />
-				<text-input-component label="Cooldown" v-model:value="rule.cooldown" :disabled="isLoading" emptyIsNull="true" />
-				<text-input-component label="Cooldown distinct pattern" v-model:value="rule.cooldownDistinctPattern"
+				<time-span-input-component class="mt-2"
+					label="Cooldown"
+					description="Determines how long the trigger is ignored for after each notification."
+					emptyIsNull="true" v-model:value="rule.cooldown" :disabled="isLoading" />
+				<text-input-component label="Cooldown distinct pattern"
+					description="Each distinct pattern will have its own cooldown."
+					v-model:value="rule.cooldownDistinctPattern"
 					v-show="rule.cooldown" :disabled="isLoading" ref="distinctPatternInput" />
 				<expandable-component header="Supported placeholders" v-if="rule.cooldown">
 					<placeholder-info-component

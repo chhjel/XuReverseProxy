@@ -112,7 +112,8 @@ const config: Configuration = {
       maxChunks: 1,
     }),
     new Webpack.DefinePlugin({
-      PRODUCTION: JSON.stringify(true),
+      PRODUCTION: JSON.stringify(!isDevelopment),
+      DEVELOPMENT: JSON.stringify(isDevelopment),
       // VUE
       // - enable Options API support
       __VUE_OPTIONS_API__: true,

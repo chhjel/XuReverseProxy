@@ -11,6 +11,7 @@ import ProxyChallengeTypeAdminLoginEditor from "./challengeTypeEditors/ProxyChal
 import ProxyChallengeTypeOTPEditor from "./challengeTypeEditors/ProxyChallengeTypeOTPEditor.vue";
 import ProxyChallengeTypeManualApprovalEditor from "./challengeTypeEditors/ProxyChallengeTypeManualApprovalEditor.vue";
 import ProxyChallengeTypeSecretQueryStringEditor from "./challengeTypeEditors/ProxyChallengeTypeSecretQueryStringEditor.vue";
+import TimeSpanInputComponent from "@components/inputs/TimeSpanInputComponent.vue";
 
 @Options({
 	components: {
@@ -21,7 +22,8 @@ import ProxyChallengeTypeSecretQueryStringEditor from "./challengeTypeEditors/Pr
 		ProxyChallengeTypeAdminLoginEditor,
 		ProxyChallengeTypeOTPEditor,
 		ProxyChallengeTypeManualApprovalEditor,
-		ProxyChallengeTypeSecretQueryStringEditor
+		ProxyChallengeTypeSecretQueryStringEditor,
+		TimeSpanInputComponent
 	}
 })
 export default class ProxyAuthenticationDataEditor extends Vue {
@@ -64,21 +66,27 @@ export default class ProxyAuthenticationDataEditor extends Vue {
 
 <template>
 	<div class="proxyconfigauth-edit" v-if="localValue">
-		<!-- todo: -->
-		<!-- <div>SolvedDuration: <code>{{ localValue.solvedDuration }}</code></div> -->
-
 		<select v-model="localValue.challengeTypeId" class="mb-2 mt-2" :disabled="disabled">
 			<option v-for="challengeType in challengeTypeOptions" 
 				:value="challengeType.typeId">{{ challengeType.name }}</option>
 		</select>
+
 		<component :is="`${localValue.challengeTypeId}Editor`"
 			:disabled="disabled"
 			v-model:value="localValue.challengeJson" />
+
+		<div class="mt-3">
+			<time-span-input-component
+				label="Solved duration"
+				description="Determines for how long the challenge will be solved. After the given duration the challenge will need to be solved again."
+				noteIfNull="No duration configured - the challenge will be solved forever for the client."
+				emptyIsNull="true" v-model:value="localValue.solvedDuration" :disabled="disabled" />
+		</div>
 	</div>
 </template>
 
 <style scoped lang="scss">
-.proxyconfigauth-edit {
+/* .proxyconfigauth-edit {
 
-}
+} */
 </style>
