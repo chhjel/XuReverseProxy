@@ -70,9 +70,9 @@ export default class TimeSpanInputComponent extends Vue {
             this.localValueDays = parts[0];
             
             let hmsParts = parts[1].split(':');
-            this.localValueHours = hmsParts[0];
-            this.localValueMinutes = hmsParts[1];
-            this.localValueSeconds = hmsParts[2];
+            this.localValueHours = isNaN(parseInt(hmsParts[0])) ? '0' : parseInt(hmsParts[0]).toString() || '0';
+            this.localValueMinutes = isNaN(parseInt(hmsParts[1])) ? '0' : parseInt(hmsParts[1]).toString() || '0';
+            this.localValueSeconds = isNaN(parseInt(hmsParts[2])) ? '0' : parseInt(hmsParts[2]).toString() || '0';
         }
     }
 
@@ -98,9 +98,9 @@ export default class TimeSpanInputComponent extends Vue {
         }
         else {
             let days = this.localValueDays || '0';
-            let hours = this.localValueHours || '0';
-            let minutes = this.localValueMinutes || '0';
-            let seconds = this.localValueSeconds || '0';
+            let hours = (this.localValueHours || '0').padStart(2, '0');
+            let minutes = (this.localValueMinutes || '0').padStart(2, '0');
+            let seconds = (this.localValueSeconds || '0').padStart(2, '0');
             valueToEmit = `${days}.${hours}:${minutes}:${seconds}`;
         }
 
