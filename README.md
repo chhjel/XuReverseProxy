@@ -31,7 +31,7 @@ Currently supported proxy authentication methods:
     * Add migrations using `dotnet ef migrations add <migration_name> --project XuReverseProxy.Core -s XuReverseProxy --verbose`
   
 * Frontend
-  * To build frontend run `yarn watch` in `XuReverseProxy.Frontend` directory.
+  * To build frontend run `yarn watch` in `XuReverseProxy.Frontend` directory. Be sure to run `yarn setup` to configure prettier git hook.
   * Or to build frontend from container run `docker-compose --profile frontend-watcher up -d`
 
 * Hosts

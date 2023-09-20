@@ -1,44 +1,46 @@
-@import 'variables';
-@import 'utils';
-@import 'inputs';
-@import 'layout';
-@import 'elements/block.scss';
-@import 'elements/code.scss';
-@import './lib/leaflet.scss';
+@import url("variables.scss");
+@import url("utils.scss");
+@import url("inputs.scss");
+@import url("layout.scss");
+@import url("elements/block.scss");
+@import url("elements/code.scss");
+@import url("./lib/leaflet.scss");
 
-html, body {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	padding: 0;
+html,
+body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-	background-color: #121212;
-	color: var(--color--text);
-	box-sizing: border-box;
+  background-color: #121212;
+  color: var(--color--text);
+  box-sizing: border-box;
 }
 
 :root {
-	font-family: 'Montserrat', BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  font-family: Montserrat, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue",
+    sans-serif;
 }
 
 a {
-	color: rgb(206, 215, 224);
-	text-decoration: none;
+  color: rgb(206 215 224);
+  text-decoration: none;
 
-	&:hover {
-		text-decoration: underline;
-	}
+  &:hover {
+    text-decoration: underline;
+  }
 
-	&:visited {
-		color: rgb(206, 226, 247);
-	}
+  &:visited {
+    color: rgb(206 226 247);
+  }
 }
 
 code {
-	white-space: pre;
-	text-align: left;
-	font-family: monospace;
+  white-space: pre;
+  text-align: left;
+  font-family: monospace;
 }

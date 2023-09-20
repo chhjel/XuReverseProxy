@@ -2,7 +2,6 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-export interface UnblockClientIPFromManualApprovalRequestMessage
-{
-	ipBlockId: string;
+export interface UnblockClientIPFromManualApprovalRequestMessage {
+  ipBlockId: string;
 }

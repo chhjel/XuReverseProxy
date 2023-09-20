@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
-import { Vue, Prop } from 'vue-property-decorator'
+import { Vue, Prop } from "vue-property-decorator";
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import { ProxyChallengeTypeOTPFrontendModel } from "@generated/Models/Core/ProxyChallengeTypeOTPFrontendModel";
@@ -11,148 +11,157 @@ import { TrySolveOTPRequestModel } from "@generated/Models/Core/TrySolveOTPReque
 import DateFormats from "@utils/DateFormats";
 
 @Options({
-	components: {
-		TextInputComponent,
-		ButtonComponent
-	}
+  components: {
+    TextInputComponent,
+    ButtonComponent,
+  },
 })
 export default class ProxyChallengeTypeOTPComponent extends Vue {
-  	@Prop()
-	options: ProxyChallengeTypeOTPFrontendModel;
-	
-	otp: string = '';
-	hasSentCode: boolean = false;
-	
-    service: ProxyAuthService = new ProxyAuthService('ProxyChallengeTypeOTP', '');
-	statusMessage: string = '';
-	statusIsError: boolean = false;
+  @Prop()
+  options: ProxyChallengeTypeOTPFrontendModel;
 
-	async mounted() {
-    	this.service = new ProxyAuthService('ProxyChallengeTypeOTP', this.options.authenticationId);
-		this.hasSentCode = this.options.hasSentCode;
-		if (this.options.codeSentAt) {
-			this.setStatusMessage(`Code last sent at ${this.formatDate(this.options.codeSentAt)}`);
-		}
-	}
+  otp: string = "";
+  hasSentCode: boolean = false;
 
-	get isLoading(): boolean { return this.service?.status?.inProgress == true; }
+  service: ProxyAuthService = new ProxyAuthService("ProxyChallengeTypeOTP", "");
+  statusMessage: string = "";
+  statusIsError: boolean = false;
 
-	async onSendCodeClicked(): Promise<any> {
-		await this.sendOtp();
-	}
+  async mounted() {
+    this.service = new ProxyAuthService("ProxyChallengeTypeOTP", this.options.authenticationId);
+    this.hasSentCode = this.options.hasSentCode;
+    if (this.options.codeSentAt) {
+      this.setStatusMessage(`Code last sent at ${this.formatDate(this.options.codeSentAt)}`);
+    }
+  }
 
-	async onValidateCodeClicked(): Promise<any> {
-		await this.validateOtp();
-	}
+  get isLoading(): boolean {
+    return this.service?.status?.inProgress == true;
+  }
 
-	async sendOtp(): Promise<any> {
-		this.setStatusMessage('Sending code..');
-		const result = await this.service.RequestAsync('TrySendOTPAsync', {}) as TrySendOTPResponseModel;
-		if (result.success) {
-			this.hasSentCode = true;
-			this.setStatusMessage('Code sent');
-		} else {
-			this.setStatusMessage(result.error, true);
-		}
-	}
+  async onSendCodeClicked(): Promise<any> {
+    await this.sendOtp();
+  }
 
-	async validateOtp(): Promise<any> {
-		this.setStatusMessage('Validating..');
-		const payload: TrySolveOTPRequestModel = {
-			code: this.otp
-		};
-		const result = await this.service.RequestAsync('TrySolveOTPAsync', payload) as TrySolveOTPResponseModel;
-		if (result.success) {
-			this.hasSentCode = true;
-			this.setStatusMessage('Code validated');
-			setTimeout(() => { this.$emit('solved'); }, 1000);
-		} else {
-			this.setStatusMessage(result.error, true);
-		}
-	}
+  async onValidateCodeClicked(): Promise<any> {
+    await this.validateOtp();
+  }
 
-	setStatusMessage(text: string, isError: boolean = false): void {
-		this.statusMessage = text;
-		this.statusIsError = isError === true;
-	}
+  async sendOtp(): Promise<any> {
+    this.setStatusMessage("Sending code..");
+    const result = (await this.service.RequestAsync("TrySendOTPAsync", {})) as TrySendOTPResponseModel;
+    if (result.success) {
+      this.hasSentCode = true;
+      this.setStatusMessage("Code sent");
+    } else {
+      this.setStatusMessage(result.error, true);
+    }
+  }
 
-	formatDate(raw: Date | string): string {
-		return DateFormats.defaultDateTime(raw);
-	}
+  async validateOtp(): Promise<any> {
+    this.setStatusMessage("Validating..");
+    const payload: TrySolveOTPRequestModel = {
+      code: this.otp,
+    };
+    const result = (await this.service.RequestAsync("TrySolveOTPAsync", payload)) as TrySolveOTPResponseModel;
+    if (result.success) {
+      this.hasSentCode = true;
+      this.setStatusMessage("Code validated");
+      setTimeout(() => {
+        this.$emit("solved");
+      }, 1000);
+    } else {
+      this.setStatusMessage(result.error, true);
+    }
+  }
+
+  setStatusMessage(text: string, isError: boolean = false): void {
+    this.statusMessage = text;
+    this.statusIsError = isError === true;
+  }
+
+  formatDate(raw: Date | string): string {
+    return DateFormats.defaultDateTime(raw);
+  }
 }
 </script>
 
 <template>
-	<div class="challenge-otp">
-		<div class="challenge-header">
-			<div class="material-icons icon">key</div>
-			<div class="challenge-title">OTP verification</div>
-		</div>
+  <div class="challenge-otp">
+    <div class="challenge-header">
+      <div class="material-icons icon">key</div>
+      <div class="challenge-title">OTP verification</div>
+    </div>
 
-		<div v-if="options.description" class="challenge-otp__description">
-			<p>{{ options.description }}</p>
-		</div>
+    <div v-if="options.description" class="challenge-otp__description">
+      <p>{{ options.description }}</p>
+    </div>
 
-		<div class="challenge-otp__inputs">
+    <div class="challenge-otp__inputs">
+      <div v-if="!hasSentCode">
+        <button-component @click="onSendCodeClicked" :disabled="isLoading" class="ml-0 secondary"
+          >Send code</button-component
+        >
+      </div>
 
-			<div v-if="!hasSentCode">
-				<button-component @click="onSendCodeClicked" :disabled="isLoading" class="ml-0 secondary">Send code</button-component>
-			</div>
+      <div v-if="hasSentCode">
+        <text-input-component
+          v-model:value="otp"
+          placeholder="One-time code"
+          :disabled="isLoading"
+          @keydown.enter="onValidateCodeClicked"
+          autocomplete="one-time-code"
+        />
+        <button-component @click="onValidateCodeClicked" :disabled="isLoading" class="ml-0 secondary"
+          >Validate code</button-component
+        >
+        <button-component @click="onSendCodeClicked" :disabled="isLoading" class="ml-0 secondary"
+          >Re-send code</button-component
+        >
+      </div>
+    </div>
 
-			<div v-if="hasSentCode">
-				<text-input-component
-					v-model:value="otp"
-					placeholder="One-time code"
-					:disabled="isLoading"
-					@keydown.enter="onValidateCodeClicked"
-					autocomplete="one-time-code"
-					/>
-				<button-component @click="onValidateCodeClicked" :disabled="isLoading" class="ml-0 secondary">Validate code</button-component>
-				<button-component @click="onSendCodeClicked" :disabled="isLoading" class="ml-0 secondary">Re-send code</button-component>
-			</div>
-		</div>
-
-		<div v-if="statusMessage" class="challenge-otp__status" :class="{ 'error': statusIsError }">
-			{{ statusMessage }}
-		</div>
-	</div>
+    <div v-if="statusMessage" class="challenge-otp__status" :class="{ error: statusIsError }">
+      {{ statusMessage }}
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
 .challenge-otp {
-	&__description {
-		color: var(--color--text-dark);
-		text-align: center;
-	}
+  &__description {
+    color: var(--color--text-dark);
+    text-align: center;
+  }
 
-	&__inputs {
-		max-width: 300px;
-    	margin: 20px auto 0 auto;
-		/* text-align: center; */
-	}
+  &__inputs {
+    max-width: 300px;
+    margin: 20px auto 0 auto;
+    /* text-align: center; */
+  }
 
-	&__status {
-		margin-top: 15px;
-		text-align: center;
-		font-size: 15px;
-		color: var(--color--text-dark);
-		&.error {
-			color: var(--color--danger-lighten);
-		}
-	}
+  &__status {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 15px;
+    color: var(--color--text-dark);
+    &.error {
+      color: var(--color--danger-lighten);
+    }
+  }
 
-	.meta {
-		margin-top: 15px;
-		text-align: center;
-		font-size: 15px;
-		color: var(--color--text-dark);
-	}
+  .meta {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 15px;
+    color: var(--color--text-dark);
+  }
 
-	.button {
-		width: 100%;
-    	height: 50px;
-		padding: 0;
-		margin-bottom: 0;
-	}
+  .button {
+    width: 100%;
+    height: 50px;
+    padding: 0;
+    margin-bottom: 0;
+  }
 }
 </style>

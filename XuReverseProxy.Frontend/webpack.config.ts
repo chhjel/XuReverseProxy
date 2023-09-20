@@ -17,7 +17,7 @@ import Webpack from "webpack";
 import WebpackDev from "webpack-dev-server";
 import { VueLoaderPlugin } from "vue-loader";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import MonacoWebpackPlugin from 'monaco-editor-webpack-plugin';
+import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
 import path from "path";
 
 const mode = process.env.NODE_ENV ?? "development";
@@ -30,10 +30,10 @@ const config: Configuration = {
   mode: isProduction ? "production" : "development",
   entry: {
     serverui: [...stylesheets, "./src/server-ui-public.ts"],
-    'serverui-admin': [...stylesheets, "./src/server-ui-admin.ts"]
+    "serverui-admin": [...stylesheets, "./src/server-ui-admin.ts"],
   },
   watchOptions: {
-    poll: 1000
+    poll: 1000,
   },
   resolve: {
     alias: {
@@ -45,7 +45,7 @@ const config: Configuration = {
       "@factories": path.resolve(__dirname, "./src/factories"),
       "@services": path.resolve(__dirname, "./src/services"),
       "@utils": path.resolve(__dirname, "./src/utils"),
-      "src": path.resolve(__dirname, "./src")
+      src: path.resolve(__dirname, "./src"),
     },
     extensions: [".js", ".ts", ".vue", ".scss"],
   },
@@ -62,12 +62,12 @@ const config: Configuration = {
       // Rule: SASS and CSS files from Vue Single File Components
       {
         test: /\.vue\.(s?[ac]ss)$/,
-        use: ['vue-style-loader', 'css-loader', 'sass-loader']
+        use: ["vue-style-loader", "css-loader", "sass-loader"],
       },
       // Rule: SASS and CSS files (standalone)
       {
-          test: /(?<!\.vue)\.(s?[ac]ss)$/,
-          use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
+        test: /(?<!\.vue)\.(s?[ac]ss)$/,
+        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
       },
 
       // Rule: Vue
@@ -95,11 +95,11 @@ const config: Configuration = {
       // Rule: FILES
       {
         test: /\.(png|jpg|gif|svg|ttf)$/,
-        loader: 'file-loader',
+        loader: "file-loader",
         options: {
-          name: '[name].[ext]?[hash]'
-        }
-      }
+          name: "[name].[ext]?[hash]",
+        },
+      },
     ],
   },
   devServer: {
@@ -117,17 +117,17 @@ const config: Configuration = {
       // VUE
       // - enable Options API support
       __VUE_OPTIONS_API__: true,
-      // - disable devtools support in production
-      __VUE_PROD_DEVTOOLS__: isProduction
+      // - allow devtools support in production
+      __VUE_PROD_DEVTOOLS__: true
     }),
     new MonacoWebpackPlugin({
-      languages: [ 'html' ],
+      languages: ["html"],
       // filename: '[name].worker.js'
-      publicPath: '/'
+      publicPath: "/",
     }),
     new MiniCssExtractPlugin({
       filename: "[name].css",
-    })
+    }),
   ],
   devtool: isProduction && !sourceMapsInProduction ? false : "source-map",
   stats: {
@@ -143,9 +143,7 @@ const config: Configuration = {
  * This interface combines configuration from `webpack` and `webpack-dev-server`. You can add or override properties
  * in this interface to change the config object type used above.
  */
-export interface Configuration
-  extends Webpack.Configuration,
-    WebpackDev.Configuration {}
+export interface Configuration extends Webpack.Configuration, WebpackDev.Configuration {}
 
 /*********************************************************************************************************************/
 /**********                                             Advanced                                            **********/
@@ -157,7 +155,7 @@ if (isProduction) {
   config.plugins?.push(
     new Webpack.LoaderOptionsPlugin({
       minimize: true,
-    })
+    }),
   );
 
   // Minify and treeshake JS

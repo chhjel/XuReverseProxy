@@ -1,1 +1,1 @@
-declare module 'vue-monaco-cdn';
+declare module "vue-monaco-cdn";

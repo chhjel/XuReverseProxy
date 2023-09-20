@@ -15,7 +15,7 @@ module.exports = {
     {
       files: "*.ts",
       parser: "@typescript-eslint/parser",
-      plugins: ["@typescript-eslint"],
+      plugins: ["@typescript-eslint", "import", "prettier"],
       parserOptions: {
         project: "tsconfig.json",
       },
@@ -32,6 +32,8 @@ module.exports = {
         "no-underscore-dangle": "off",
         "import/prefer-default-export": "off",
         "prettier/prettier": "warn",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-use-before-define": "off",
       },
     },
   ],
