@@ -6,7 +6,7 @@ ARG BUILD_FRONTEND=true
 
 ##########################################################
 # Build frontend
-FROM node:16 as frontend-build
+FROM node:18 as frontend-build
 ARG BUILD_FRONTEND=true
 WORKDIR /frontend
 
