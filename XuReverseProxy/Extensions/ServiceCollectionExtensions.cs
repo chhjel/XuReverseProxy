@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using QoDL.Toolkit.Core.Util;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication;
@@ -23,7 +22,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RuntimeServerConfig>();
 
         // Services
-        services.AddScoped<IDevDataSeeder, DevDataSeederService>();
         services.AddScoped<IProxyClientIdentityService, ProxyClientIdentityService>();
         services.AddScoped<IProxyChallengeService, ProxyChallengeService>();
         services.AddScoped<IProxyAuthenticationChallengeFactory, ProxyAuthenticationChallengeFactory>();
@@ -53,9 +51,6 @@ public static class ServiceCollectionExtensions
 
             // Ensure we have rows for all settings
             scope.ServiceProvider.GetService<RuntimeServerConfig>()?.EnsureDatabaseRows();
-
-            // todo: not here
-            TKAsyncUtils.RunSync(() => scope.ServiceProvider.GetService<IDevDataSeeder>()?.EnsureDemoDataAsync());
         }
         return app;
     }
