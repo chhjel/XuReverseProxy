@@ -11,6 +11,7 @@ import ProxyChallengeTypeAdminLoginEditor from "./challengeTypeEditors/ProxyChal
 import ProxyChallengeTypeOTPEditor from "./challengeTypeEditors/ProxyChallengeTypeOTPEditor.vue";
 import ProxyChallengeTypeManualApprovalEditor from "./challengeTypeEditors/ProxyChallengeTypeManualApprovalEditor.vue";
 import ProxyChallengeTypeSecretQueryStringEditor from "./challengeTypeEditors/ProxyChallengeTypeSecretQueryStringEditor.vue";
+import TimeSpanInputComponent from "@components/inputs/TimeSpanInputComponent.vue";
 
 @Options({
 	components: {
@@ -21,7 +22,8 @@ import ProxyChallengeTypeSecretQueryStringEditor from "./challengeTypeEditors/Pr
 		ProxyChallengeTypeAdminLoginEditor,
 		ProxyChallengeTypeOTPEditor,
 		ProxyChallengeTypeManualApprovalEditor,
-		ProxyChallengeTypeSecretQueryStringEditor
+		ProxyChallengeTypeSecretQueryStringEditor,
+		TimeSpanInputComponent
 	}
 })
 export default class ProxyAuthenticationDataEditor extends Vue {
@@ -74,7 +76,11 @@ export default class ProxyAuthenticationDataEditor extends Vue {
 			v-model:value="localValue.challengeJson" />
 
 		<div class="mt-3">
-			<text-input-component label="Solved duration" v-model:value="localValue.solvedDuration" :disabled="disabled" placeholder="No expiration" />
+			<time-span-input-component
+				label="Solved duration"
+				description="Determines for how long the challenge will be solved. After the given duration the challenge will need to be solved again."
+				noteIfNull="No duration configured - the challenge will be solved forever for the client."
+				emptyIsNull="true" v-model:value="localValue.solvedDuration" :disabled="disabled" />
 		</div>
 	</div>
 </template>
