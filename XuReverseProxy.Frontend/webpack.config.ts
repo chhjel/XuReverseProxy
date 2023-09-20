@@ -112,13 +112,13 @@ const config: Configuration = {
       maxChunks: 1,
     }),
     new Webpack.DefinePlugin({
-      PRODUCTION: JSON.stringify(!isDevelopment),
+      PRODUCTION: JSON.stringify(isProduction),
       DEVELOPMENT: JSON.stringify(isDevelopment),
       // VUE
       // - enable Options API support
       __VUE_OPTIONS_API__: true,
       // - disable devtools support in production
-      __VUE_PROD_DEVTOOLS__: true
+      __VUE_PROD_DEVTOOLS__: isProduction
     }),
     new MonacoWebpackPlugin({
       languages: [ 'html' ],
