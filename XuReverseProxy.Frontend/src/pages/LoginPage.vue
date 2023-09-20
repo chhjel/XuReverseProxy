@@ -9,7 +9,7 @@ import { LoginResponse } from "@generated/Models/Web/LoginResponse";
 import LoginService from "@services/LoginService";
 import { CreateAccountResponse } from "@generated/Models/Web/CreateAccountResponse";
 import { Ecc, QrCode } from '@utils/QRCodeUtil';
-import { LoggedOutMessage_IpChanged } from "@utils/Constants";
+import { LoggedOutMessage_IpChanged, isDevelopmentEnv } from "@utils/Constants";
 
 @Options({
 	components: {
@@ -24,6 +24,7 @@ export default class LoginPage extends Vue {
 	
     loginService: LoginService = new LoginService();
 	errorCode: string = '';
+	isDevelopment: boolean = isDevelopmentEnv;
 
 	// Login
 	username: string = '';
@@ -70,6 +71,12 @@ export default class LoginPage extends Vue {
 
 	async createAccount(): Promise<CreateAccountResponse> {
 		return await this.loginService.CreateAccountAsync(this.username, this.password, this.enableTotp ? this.totpSecret : '', this.totp);
+	}
+
+	async onTestLoginClicked(): Promise<any> {
+		this.username = 'test';
+		this.password = 'test';
+		await this.onLoginClicked();
 	}
 
 	async onLoginClicked(): Promise<any> {
@@ -191,6 +198,7 @@ export default class LoginPage extends Vue {
 					/>
 
 				<button-component @click="onLoginClicked" :disabled="isLoading">Login</button-component>
+				<button-component v-if="isDevelopment" @click="onTestLoginClicked" :disabled="isLoading" secondary>Login test:test</button-component>
 			</div>
 
 			<div v-if="statusMessage" class="login-form__status" :class="statusClasses">
