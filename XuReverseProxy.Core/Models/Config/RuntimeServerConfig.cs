@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using QoDL.Toolkit.Web.Core.Utils;
 using System.Globalization;
 using XuReverseProxy.Core.Logging;
@@ -11,6 +12,18 @@ namespace XuReverseProxy.Core.Models.Config;
 /// </summary>
 public class RuntimeServerConfig
 {
+    private readonly ApplicationDbContext _dbContext;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IMemoryCache _memoryCache;
+    private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
+
+    public RuntimeServerConfig(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
+    {
+        _dbContext = dbContext;
+        _httpContextAccessor = httpContextAccessor;
+        _memoryCache = memoryCache;
+    }
+
     /// <summary>
     /// Global killswitch to disable all proxies temporarily.
     /// </summary>
@@ -79,15 +92,6 @@ public class RuntimeServerConfig
         set => SetConfigInt(nameof(IPBlockedResponseCode), value);
     }
 
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public RuntimeServerConfig(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor)
-    {
-        _dbContext = dbContext;
-        _httpContextAccessor = httpContextAccessor;
-    }
-
     /// <summary>
     /// Since the db is not updated with default values until the configs are first changed,
     /// ensure the db rows exist on startup so that we can read them on the admin config page.
@@ -125,6 +129,7 @@ public class RuntimeServerConfig
     private string? GetConfig(string key, string? fallback = null)
     {
         var item = _dbContext.RuntimeServerConfigItems.FirstOrDefault(x => x.Key == key);
+        if (_memoryCache.TryGetValue($"rsc_{key}", out string? val)) return val;
         return item == null ? fallback : item.Value;
     }
 
@@ -148,6 +153,8 @@ public class RuntimeServerConfig
             _dbContext.RuntimeServerConfigItems.Add(item);
             _dbContext.SaveChanges();
         }
+
+        _memoryCache.Set($"rsc_{key}", value, _cacheDuration);
 
         void updateCommon(RuntimeServerConfigItem existing)
         {
