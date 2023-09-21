@@ -5,7 +5,7 @@
 export interface ChallengeDataFrontendModel
 {
 	type: string;
-	solvedDuration: any;
+	solvedDuration: string;
 	solved: boolean;
 	solvedAtUtc: Date;
 	conditionsNotMet: boolean;

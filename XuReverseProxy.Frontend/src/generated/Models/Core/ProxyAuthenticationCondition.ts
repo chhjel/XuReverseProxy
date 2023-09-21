@@ -14,7 +14,7 @@ export interface ProxyAuthenticationCondition
 	conditionType: ProxyAuthenticationConditionType;
 	dateTimeUtc1: Date;
 	dateTimeUtc2: Date;
-	timeOnlyUtc1: any;
-	timeOnlyUtc2: any;
+	timeOnlyUtc1: string;
+	timeOnlyUtc2: string;
 	daysOfWeekUtc: DayOfWeekFlags;
 }

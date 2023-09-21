@@ -1,14 +1,10 @@
 import VueAppInitializer, { InitializableVueApp } from "@utils/VueAppInitializer";
-import ErrorPage from '@pages/ErrorPage.vue';
-import ProxyChallengePage from '@pages/ProxyChallengePage.vue';
+import ErrorPage from "@pages/ErrorPage.vue";
+import ProxyChallengePage from "@pages/ProxyChallengePage.vue";
 
-const pages = {
-    ErrorPage: ErrorPage,
-    ProxyChallengePage: ProxyChallengePage
-};
-const initializableApps: {[key: string]: InitializableVueApp} = {
-    ErrorPage: { component: ErrorPage },
-    ProxyChallengePage: { component: ProxyChallengePage }
+const initializableApps: { [key: string]: InitializableVueApp } = {
+  ErrorPage: { component: ErrorPage },
+  ProxyChallengePage: { component: ProxyChallengePage },
 };
 
 // Init any apps on the current page

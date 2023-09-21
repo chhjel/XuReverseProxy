@@ -1,23 +1,21 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
-import { Vue } from 'vue-property-decorator'
+import { Vue } from "vue-property-decorator";
 
 @Options({
-	components: { }
+  components: {},
 })
-export default class VerticalLinesEffectComponent extends Vue {
-}
+export default class VerticalLinesEffectComponent extends Vue {}
 </script>
 
 <template>
-	<div class="vertical-lines-effect">
-        <div class="lines">
-            <div class="line"></div>
-            <div class="line"></div>
-            <div class="line"></div>
-        </div>
-
-	</div>
+  <div class="vertical-lines-effect">
+    <div class="lines">
+      <div class="line"></div>
+      <div class="line"></div>
+      <div class="line"></div>
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -50,25 +48,25 @@ export default class VerticalLinesEffectComponent extends Vue {
   left: 0;
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #ffffff 75%, #ffffff 100%);
   -webkit-animation: drop 7s 0s infinite;
-          animation: drop 7s 0s infinite;
+  animation: drop 7s 0s infinite;
   -webkit-animation-fill-mode: forwards;
-          animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
   -webkit-animation-timing-function: cubic-bezier(0.4, 0.26, 0, 0.97);
-          animation-timing-function: cubic-bezier(0.4, 0.26, 0, 0.97);
+  animation-timing-function: cubic-bezier(0.4, 0.26, 0, 0.97);
 }
 .line:nth-child(1) {
   margin-left: -25%;
 }
 .line:nth-child(1)::after {
   -webkit-animation-delay: 2s;
-          animation-delay: 2s;
+  animation-delay: 2s;
 }
 .line:nth-child(3) {
   margin-left: 25%;
 }
 .line:nth-child(3)::after {
   -webkit-animation-delay: 2.5s;
-          animation-delay: 2.5s;
+  animation-delay: 2.5s;
 }
 
 @-webkit-keyframes drop {

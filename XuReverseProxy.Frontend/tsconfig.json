@@ -1,35 +1,35 @@
 {
-	"include": ["./src/**/*"],
-	"exclude": ["node_modules/*", "public/*"],
-	"compilerOptions": {
-        "module": "commonjs",
-		"moduleResolution": "node",
-		"target": "es6",
-		"importsNotUsedAsValues": "remove",
-		"isolatedModules": true,
-		"esModuleInterop": true,
-		"experimentalDecorators": true,
-		"sourceMap": true,
-		"strict": false,
-		"noImplicitThis": true,
-		"baseUrl": "./",
-		"paths": {
-			"@generated/*": ["src/generated/*"],
-			"@pages/*": ["src/pages/*"],
-			"@gfx/*": ["src/gfx/*"],
-			"@components/*": ["src/components/*"],
-			"@factories/*": ["src/factories/*"],
-			"@services/*": ["src/services/*"],
-			"@utils/*": ["src/utils/*"],
-			"src/*": ["src/*"]
-		}
-	},
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules/*", "public/*"],
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es6",
+    "importsNotUsedAsValues": "remove",
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "strict": false,
+    "noImplicitThis": true,
+    "baseUrl": "./",
+    "paths": {
+      "@generated/*": ["src/generated/*"],
+      "@pages/*": ["src/pages/*"],
+      "@gfx/*": ["src/gfx/*"],
+      "@components/*": ["src/components/*"],
+      "@factories/*": ["src/factories/*"],
+      "@services/*": ["src/services/*"],
+      "@utils/*": ["src/utils/*"],
+      "src/*": ["src/*"]
+    }
+  },
 
-	// Fixes errors when changing `module` to ES in the above compiler options
-	// See: https://github.com/webpack/webpack-cli/issues/2458#issuecomment-846635277
-	"ts-node": {
-		"compilerOptions": {
-			"module": "commonjs"
-		}
-	}
+  // Fixes errors when changing `module` to ES in the above compiler options
+  // See: https://github.com/webpack/webpack-cli/issues/2458#issuecomment-846635277
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  }
 }

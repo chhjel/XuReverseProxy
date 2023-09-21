@@ -14,6 +14,6 @@ export interface ProxyAuthenticationData
 	challengeTypeId: string;
 	challengeJson: string;
 	solvedId: string;
-	solvedDuration: any;
+	solvedDuration: string;
 	conditions: ProxyAuthenticationCondition[];
 }

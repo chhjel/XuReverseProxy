@@ -1,4 +1,4 @@
-FROM node:16 as frontend-build
+FROM node:18 as frontend-build
 WORKDIR /frontend
 
 # Use BuildKit cache to persist yarn cache
