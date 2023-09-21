@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Models.Common;
 

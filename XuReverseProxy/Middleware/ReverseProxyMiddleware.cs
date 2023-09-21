@@ -70,39 +70,7 @@ public class ReverseProxyMiddleware
         // Prevent forwarding admin interface
         if ($"{subdomain}" == $"{serverConfig.CurrentValue.Domain.AdminSubdomain}")
         {
-            if (!context.Items.ContainsKey("IsAdminPage")) context.Items.Add("IsAdminPage", true);
-
-            // Validate that admin IP has not changed since login if enabled
-            ApplicationUser? adminUser = null;
-            if (serverConfig.CurrentValue.Security.BindAdminCookieToIP)
-            {
-                (var ipChanged, adminUser) = await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager, runtimeServerConfig, notificationService);
-                if (ipChanged)
-                {
-                    context.Response.Clear();
-                    if (context.Request.Method == HttpMethod.Get.Method)
-                    {
-                        context.Response.Redirect("/auth/login?err=ip_changed");
-                    }
-                    else
-                    {
-                        context.Response.Headers["__xurp_err"] = "ip_changed";
-                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    }
-
-                    return;
-                }
-            }
-
-            if (context.User.Identity?.IsAuthenticated == true)
-            {
-                await notificationService.TryNotifyEvent(NotificationTrigger.AdminRequests,
-                    new Dictionary<string, string?> {
-                        { "Url", context.Request.GetDisplayUrl() }
-                    }, adminUser);
-            }
-
-            await _nextMiddleware(context);
+            await HandleAdminDomainRequestAsync(context, serverConfig, applicationDbContext, runtimeServerConfig, userManager, signInManager, notificationService, ipData);
             return;
         }
         // Check killswitch
@@ -208,6 +176,45 @@ public class ReverseProxyMiddleware
                 await SetResponseAsync(context, proxyConfig.StaticHTML);
             }
         }
+    }
+
+    private async Task HandleAdminDomainRequestAsync(HttpContext context, IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext applicationDbContext,
+        RuntimeServerConfig runtimeServerConfig, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
+        INotificationService notificationService, TKIPData? ipData)
+    {
+        if (!context.Items.ContainsKey("IsAdminPage")) context.Items.Add("IsAdminPage", true);
+
+        // Validate that admin IP has not changed since login if enabled
+        ApplicationUser? adminUser = null;
+        if (serverConfig.CurrentValue.Security.BindAdminCookieToIP)
+        {
+            (var ipChanged, adminUser) = await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager, runtimeServerConfig, notificationService);
+            if (ipChanged)
+            {
+                context.Response.Clear();
+                if (context.Request.Method == HttpMethod.Get.Method)
+                {
+                    context.Response.Redirect("/auth/login?err=ip_changed");
+                }
+                else
+                {
+                    context.Response.Headers["__xurp_err"] = "ip_changed";
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                }
+
+                return;
+            }
+        }
+
+        if (context.User.Identity?.IsAuthenticated == true)
+        {
+            await notificationService.TryNotifyEvent(NotificationTrigger.AdminRequests,
+                new Dictionary<string, string?> {
+                        { "Url", context.Request.GetDisplayUrl() }
+                }, adminUser);
+        }
+
+        await _nextMiddleware(context);
     }
 
     private static async Task<(bool ipChanged, ApplicationUser? user)> CheckForChangedUserIP(HttpContext context, ApplicationDbContext applicationDbContext, TKIPData? ipData,
