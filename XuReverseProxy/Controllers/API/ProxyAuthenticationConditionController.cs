@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Models.Common;
+using XuReverseProxy.Core.Extensions;
 
 namespace XuReverseProxy.Controllers.API;
 
@@ -11,6 +12,13 @@ public class ProxyAuthenticationConditionController : EFCrudControllerBase<Proxy
         : base(context,
             () => context.ProxyAuthenticationConditions)
     {
+    }
+
+    protected override Task<GenericResultData<ProxyAuthenticationCondition>> ValidateEntityAsync(ProxyAuthenticationCondition entity)
+    {
+        entity.DateTimeUtc1 = entity.DateTimeUtc1.SetKindUtc();
+        entity.DateTimeUtc2 = entity.DateTimeUtc2.SetKindUtc();
+        return base.ValidateEntityAsync(entity);
     }
 
     [HttpGet("fromAuthData/{authDataId}")]

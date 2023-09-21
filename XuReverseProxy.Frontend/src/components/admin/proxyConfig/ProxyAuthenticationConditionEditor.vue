@@ -8,12 +8,14 @@ import { ProxyAuthenticationCondition } from "@generated/Models/Core/ProxyAuthen
 import { createProxyAuthenticationConditionSummary } from "@utils/ProxyAuthenticationConditionUtils";
 import { DayOfWeekFlags } from "@generated/Enums/Core/DayOfWeekFlags";
 import TimeOnlyInputComponent from "@components/inputs/TimeOnlyInputComponent.vue";
+import DateTimeInputComponent from "@components/inputs/DateTimeInputComponent.vue";
 
 @Options({
   components: {
     TextInputComponent,
     ButtonComponent,
     TimeOnlyInputComponent,
+    DateTimeInputComponent,
   },
 })
 export default class ProxyAuthenticationConditionEditor extends Vue {
@@ -72,8 +74,8 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
     </select>
 
     <div v-if="localValue.conditionType == 'DateTimeRange'">
-      <text-input-component label="From" v-model:value="localValue.dateTimeUtc1" :disabled="disabled" />
-      <text-input-component label="To" v-model:value="localValue.dateTimeUtc2" :disabled="disabled" />
+      <date-time-input-component label="From" v-model:value="localValue.dateTimeUtc1" :disabled="disabled" />
+      <date-time-input-component label="To" v-model:value="localValue.dateTimeUtc2" :disabled="disabled" />
     </div>
     <div v-else-if="localValue.conditionType == 'TimeRange'">
       <time-only-input-component label="From" v-model:value="localValue.timeOnlyUtc1" :disabled="disabled" />
