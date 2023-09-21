@@ -1,10 +1,10 @@
-@import url("variables.scss");
-@import url("utils.scss");
-@import url("inputs.scss");
-@import url("layout.scss");
-@import url("elements/block.scss");
-@import url("elements/code.scss");
-@import url("./lib/leaflet.scss");
+@import "variables.scss";
+@import "utils.scss";
+@import "inputs.scss";
+@import "layout.scss";
+@import "elements/block.scss";
+@import "elements/code.scss";
+@import "./lib/leaflet.scss";
 
 html,
 body {
