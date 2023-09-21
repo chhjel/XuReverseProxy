@@ -26,8 +26,8 @@ public static class RTConfig
         builder.Substitute(typeof(MethodInfo), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(PropertyInfo), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(Regex), new RtSimpleTypeName("any"));
-        builder.Substitute(typeof(TimeOnly), new RtSimpleTypeName("any"));
-        builder.Substitute(typeof(TimeSpan), new RtSimpleTypeName("any"));
+        builder.Substitute(typeof(TimeOnly), new RtSimpleTypeName("string"));
+        builder.Substitute(typeof(TimeSpan), new RtSimpleTypeName("string"));
         builder.Substitute(typeof(EventId), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(KeyValuePair<,>), new RtSimpleTypeName("any"));
         builder.Substitute(typeof(Stream), new RtSimpleTypeName("any"));

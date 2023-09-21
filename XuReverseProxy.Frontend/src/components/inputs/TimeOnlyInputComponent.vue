@@ -10,7 +10,7 @@ import ButtonComponent from "./ButtonComponent.vue";
     ButtonComponent,
   },
 })
-export default class TimeSpanInputComponent extends Vue {
+export default class TimeOnlyInputComponent extends Vue {
   @Prop({ required: true })
   value!: string;
 
@@ -32,9 +32,8 @@ export default class TimeSpanInputComponent extends Vue {
   @Prop({ required: false, default: false })
   emptyIsNull: boolean;
 
-  placeholder: string = "0";
+  placeholder: string = "00";
 
-  localValueDays: string = "";
   localValueHours: string = "";
   localValueMinutes: string = "";
   localValueSeconds: string = "";
@@ -57,22 +56,17 @@ export default class TimeSpanInputComponent extends Vue {
   @Watch("value")
   updateLocalValue(): void {
     if (!this.value) {
-      this.localValueDays = "";
       this.localValueHours = "";
       this.localValueMinutes = "";
       this.localValueSeconds = "";
     } else if (this.value.includes(".")) {
-      let parts = this.value.split(".");
-      this.localValueDays = parts[0];
-
-      let hmsParts = parts[1].split(":");
+      let hmsParts = this.value.split(":");
       this.localValueHours = isNaN(parseInt(hmsParts[0])) ? "0" : parseInt(hmsParts[0]).toString() || "0";
       this.localValueMinutes = isNaN(parseInt(hmsParts[1])) ? "0" : parseInt(hmsParts[1]).toString() || "0";
       this.localValueSeconds = isNaN(parseInt(hmsParts[2])) ? "0" : parseInt(hmsParts[2]).toString() || "0";
     }
   }
 
-  @Watch("localValueDays")
   @Watch("localValueHours")
   @Watch("localValueMinutes")
   @Watch("localValueSeconds")
@@ -82,11 +76,6 @@ export default class TimeSpanInputComponent extends Vue {
       return;
     }
 
-    this.validateInput(
-      () => this.localValueDays,
-      (v) => (this.localValueDays = v),
-      10000000,
-    );
     this.validateInput(
       () => this.localValueHours,
       (v) => (this.localValueHours = v),
@@ -106,15 +95,14 @@ export default class TimeSpanInputComponent extends Vue {
     let valueToEmit: string | null = null;
     if (
       this.emptyIsNull &&
-      `${this.localValueDays}${this.localValueHours}${this.localValueMinutes}${this.localValueSeconds}` === ""
+      `${this.localValueHours}${this.localValueMinutes}${this.localValueSeconds}` === ""
     ) {
       valueToEmit = null;
     } else {
-      let days = this.localValueDays || "0";
       let hours = (this.localValueHours || "0").padStart(2, "0");
       let minutes = (this.localValueMinutes || "0").padStart(2, "0");
       let seconds = (this.localValueSeconds || "0").padStart(2, "0");
-      valueToEmit = `${days}.${hours}:${minutes}:${seconds}`;
+      valueToEmit = `${hours}:${minutes}:${seconds}`;
     }
 
     this.$emit("update:value", valueToEmit);
@@ -133,7 +121,6 @@ export default class TimeSpanInputComponent extends Vue {
   }
 
   clear(): void {
-    this.localValueDays = "";
     this.localValueHours = "";
     this.localValueMinutes = "";
     this.localValueSeconds = "";
@@ -145,25 +132,21 @@ export default class TimeSpanInputComponent extends Vue {
   <div class="input-wrapper" :class="wrapperClasses">
     <input-header-component :label="label" :description="description" />
 
-    <div class="timespan__inputs">
-      <div class="timespan__input-wrapper">
-        <div>Days</div>
-        <input type="text" v-model="localValueDays" :disabled="disabled" :placeholder="placeholder" />
-      </div>
-      <div class="timespan__input-wrapper">
-        <div>Hours</div>
+    <div class="timeonly__inputs">
+      <div class="timeonly__input-wrapper">
+        <div>Hour</div>
         <input type="text" v-model="localValueHours" :disabled="disabled" :placeholder="placeholder" />
       </div>
-      <div class="timespan__input-wrapper">
-        <div>Minutes</div>
+      <div class="timeonly__input-wrapper">
+        <div>Minute</div>
         <input type="text" v-model="localValueMinutes" :disabled="disabled" :placeholder="placeholder" />
       </div>
-      <div class="timespan__input-wrapper">
-        <div>Seconds</div>
+      <div class="timeonly__input-wrapper">
+        <div>Second</div>
         <input type="text" v-model="localValueSeconds" :disabled="disabled" :placeholder="placeholder" />
       </div>
 
-      <div class="timespan__clear">
+      <div class="timeonly__clear">
         <button-component
           icon="close"
           :disabled="disabled"
@@ -177,7 +160,7 @@ export default class TimeSpanInputComponent extends Vue {
       </div>
     </div>
 
-    <div class="timespan__note">
+    <div class="timeonly__note">
       <code v-if="value === null && noteIfNull">{{ noteIfNull }}</code>
       <code v-if="value !== null && noteIfNotNull">{{ noteIfNotNull }}</code>
     </div>
@@ -185,11 +168,11 @@ export default class TimeSpanInputComponent extends Vue {
 </template>
 
 <style scoped lang="scss">
-.timespan__inputs {
+.timeonly__inputs {
   display: flex;
   flex-wrap: nowrap;
 }
-.timespan__input-wrapper {
+.timeonly__input-wrapper {
   width: 70px;
   margin-right: 4px;
   color: var(--color--text-dark);
@@ -198,7 +181,7 @@ export default class TimeSpanInputComponent extends Vue {
     width: 45px;
   }
 }
-.timespan__clear {
+.timeonly__clear {
   margin-top: 22px;
 }
 </style>
