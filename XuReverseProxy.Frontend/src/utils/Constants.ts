@@ -1,3 +1,4 @@
+import { DayOfWeekFlags } from "@generated/Enums/Core/DayOfWeekFlags";
 import { BlockedIpDataType } from "./../generated/Enums/Core/BlockedIpDataType";
 import { NotificationAlertType } from "./../generated/Enums/Core/NotificationAlertType";
 import { NotificationTrigger } from "./../generated/Enums/Core/NotificationTrigger";
@@ -173,6 +174,16 @@ export const CommonPlaceholders: Array<PlaceholderInfo> = [
   { name: "Minute", description: "Current minute." },
   { name: "Month", description: "Current month number." },
   { name: "Year", description: "Current year." },
+];
+
+export const WeekdayOptions: Array<DayOfWeekFlags> = [
+  DayOfWeekFlags.Monday,
+  DayOfWeekFlags.Tuesday,
+  DayOfWeekFlags.Wednesday,
+  DayOfWeekFlags.Thursday,
+  DayOfWeekFlags.Friday,
+  DayOfWeekFlags.Saturday,
+  DayOfWeekFlags.Sunday,
 ];
 
 //////////////////////////////////////////////////////////////////////////////////////
