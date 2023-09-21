@@ -128,8 +128,8 @@ public class RuntimeServerConfig
 
     private string? GetConfig(string key, string? fallback = null)
     {
-        var item = _dbContext.RuntimeServerConfigItems.FirstOrDefault(x => x.Key == key);
         if (_memoryCache.TryGetValue($"rsc_{key}", out string? val)) return val;
+        var item = _dbContext.RuntimeServerConfigItems.FirstOrDefault(x => x.Key == key);
         return item == null ? fallback : item.Value;
     }
 

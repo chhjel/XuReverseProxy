@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using QoDL.Toolkit.Core.Util;
 using XuReverseProxy.Core.Models.DbEntity;
 
@@ -15,21 +13,17 @@ public interface IIPBlockService
     Task<BlockedIpData> BlockIPCidrRangeAsync(string ipCidr, string note, Guid? relatedClientId);
     Task RemoveIPBlockByIdAsync(Guid id);
     bool TryRegexMatch(string pattern, string value);
-    void InvalidateCache();
 }
 
 public class IPBlockService : IIPBlockService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IMemoryCache _memoryCache;
-    private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
 
-    public IPBlockService(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
+    public IPBlockService(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
         _httpContextAccessor = httpContextAccessor;
-        _memoryCache = memoryCache;
     }
 
     public async Task<bool> IsIPBlockedAsync(string ip)
@@ -37,7 +31,7 @@ public class IPBlockService : IIPBlockService
 
     public async Task<BlockedIpData?> GetMatchingBlockedIpDataForAsync(string ip, bool allowDisabled)
     {
-        var ipdatas = await GetIpDatasWithCacheAsync();
+        var ipdatas = await _dbContext.GetWithCacheAsync(x => x.BlockedIpDatas);
         foreach (var ipdata in ipdatas)
         {
             if (!allowDisabled && !ipdata.Enabled) continue;
@@ -78,7 +72,7 @@ public class IPBlockService : IIPBlockService
         _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext, $"Blocked IP '{ip}'."));
 
         await _dbContext.SaveChangesAsync();
-        InvalidateCache();
+        _dbContext.InvalidateCacheFor<BlockedIpData>();
         return data;
     }
 
@@ -93,7 +87,7 @@ public class IPBlockService : IIPBlockService
         _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext, $"Blocked IP by RegEx '{ipRegex}'."));
 
         await _dbContext.SaveChangesAsync();
-        InvalidateCache();
+        _dbContext.InvalidateCacheFor<BlockedIpData>();
         return data;
     }
 
@@ -108,7 +102,7 @@ public class IPBlockService : IIPBlockService
         _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext, $"Blocked IP CIDR range '{ipCidr}'."));
 
         await _dbContext.SaveChangesAsync();
-        InvalidateCache();
+        _dbContext.InvalidateCacheFor<BlockedIpData>();
         return data;
     }
 
@@ -125,7 +119,7 @@ public class IPBlockService : IIPBlockService
         _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext, $"Removed IP block '{val}'."));
 
         await _dbContext.SaveChangesAsync();
-        InvalidateCache();
+        _dbContext.InvalidateCacheFor<BlockedIpData>();
     }
 
     private static readonly TKCachedRegexContainer _regexCache = new();
@@ -148,15 +142,15 @@ public class IPBlockService : IIPBlockService
             RelatedClientId = relatedClientId
         };
 
-    private const string _cacheKey = $"{nameof(IPBlockService)}_allIpRules";
-    public void InvalidateCache() => _memoryCache.Remove(_cacheKey);
-    private async Task<List<BlockedIpData>> GetIpDatasWithCacheAsync()
-    {
-        if (_memoryCache.TryGetValue(_cacheKey, out List<BlockedIpData>? val) && val != null) return val;
+    //private const string _cacheKey = $"{nameof(IPBlockService)}_allIpRules";
+    //public void InvalidateCache() => _memoryCache.Remove(_cacheKey);
+    //private async Task<List<BlockedIpData>> GetIpDatasWithCacheAsync()
+    //{
+    //    if (_memoryCache.TryGetValue(_cacheKey, out List<BlockedIpData>? val) && val != null) return val;
 
-        var data = await _dbContext.BlockedIpDatas.ToListAsync();
-        _memoryCache.Set(_cacheKey, data, _cacheDuration);
+    //    var data = await _dbContext.BlockedIpDatas.ToListAsync();
+    //    _memoryCache.Set(_cacheKey, data, _cacheDuration);
 
-        return data;
-    }
+    //    return data;
+    //}
 }

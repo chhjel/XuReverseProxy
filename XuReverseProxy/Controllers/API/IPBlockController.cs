@@ -19,8 +19,6 @@ public class IPBlockController : EFCrudControllerBase<BlockedIpData>
         _ipBlockService = ipBlockService;
     }
 
-    protected override void OnDataModified() => _ipBlockService.InvalidateCache();
-
     [HttpPost("IsIPBlocked")]
     public async Task<bool> IsIPBlockedAsync([FromBody] string ip)
         => await _ipBlockService.IsIPBlockedAsync(ip);

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using XuReverseProxy.Core.Abstractions;
 
@@ -36,11 +37,14 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
     protected readonly IConfiguration Configuration;
+    private readonly IMemoryCache _memoryCache;
+    private static readonly IMemoryCache _clientMemoryCache = new MemoryCache(new MemoryCacheOptions() { SizeLimit = 10000 });
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IConfiguration configuration)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IConfiguration configuration, IMemoryCache memoryCache)
         : base(options)
     {
         Configuration = configuration;
+        _memoryCache = memoryCache;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -103,5 +107,38 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
         var match = Set<T>().Local.FirstOrDefault(e => e.Id == entity.Id);
         if (match == null) return;
         Entry(match).State = EntityState.Detached;
+    }
+
+    public void InvalidateCacheFor<T>()
+        => _memoryCache.Remove($"all_{typeof(T)}");
+
+    public async Task<List<T>> GetWithCacheAsync<T>(Func<ApplicationDbContext, DbSet<T>> entities)
+        where T : class
+    {
+        var cacheKey = $"all_{typeof(T)}";
+        if (_memoryCache.TryGetValue(cacheKey, out var val) && val is List<T> list) return list;
+
+        var data = entities(this);
+
+        list = await data.ToListAsync();
+        _memoryCache.Set(cacheKey, list, TimeSpan.FromMinutes(5));
+        return list;
+    }
+
+    public void InvalidateClientCache(Guid id)
+        => _clientMemoryCache.Remove($"{id}");
+
+    public async Task<ProxyClientIdentity?> GetClientWithCacheAsync(Guid id)
+    {
+        var cacheKey = $"{id}";
+        if (_clientMemoryCache.TryGetValue(cacheKey, out var val) && val is ProxyClientIdentity item) return item;
+
+        var client = await ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == id);
+        if (client != null) _clientMemoryCache.Set(cacheKey, client, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+            Size = 1
+        });
+        return client;
     }
 }

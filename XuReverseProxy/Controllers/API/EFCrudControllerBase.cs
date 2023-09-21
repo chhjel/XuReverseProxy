@@ -147,7 +147,10 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
     protected virtual IQueryable<TEntity> OnGetSingle(DbSet<TEntity> entities) => entities;
     protected virtual IQueryable<TEntity> OnGetAll(DbSet<TEntity> entities) => entities;
 
-    protected virtual void OnDataModified() { }
+    protected virtual void OnDataModified()
+    {
+        _dbContext.InvalidateCacheFor<TEntity>();
+    }
 
     /// <summary>
     /// Configure dbset to include all descendants.

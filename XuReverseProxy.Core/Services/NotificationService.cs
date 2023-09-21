@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.Web;
 using XuReverseProxy.Core.Abstractions;
@@ -42,8 +41,9 @@ public class NotificationService : INotificationService
         if (!_runtimeServerConfig.EnableNotifications) return;
 
         var now = DateTime.UtcNow;
-        var matchingRules = await _dbContext.NotificationRules.Where(x => x.Enabled && x.TriggerType == trigger)
-            .ToListAsync();
+        var matchingRules = (await _dbContext.GetWithCacheAsync(x => x.NotificationRules))
+            .Where(x => x.Enabled && x.TriggerType == trigger)
+            .ToList();
 
         foreach (var rule in matchingRules)
         {
@@ -122,6 +122,7 @@ public class NotificationService : INotificationService
         {
             rule.LastNotifiedAtUtc = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync();
+            _dbContext.InvalidateCacheFor<NotificationRule>();
         }
     }
 }

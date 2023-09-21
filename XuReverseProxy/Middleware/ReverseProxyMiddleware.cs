@@ -82,7 +82,7 @@ public class ReverseProxyMiddleware
         }
 
         // Prevent forwarding if no proxy is configured for the current subdomain
-        var proxyConfig = await applicationDbContext.ProxyConfigs.FirstOrDefaultAsync(x =>
+        var proxyConfig = (await applicationDbContext.GetWithCacheAsync(x => x.ProxyConfigs)).FirstOrDefault(x =>
             x.Enabled
             && x.Subdomain == subdomain
             && (x.Port == null || x.Port == port)
@@ -96,7 +96,9 @@ public class ReverseProxyMiddleware
 
         // Resolve session data for client
         ProxyClientIdentity? clientIdentity = null;
-        var authentications = applicationDbContext.ProxyAuthenticationDatas.Where(x => x.ProxyConfigId == proxyConfig.Id).ToArray();
+        var authentications = (await applicationDbContext.GetWithCacheAsync(x => x.ProxyAuthenticationDatas))
+            .Where(x => x.ProxyConfigId == proxyConfig.Id)
+            .ToArray();
         var requiresAuthentication = authentications.Any();
         if (requiresAuthentication)
         {
@@ -262,7 +264,7 @@ public class ReverseProxyMiddleware
         ProxyConfig proxyConfig, HttpContext context, ProxyChallengePageFrontendModel pageModel, ApplicationDbContext applicationDbContext,
         IProxyAuthenticationChallengeFactory authChallengeFactory, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
     {
-        var challengeData = proxyChallengeService.GetChallengeRequirementData(auth.Id);
+        var challengeData = await proxyChallengeService.GetChallengeRequirementDataAsync(auth.Id);
         if (!challengeData.All(c => c.Passed))
         {
             // Update viewmodel
