@@ -182,7 +182,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
 
     public async Task<bool> BlockIdentityAsync(Guid identityId, string message)
     {
-        var data = await _dbContext.GetClientWithCacheAsync(identityId);
+        var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
         if (data == null) return false;
 
         data.Blocked = true;
@@ -200,7 +200,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
     }
     public async Task<bool> UnBlockIdentityAsync(Guid identityId)
     {
-        var data = await _dbContext.GetClientWithCacheAsync(identityId);
+        var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
         if (data == null) return false;
 
         data.Blocked = false;
@@ -220,7 +220,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
 
     public async Task<bool> SetClientNoteAsync(Guid identityId, string note)
     {
-        var data = await _dbContext.GetClientWithCacheAsync(identityId);
+        var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
         if (data == null) return false;
 
         data.Note = note;

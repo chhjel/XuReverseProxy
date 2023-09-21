@@ -82,11 +82,12 @@ public class ReverseProxyMiddleware
         }
 
         // Prevent forwarding if no proxy is configured for the current subdomain
-        var proxyConfig = (await applicationDbContext.GetWithCacheAsync(x => x.ProxyConfigs)).FirstOrDefault(x =>
-            x.Enabled
-            && x.Subdomain == subdomain
-            && (x.Port == null || x.Port == port)
-        );
+        var proxyConfig = (await applicationDbContext.GetWithCacheAsync(x => x.ProxyConfigs))
+            .FirstOrDefault(x =>
+                x.Enabled
+                && x.Subdomain == subdomain
+                && (x.Port == null || x.Port == port)
+            );
         if (proxyConfig == null)
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);

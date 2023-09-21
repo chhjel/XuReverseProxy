@@ -13,6 +13,13 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
     {
     }
 
+    protected override void OnDataModified()
+    {
+        base.OnDataModified();
+        _dbContext.InvalidateCacheFor<ProxyConfig>();
+        _dbContext.InvalidateCacheFor<ProxyAuthenticationCondition>();
+    }
+
     [HttpGet("fromConfig/{configId}")]
     public async Task<GenericResultData<List<ProxyAuthenticationData>>> GetFromConfigAsync([FromRoute] Guid configId)
     {

@@ -130,6 +130,7 @@ public class RuntimeServerConfig
     {
         if (_memoryCache.TryGetValue($"rsc_{key}", out string? val)) return val;
         var item = _dbContext.RuntimeServerConfigItems.FirstOrDefault(x => x.Key == key);
+        if (item != null) _memoryCache.Set($"rsc_{key}", item.Value, _cacheDuration);
         return item == null ? fallback : item.Value;
     }
 

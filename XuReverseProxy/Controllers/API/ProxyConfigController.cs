@@ -12,6 +12,13 @@ public class ProxyConfigController : EFCrudControllerBase<ProxyConfig>
     {
     }
 
+    protected override void OnDataModified()
+    {
+        base.OnDataModified();
+        _dbContext.InvalidateCacheFor<ProxyAuthenticationData>();
+        _dbContext.InvalidateCacheFor<ProxyAuthenticationCondition>();
+    }
+
     public override async Task<GenericResultData<ProxyConfig>> CreateOrUpdateEntityAsync([FromBody] ProxyConfig entity)
     {
         if (!ModelState.IsValid) return GenericResult.CreateError<ProxyConfig>(ModelState);

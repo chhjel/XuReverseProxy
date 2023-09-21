@@ -110,7 +110,20 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     }
 
     public void InvalidateCacheFor<T>()
-        => _memoryCache.Remove($"all_{typeof(T)}");
+    {
+        _memoryCache.Remove($"all_{typeof(T)}");
+
+        if (typeof(T) == typeof(ProxyAuthenticationData))
+        {
+            _memoryCache.Remove($"all_{typeof(ProxyAuthenticationCondition)}");
+            _memoryCache.Remove($"all_{typeof(ProxyConfig)}");
+        }
+        if (typeof(T) == typeof(ProxyAuthenticationCondition))
+        {
+            _memoryCache.Remove($"all_{typeof(ProxyAuthenticationData)}");
+            _memoryCache.Remove($"all_{typeof(ProxyConfig)}");
+        }
+    }
 
     public async Task<List<T>> GetWithCacheAsync<T>(Func<ApplicationDbContext, DbSet<T>> entities)
         where T : class
@@ -120,9 +133,27 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
 
         var data = entities(this);
 
-        list = await data.ToListAsync();
+        list = await LoadEntitiesForCache(data);
         _memoryCache.Set(cacheKey, list, TimeSpan.FromMinutes(5));
         return list;
+    }
+
+    private async Task<List<T>> LoadEntitiesForCache<T>(DbSet<T> dbSet)
+        where T : class
+    {
+        if (dbSet is DbSet<ProxyConfig> proxyConfigSet)
+        {
+            return (await proxyConfigSet
+                .Include(x => x.Authentications)
+                .ThenInclude(x => x.Conditions)
+                .ToArrayAsync())
+                .Cast<T>()
+                .ToList();
+        }
+        else
+        {
+            return await dbSet.ToListAsync();
+        }
     }
 
     public void InvalidateClientCache(Guid id)
