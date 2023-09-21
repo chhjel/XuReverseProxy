@@ -133,12 +133,12 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
 
         var data = entities(this);
 
-        list = await LoadEntitiesForCache(data);
+        list = await LoadEntitiesForCacheAsync(data);
         _memoryCache.Set(cacheKey, list, TimeSpan.FromMinutes(5));
         return list;
     }
 
-    private async Task<List<T>> LoadEntitiesForCache<T>(DbSet<T> dbSet)
+    private async Task<List<T>> LoadEntitiesForCacheAsync<T>(DbSet<T> dbSet)
         where T : class
     {
         if (dbSet is DbSet<ProxyConfig> proxyConfigSet)

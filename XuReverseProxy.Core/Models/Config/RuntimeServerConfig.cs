@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
+using QoDL.Toolkit.Core.Util;
 using QoDL.Toolkit.Web.Core.Utils;
 using System.Globalization;
 using XuReverseProxy.Core.Logging;
@@ -14,14 +14,11 @@ public class RuntimeServerConfig
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IMemoryCache _memoryCache;
-    private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5);
 
-    public RuntimeServerConfig(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
+    public RuntimeServerConfig(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
         _httpContextAccessor = httpContextAccessor;
-        _memoryCache = memoryCache;
     }
 
     /// <summary>
@@ -128,9 +125,7 @@ public class RuntimeServerConfig
 
     private string? GetConfig(string key, string? fallback = null)
     {
-        if (_memoryCache.TryGetValue($"rsc_{key}", out string? val)) return val;
-        var item = _dbContext.RuntimeServerConfigItems.FirstOrDefault(x => x.Key == key);
-        if (item != null) _memoryCache.Set($"rsc_{key}", item.Value, _cacheDuration);
+        var item = TKAsyncUtils.RunSync(() => _dbContext.GetWithCacheAsync(x => x.RuntimeServerConfigItems)).FirstOrDefault(x => x.Key == key);
         return item == null ? fallback : item.Value;
     }
 
@@ -155,7 +150,7 @@ public class RuntimeServerConfig
             _dbContext.SaveChanges();
         }
 
-        _memoryCache.Set($"rsc_{key}", value, _cacheDuration);
+        _dbContext.InvalidateCacheFor<RuntimeServerConfigItem>();
 
         void updateCommon(RuntimeServerConfigItem existing)
         {
