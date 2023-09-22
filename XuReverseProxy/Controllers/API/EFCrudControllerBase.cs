@@ -41,6 +41,7 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
             _dbContext.EnsureDetached(entity);
             var result = _dbContext.Update(entity);
             await _dbContext.SaveChangesAsync();
+            OnDataModified();
 
             // Return entity object with any modifiers from OnGetSingle overrides.
             var updatedEntityResult = await GetEntityAsync(entity.Id);
@@ -131,6 +132,7 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
             if (entity == null) return GenericResult.CreateSuccess();
             _dbContext.Remove(entity);
             await _dbContext.SaveChangesAsync();
+            OnDataModified();
             return GenericResult.CreateSuccess();
         }
         catch (Exception ex)
@@ -144,6 +146,11 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
 
     protected virtual IQueryable<TEntity> OnGetSingle(DbSet<TEntity> entities) => entities;
     protected virtual IQueryable<TEntity> OnGetAll(DbSet<TEntity> entities) => entities;
+
+    protected virtual void OnDataModified()
+    {
+        _dbContext.InvalidateCacheFor<TEntity>();
+    }
 
     /// <summary>
     /// Configure dbset to include all descendants.

@@ -49,7 +49,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
     }
 
     public async Task<ProxyClientIdentity?> GetProxyClientIdentityAsync(Guid id)
-        => await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == id);
+        => await _dbContext.GetClientWithCacheAsync(id);
 
     public async Task<ProxyClientIdentity?> GetCurrentProxyClientIdentityAsync(HttpContext context)
     {
@@ -87,7 +87,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         var userAgent = context.Request.Headers.UserAgent; // CleanUserAgent(context.Request.Headers.UserAgent);
 
         // Get or create identity
-        var identity = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
+        var identity = await _dbContext.GetClientWithCacheAsync(identityId);
         if (identity == null)
         {
             identity = new ProxyClientIdentity
@@ -195,6 +195,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         );
         _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, data.NameForLog(), $"Was blocked"));
         await _dbContext.SaveChangesAsync();
+        _dbContext.InvalidateClientCache(identityId);
         return true;
     }
     public async Task<bool> UnBlockIdentityAsync(Guid identityId)
@@ -213,6 +214,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, data.NameForLog(), $"Was unblocked"));
 
         await _dbContext.SaveChangesAsync();
+        _dbContext.InvalidateClientCache(identityId);
         return true;
     }
 
@@ -224,12 +226,13 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         data.Note = note;
 
         await _dbContext.SaveChangesAsync();
+        _dbContext.InvalidateClientCache(identityId);
         return true;
     }
 
     public async Task TryUpdateLastAccessedAtAsync(Guid identityId)
     {
-        var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
+        var data = await _dbContext.GetClientWithCacheAsync(identityId);
         if (data == null) return;
 
         // Only update last accessed timestamp after 5 minutes
@@ -237,5 +240,6 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
 
         data.LastAccessedAtUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
+        _dbContext.InvalidateClientCache(identityId);
     }
 }

@@ -70,39 +70,7 @@ public class ReverseProxyMiddleware
         // Prevent forwarding admin interface
         if ($"{subdomain}" == $"{serverConfig.CurrentValue.Domain.AdminSubdomain}")
         {
-            if (!context.Items.ContainsKey("IsAdminPage")) context.Items.Add("IsAdminPage", true);
-
-            // Validate that admin IP has not changed since login if enabled
-            ApplicationUser? adminUser = null;
-            if (serverConfig.CurrentValue.Security.BindAdminCookieToIP)
-            {
-                (var ipChanged, adminUser) = await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager, runtimeServerConfig, notificationService);
-                if (ipChanged)
-                {
-                    context.Response.Clear();
-                    if (context.Request.Method == HttpMethod.Get.Method)
-                    {
-                        context.Response.Redirect("/auth/login?err=ip_changed");
-                    }
-                    else
-                    {
-                        context.Response.Headers["__xurp_err"] = "ip_changed";
-                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    }
-
-                    return;
-                }
-            }
-
-            if (context.User.Identity?.IsAuthenticated == true)
-            {
-                await notificationService.TryNotifyEvent(NotificationTrigger.AdminRequests,
-                    new Dictionary<string, string?> {
-                        { "Url", context.Request.GetDisplayUrl() }
-                    }, adminUser);
-            }
-
-            await _nextMiddleware(context);
+            await HandleAdminDomainRequestAsync(context, serverConfig, applicationDbContext, runtimeServerConfig, userManager, signInManager, notificationService, ipData);
             return;
         }
         // Check killswitch
@@ -114,11 +82,12 @@ public class ReverseProxyMiddleware
         }
 
         // Prevent forwarding if no proxy is configured for the current subdomain
-        var proxyConfig = await applicationDbContext.ProxyConfigs.FirstOrDefaultAsync(x =>
-            x.Enabled
-            && x.Subdomain == subdomain
-            && (x.Port == null || x.Port == port)
-        );
+        var proxyConfig = (await applicationDbContext.GetWithCacheAsync(x => x.ProxyConfigs))
+            .FirstOrDefault(x =>
+                x.Enabled
+                && x.Subdomain == subdomain
+                && (x.Port == null || x.Port == port)
+            );
         if (proxyConfig == null)
         {
             var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
@@ -128,7 +97,9 @@ public class ReverseProxyMiddleware
 
         // Resolve session data for client
         ProxyClientIdentity? clientIdentity = null;
-        var authentications = applicationDbContext.ProxyAuthenticationDatas.Where(x => x.ProxyConfigId == proxyConfig.Id).ToArray();
+        var authentications = (await applicationDbContext.GetWithCacheAsync(x => x.ProxyAuthenticationDatas))
+            .Where(x => x.ProxyConfigId == proxyConfig.Id)
+            .ToArray();
         var requiresAuthentication = authentications.Any();
         if (requiresAuthentication)
         {
@@ -210,6 +181,45 @@ public class ReverseProxyMiddleware
         }
     }
 
+    private async Task HandleAdminDomainRequestAsync(HttpContext context, IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext applicationDbContext,
+        RuntimeServerConfig runtimeServerConfig, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
+        INotificationService notificationService, TKIPData? ipData)
+    {
+        if (!context.Items.ContainsKey("IsAdminPage")) context.Items.Add("IsAdminPage", true);
+
+        // Validate that admin IP has not changed since login if enabled
+        ApplicationUser? adminUser = null;
+        if (serverConfig.CurrentValue.Security.BindAdminCookieToIP)
+        {
+            (var ipChanged, adminUser) = await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager, runtimeServerConfig, notificationService);
+            if (ipChanged)
+            {
+                context.Response.Clear();
+                if (context.Request.Method == HttpMethod.Get.Method)
+                {
+                    context.Response.Redirect("/auth/login?err=ip_changed");
+                }
+                else
+                {
+                    context.Response.Headers["__xurp_err"] = "ip_changed";
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                }
+
+                return;
+            }
+        }
+
+        if (context.User.Identity?.IsAuthenticated == true)
+        {
+            await notificationService.TryNotifyEvent(NotificationTrigger.AdminRequests,
+                new Dictionary<string, string?> {
+                        { "Url", context.Request.GetDisplayUrl() }
+                }, adminUser);
+        }
+
+        await _nextMiddleware(context);
+    }
+
     private static async Task<(bool ipChanged, ApplicationUser? user)> CheckForChangedUserIP(HttpContext context, ApplicationDbContext applicationDbContext, TKIPData? ipData,
         UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RuntimeServerConfig serverConfig, INotificationService notificationService)
     {
@@ -255,7 +265,7 @@ public class ReverseProxyMiddleware
         ProxyConfig proxyConfig, HttpContext context, ProxyChallengePageFrontendModel pageModel, ApplicationDbContext applicationDbContext,
         IProxyAuthenticationChallengeFactory authChallengeFactory, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
     {
-        var challengeData = proxyChallengeService.GetChallengeRequirementData(auth.Id);
+        var challengeData = await proxyChallengeService.GetChallengeRequirementDataAsync(auth.Id);
         if (!challengeData.All(c => c.Passed))
         {
             // Update viewmodel

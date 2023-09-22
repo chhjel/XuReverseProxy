@@ -14,6 +14,13 @@ public class ProxyAuthenticationConditionController : EFCrudControllerBase<Proxy
     {
     }
 
+    protected override void OnDataModified()
+    {
+        base.OnDataModified();
+        _dbContext.InvalidateCacheFor<ProxyConfig>();
+        _dbContext.InvalidateCacheFor<ProxyAuthenticationData>();
+    }
+
     protected override Task<GenericResultData<ProxyAuthenticationCondition>> ValidateEntityAsync(ProxyAuthenticationCondition entity)
     {
         entity.DateTimeUtc1 = entity.DateTimeUtc1.SetKindUtc();

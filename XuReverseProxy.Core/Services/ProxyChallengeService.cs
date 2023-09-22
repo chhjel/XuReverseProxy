@@ -9,7 +9,7 @@ namespace XuReverseProxy.Core.Services;
 
 public interface IProxyChallengeService
 {
-    (ProxyAuthenticationConditionType Type, string Summary, bool Passed)[] GetChallengeRequirementData(Guid authenticationDataId);
+    Task<(ProxyAuthenticationConditionType Type, string Summary, bool Passed)[]> GetChallengeRequirementDataAsync(Guid authenticationDataId);
     Task<bool> SetChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId);
     Task<bool> SetChallengeUnsolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId);
     Task<bool> IsChallengeSolvedAsync(Guid identityId, ProxyAuthenticationData auth);
@@ -57,9 +57,9 @@ public class ProxyChallengeService : IProxyChallengeService
                 && (solvedDuration == null || (DateTime.UtcNow - x.SolvedAtUtc) < solvedDuration)
         );
 
-    public (ProxyAuthenticationConditionType Type, string Summary, bool Passed)[] GetChallengeRequirementData(Guid authenticationDataId)
+    public async Task<(ProxyAuthenticationConditionType Type, string Summary, bool Passed)[]> GetChallengeRequirementDataAsync(Guid authenticationDataId)
     {
-        var conditions = _dbContext.ProxyAuthenticationConditions.Where(x => x.AuthenticationDataId == authenticationDataId);
+        var conditions = (await _dbContext.GetWithCacheAsync(x => x.ProxyAuthenticationConditions)).Where(x => x.AuthenticationDataId == authenticationDataId);
         return conditions.AsEnumerable()
             .Select(c => (
                 Type: c.ConditionType,

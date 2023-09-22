@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Models.Common;
 
@@ -11,6 +10,13 @@ public class ProxyConfigController : EFCrudControllerBase<ProxyConfig>
     public ProxyConfigController(ApplicationDbContext context)
         : base(context, () => context.ProxyConfigs)
     {
+    }
+
+    protected override void OnDataModified()
+    {
+        base.OnDataModified();
+        _dbContext.InvalidateCacheFor<ProxyAuthenticationData>();
+        _dbContext.InvalidateCacheFor<ProxyAuthenticationCondition>();
     }
 
     public override async Task<GenericResultData<ProxyConfig>> CreateOrUpdateEntityAsync([FromBody] ProxyConfig entity)

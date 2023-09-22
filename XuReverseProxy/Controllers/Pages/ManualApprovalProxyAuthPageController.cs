@@ -99,7 +99,7 @@ public class ManualApprovalProxyAuthPageController : Controller
         var allChallengeData = new List<ManualApprovalProxyAuthPageViewModel.ManualApprovalProxyAuthPageFrontendModel.ChallengeDataFrontendModel>();
         foreach (var challenge in config.Authentications)
         {
-            var conditionsData = _proxyChallengeService.GetChallengeRequirementData(challenge.Id);
+            var conditionsData = await _proxyChallengeService.GetChallengeRequirementDataAsync(challenge.Id);
             var solvedData = await _proxyChallengeService.GetSolvedChallengeSolvedDataAsync(client.Id, challenge.Id, challenge.SolvedId, challenge.SolvedDuration);
             allChallengeData.Add(new ManualApprovalProxyAuthPageViewModel.ManualApprovalProxyAuthPageFrontendModel.ChallengeDataFrontendModel
             {

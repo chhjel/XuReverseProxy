@@ -69,6 +69,11 @@ export default class TimeSpanInputComponent extends Vue {
       this.localValueHours = isNaN(parseInt(hmsParts[0])) ? "0" : parseInt(hmsParts[0]).toString() || "0";
       this.localValueMinutes = isNaN(parseInt(hmsParts[1])) ? "0" : parseInt(hmsParts[1]).toString() || "0";
       this.localValueSeconds = isNaN(parseInt(hmsParts[2])) ? "0" : parseInt(hmsParts[2]).toString() || "0";
+    } else if (this.value.includes(":")) {
+      let hmsParts = this.value.split(":");
+      this.localValueHours = isNaN(parseInt(hmsParts[0])) ? "0" : parseInt(hmsParts[0]).toString() || "0";
+      this.localValueMinutes = isNaN(parseInt(hmsParts[1])) ? "0" : parseInt(hmsParts[1]).toString() || "0";
+      this.localValueSeconds = isNaN(parseInt(hmsParts[2])) ? "0" : parseInt(hmsParts[2]).toString() || "0";
     }
   }
 
