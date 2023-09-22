@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Web;
 using XuReverseProxy.Core.Abstractions;
@@ -18,19 +19,19 @@ public interface INotificationService
 public class NotificationService : INotificationService
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<NotificationService> _logger;
     private readonly RuntimeServerConfig _runtimeServerConfig;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public NotificationService(ApplicationDbContext dbContext, IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, 
-        ILogger<NotificationService> logger, RuntimeServerConfig runtimeServerConfig)
+    public NotificationService(ApplicationDbContext dbContext, IMemoryCache memoryCache,
+        ILogger<NotificationService> logger, RuntimeServerConfig runtimeServerConfig, IServiceScopeFactory serviceScopeFactory)
     {
         _dbContext = dbContext;
-        _httpClientFactory = httpClientFactory;
         _memoryCache = memoryCache;
         _logger = logger;
         _runtimeServerConfig = runtimeServerConfig;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task TryNotifyEvent(NotificationTrigger trigger, params IProvidesPlaceholders?[] placeholderProviders)
@@ -48,8 +49,9 @@ public class NotificationService : INotificationService
         foreach (var rule in matchingRules)
         {
             if (HandleRuleCooldown(rule, placeholders, placeholderProviders)) continue;
-
-            await NotifyAsync(rule, placeholders, placeholderProviders);
+            
+            // Notify async
+            var _ = NotifyAsync(rule, placeholders, placeholderProviders, _serviceScopeFactory, _logger);
         }
     }
 
@@ -75,23 +77,30 @@ public class NotificationService : INotificationService
         return false;
     }
 
-    private async Task NotifyAsync(NotificationRule rule, Dictionary<string, string?>? placeholders, IProvidesPlaceholders?[] placeholderProviders)
+    private static async Task NotifyAsync(NotificationRule rule, Dictionary<string, string?>? placeholders, 
+        IProvidesPlaceholders?[] placeholderProviders, IServiceScopeFactory serviceScopeFactory, ILogger<NotificationService> logger)
     {
+        using var scope = serviceScopeFactory.CreateScope();
+
+        var dbContext = scope.ServiceProvider.GetService(typeof(ApplicationDbContext)) as ApplicationDbContext;
         if (rule.AlertType == NotificationAlertType.WebHook)
-            await NotifyWebHookAsync(rule, placeholders, placeholderProviders);
+            await NotifyWebHookAsync(rule, placeholders, placeholderProviders, scope, dbContext!, logger);
         else
             throw new NotImplementedException($"Alert type '{rule.AlertType}' not implemented.");
     }
 
-    private async Task NotifyWebHookAsync(NotificationRule rule, Dictionary<string, string?>? placeholders, IProvidesPlaceholders?[] placeholderProviders)
+    private static async Task NotifyWebHookAsync(NotificationRule rule, Dictionary<string, string?>? placeholders, 
+       IProvidesPlaceholders?[] placeholderProviders, IServiceScope serviceScope, ApplicationDbContext dbContext, ILogger<NotificationService> logger)
     {
         if (string.IsNullOrWhiteSpace(rule.WebHookUrl)) return;
 
         string? url = rule.WebHookUrl;
         string method = HttpMethod.Get.Method;
+        string result = string.Empty;
         try
         {
-            var httpClient = _httpClientFactory.CreateClient();
+            var httpClientFactory = serviceScope.ServiceProvider.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
+            var httpClient = httpClientFactory!.CreateClient();
             if (placeholders?.Any() == true)
             {
                 url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, placeholders);
@@ -109,20 +118,19 @@ public class NotificationService : INotificationService
             var httpRequestMessage = requestData?.CreateRequest();
             if (httpRequestMessage == null) return;
             await httpClient.SendAsync(httpRequestMessage);
-
-            rule.LastNotifyResult = $"Sent {method} request to '{url}'.";
-            await _dbContext.SaveChangesAsync();
+            result = $"Sent {method} request to '{url}'.";
         }
         catch (Exception ex)
         {
-            rule.LastNotifyResult = $"Exception while attempting to send {method} request to '{url}': {ex}";
-            _logger.LogError(ex, "Failed to send webhook notification to '{url}'", url);
+            result = $"Exception while attempting to send {method} request to '{url}': {ex}";
+            logger.LogError(ex, "Failed to send webhook notification to '{url}'", url);
         }
-        finally
-        {
-            rule.LastNotifiedAtUtc = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync();
-            _dbContext.InvalidateCacheFor<NotificationRule>();
-        }
+        
+        var localRule = dbContext.NotificationRules.First(x => x.Id == rule.Id);
+        localRule.LastNotifiedAtUtc = DateTime.UtcNow;
+        localRule.LastNotifyResult = result;
+        await dbContext.SaveChangesAsync();
+
+        dbContext.InvalidateCacheFor<NotificationRule>();
     }
 }
