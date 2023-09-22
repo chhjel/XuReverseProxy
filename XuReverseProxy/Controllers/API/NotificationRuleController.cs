@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Polly;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Models.Common;
 
