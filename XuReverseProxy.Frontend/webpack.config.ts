@@ -121,7 +121,7 @@ const config: Configuration = {
       __VUE_PROD_DEVTOOLS__: true
     }),
     new MonacoWebpackPlugin({
-      languages: ["html"],
+      languages: ["html", "json"],
       // filename: '[name].worker.js'
       publicPath: "/",
     }),
