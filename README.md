@@ -4,6 +4,8 @@ XuReverseProxy is a wrapper around [YARP](https://github.com/microsoft/reverse-p
 
 It is meant to be used for e.g. home servers so that it's only needed to expose a single set of ports to the outside world (this server), and use subdomains that forward to other services you run at home or elsewhere.
 
+![Screenshot](/docs/proxies.png?raw=true "Screenshot")
+
 Currently supported proxy authentication methods:
 
 * OTP code through webhook
