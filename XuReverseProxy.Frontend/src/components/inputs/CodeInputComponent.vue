@@ -288,15 +288,9 @@ export default class CodeInputComponent extends Vue {
         <button-component @click="isPreviewing = false" :disabled="readOnly" class="secondary">Close</button-component>
       </template>
       <div>
-        <iframe
+        <iframe class="html-preview-iframe"
           :id="`${id}-preview`"
           ref="iframe"
-          style="
-            width: calc(100vw - 50px);
-            height: calc(100vh - 240px);
-            border: 2px solid var(--color--secondary);
-            background: #fff;
-          "
         ></iframe>
       </div>
     </dialog-component>
@@ -376,6 +370,18 @@ export default class CodeInputComponent extends Vue {
         color: var(--color--info-base);
       }
     }
+  }
+}
+</style>
+<style lang="scss">
+.html-preview-iframe {
+  width: calc(100vw - 110px);
+  height: calc(100vh - 240px);
+  border: 2px solid var(--color--secondary);
+  background: #fff;
+  
+  @media (width <= 600px) {
+    width: calc(100vw - 53px);
   }
 }
 </style>
