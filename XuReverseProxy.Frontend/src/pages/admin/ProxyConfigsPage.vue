@@ -51,7 +51,7 @@ export default class ProxyConfigsPage extends Vue {
       subdomain: "",
       challengeTitle: "",
       mode: ProxyConfigMode.Forward,
-      destinationPrefix: "http://192.168.2.",
+      destinationPrefix: "http://host.docker.internal:",
       staticHTML: "",
       showCompletedChallenges: true,
       showChallengesWithUnmetRequirements: true,
