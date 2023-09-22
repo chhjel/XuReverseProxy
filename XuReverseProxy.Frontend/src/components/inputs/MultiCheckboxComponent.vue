@@ -1,21 +1,16 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
 import { Prop, Vue, Watch } from "vue-property-decorator";
-import ProgressbarComponent from "@components/common/ProgressbarComponent.vue";
 import ValueUtils from "@utils/ValueUtils";
+import CheckboxComponent from "./CheckboxComponent.vue";
+import { MultiCheckboxComponentOption } from "./MultiCheckboxComponent.Models";
 
 @Options({
-  components: { ProgressbarComponent },
+  components: { CheckboxComponent },
 })
-export default class CheckboxComponent extends Vue {
+export default class MultiCheckboxComponent extends Vue {
   @Prop({ required: true })
-  value!: boolean;
-
-  @Prop({ required: false, default: "" })
-  label: string;
-
-  @Prop({ required: false, default: "" })
-  offLabel: string;
+  value!: Array<MultiCheckboxComponentOption>;
 
   @Prop({ required: false, default: false })
   disabled: boolean;
@@ -26,7 +21,7 @@ export default class CheckboxComponent extends Vue {
   @Prop({ required: false, default: false })
   warnColorOn: boolean;
 
-  localValue: boolean = false;
+  localValue: Array<MultiCheckboxComponentOption> = [];
 
   mounted(): void {
     this.updateLocalValue();
@@ -35,8 +30,7 @@ export default class CheckboxComponent extends Vue {
 
   get wrapperClasses(): any {
     let classes: any = {
-      disabled: this.isDisabled,
-      warn: (!this.localValue && this.isWarnColorOff) || (this.localValue && this.isWarnColorOn),
+      disabled: this.isDisabled
     };
     return classes;
   }
@@ -44,28 +38,16 @@ export default class CheckboxComponent extends Vue {
   get isDisabled(): boolean {
     return ValueUtils.IsToggleTrue(this.disabled);
   }
-  get isWarnColorOff(): boolean {
-    return ValueUtils.IsToggleTrue(this.warnColorOff);
-  }
-  get isWarnColorOn(): boolean {
-    return ValueUtils.IsToggleTrue(this.warnColorOn);
-  }
-
-  get currentLabel(): string {
-    if (!this.offLabel) return this.label;
-    else if (!this.localValue) return this.offLabel;
-    else return this.label;
-  }
 
   /////////////////
   //  WATCHERS  //
   ///////////////
-  @Watch("value")
+  @Watch("value", { deep: true })
   updateLocalValue(): void {
     this.localValue = this.value;
   }
 
-  @Watch("localValue")
+  @Watch("localValue", { deep: true })
   emitLocalValue(): void {
     if (this.isDisabled) {
       this.localValue = this.value;
@@ -80,13 +62,17 @@ export default class CheckboxComponent extends Vue {
 
 <template>
   <div :class="wrapperClasses">
-    <label>
-      <input type="checkbox" v-model="localValue" :disabled="isDisabled" />
-      <div class="toggler-slider">
-        <div class="toggler-knob"></div>
-      </div>
-      <div class="label-text">{{ currentLabel }}</div>
-    </label>
+    <div v-for="opt in localValue">
+          <checkbox-component
+            :label="opt.onLabel"
+            :offLabel="opt.offLabel"
+            v-model:value="opt.value"
+            :warnColorOn="warnColorOn"
+            :warnColorOff="warnColorOff"
+            :disabled="disabled"
+            class="mt-2"
+          />
+    </div>
   </div>
 </template>
 
