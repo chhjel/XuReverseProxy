@@ -3,12 +3,14 @@ import { Options } from "vue-class-component";
 import { Vue, Prop, Watch } from "vue-property-decorator";
 import TextInputComponent from "@components/inputs/TextInputComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
-import { ProxyAuthConditionTypeOption, ProxyAuthConditionTypeOptions } from "@utils/Constants";
+import { ProxyAuthConditionTypeOption, ProxyAuthConditionTypeOptions, WeekdayOptions } from "@utils/Constants";
 import { ProxyAuthenticationCondition } from "@generated/Models/Core/ProxyAuthenticationCondition";
 import { createProxyAuthenticationConditionSummary } from "@utils/ProxyAuthenticationConditionUtils";
 import { DayOfWeekFlags } from "@generated/Enums/Core/DayOfWeekFlags";
 import TimeOnlyInputComponent from "@components/inputs/TimeOnlyInputComponent.vue";
 import DateTimeInputComponent from "@components/inputs/DateTimeInputComponent.vue";
+import { MultiCheckboxComponentOption } from "@components/inputs/MultiCheckboxComponent.Models";
+import MultiCheckboxComponent from "@components/inputs/MultiCheckboxComponent.vue";
 
 @Options({
   components: {
@@ -16,6 +18,7 @@ import DateTimeInputComponent from "@components/inputs/DateTimeInputComponent.vu
     ButtonComponent,
     TimeOnlyInputComponent,
     DateTimeInputComponent,
+    MultiCheckboxComponent
   },
 })
 export default class ProxyAuthenticationConditionEditor extends Vue {
@@ -27,6 +30,9 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
 
   localValue: ProxyAuthenticationCondition | null = null;
   conditionTypeOptions: Array<ProxyAuthConditionTypeOption> = ProxyAuthConditionTypeOptions;
+  
+  weekDaysValue: Array<MultiCheckboxComponentOption> = [];
+  weekdayOptions: Array<DayOfWeekFlags> = WeekdayOptions;
 
   mounted(): void {
     this.updateLocalValue();
@@ -46,6 +52,15 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
     const valueJson = this.value ? JSON.stringify(this.value) : "";
     const changed = localJson != valueJson;
     if (changed) this.localValue = JSON.parse(valueJson);
+
+    const flaggedValues = this.localValue.daysOfWeekUtc.split(',').map(x => x.trim());
+    this.weekDaysValue = this.weekdayOptions.map(x => {
+      return {
+        onLabel: x,
+        offLabel: x,
+        value: flaggedValues.includes(x)
+      };
+    })
   }
 
   @Watch("localValue", { deep: true })
@@ -61,6 +76,12 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
     if (!this.localValue.timeOnlyUtc2) this.localValue.timeOnlyUtc2 = null;
     if (!this.localValue.daysOfWeekUtc) this.localValue.daysOfWeekUtc = DayOfWeekFlags.None;
     this.$emit("update:value", this.localValue);
+  }
+
+  onWeekdaysChanged(): void {
+    this.localValue.daysOfWeekUtc = <DayOfWeekFlags>this.weekDaysValue
+      .filter(x => x.value)
+      .map(x => x.onLabel).join(', ');
   }
 }
 </script>
@@ -82,7 +103,7 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
       <time-only-input-component label="To" v-model:value="localValue.timeOnlyUtc2" :disabled="disabled" />
     </div>
     <div v-else-if="localValue.conditionType == 'WeekDays'">
-      <text-input-component label="Weekdays" v-model:value="localValue.daysOfWeekUtc" :disabled="disabled" />
+      <multi-checkbox-component v-model:value="weekDaysValue" :disabled="disabled" @change="onWeekdaysChanged" />
     </div>
 
     <div class="mt-3">
