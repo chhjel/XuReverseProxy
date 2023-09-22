@@ -13,7 +13,7 @@ Currently supported proxy authentication methods:
 
 ## Setup
 
-[Example server configuration](Docker/prod-example/README.md)
+[Example server configuration](docs/docker-example/README.md)
 
 ## Known issues
 
