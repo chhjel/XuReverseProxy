@@ -100,7 +100,7 @@ const routes: Readonly<RouteRecordRaw[]> = [
   },
   {
     name: "variables",
-    path: "/variables",
+    path: "/variables/:variableId?",
     meta: { title: "Variables" },
     component: GlobalVariablesPage,
   },

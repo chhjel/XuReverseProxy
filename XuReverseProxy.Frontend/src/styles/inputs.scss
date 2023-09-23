@@ -15,6 +15,7 @@
 
   textarea {
     font-size: 0.9rem;
+    margin: 0;
   }
 }
 
@@ -30,4 +31,15 @@
 select {
   padding: 8px;
   font-size: 16px;
+}
+
+.input-wrapper.dark input,
+.input-wrapper.dark textarea {
+	background-color: var(--color--panel-dark);
+	color: var(--color--text-dark);
+	border: 1px solid var(--color--panel-light);
+
+  &:disabled {
+    color: var(--color--text-darker);
+  }
 }

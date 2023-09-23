@@ -11,6 +11,7 @@ import { EmptyGuid } from "@utils/Constants";
 import DateFormats from "@utils/DateFormats";
 import { SortBy } from "@utils/SortUtils";
 import GlobalVariablesService from "@services/GlobalVariablesService";
+import StringUtils from "@utils/StringUtils";
 
 @Options({
   components: {
@@ -32,11 +33,8 @@ export default class GlobalVariablesPage extends Vue {
     if (!result.success) {
       console.error(result.message);
     }
-    this.variables = result.data || [];
-  }
 
-  get sortedVariables(): Array<GlobalVariable> {
-    return this.variables.sort((a, b) =>
+    this.variables = (result.data || []).sort((a, b) =>
       SortBy(
         a,
         b,
@@ -46,12 +44,20 @@ export default class GlobalVariablesPage extends Vue {
     );
   }
 
+  get isLoading(): boolean {
+    return this.service.status.inProgress;
+  }
+
+  get highlightedId(): string | null {
+    return StringUtils.firstOrDefault(this.$route.params.variableId);
+  }
+
   async addNewVariable() {
     let variable: GlobalVariable = {
       id: EmptyGuid,
       name: "NewVariable",
       value: "",
-      lastUpdatedAtUtc: null,
+      lastUpdatedAtUtc: new Date(),
       lastUpdatedBy: null,
       lastUpdatedSourceIP: null,
     };
@@ -63,8 +69,8 @@ export default class GlobalVariablesPage extends Vue {
       variable = result.data;
       this.variables.push(variable);
       this.$router.push({
-        name: "notification",
-        params: { notificationId: variable.id },
+        name: "variables",
+        params: { variableId: variable.id },
       });
     }
   }
@@ -72,17 +78,59 @@ export default class GlobalVariablesPage extends Vue {
   formatDate(raw: Date | string): string {
     return DateFormats.defaultDateTime(raw);
   }
+
+  getVariableClasses(variable: GlobalVariable): any {
+    return {
+      highlighted: this.highlightedId == variable.id,
+    };
+  }
+
+  async saveVariable(variable: GlobalVariable) {
+    await this.service.CreateOrUpdateAsync(variable);
+  }
+
+  async tryDeleteVariable(variable: GlobalVariable) {
+    if (!confirm(`Delete variable '${variable.name}'?`)) return;
+    const result = await this.service.DeleteAsync(variable.id);
+    if (result.success) {
+      this.variables = this.variables.filter((x) => x.id != variable.id);
+    }
+  }
 }
 </script>
 
 <template>
   <div class="variables-page">
-    <loader-component :status="service.status" />
+    <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce" />
     <div v-if="service.status.hasDoneAtLeastOnce">
-      <div v-if="sortedVariables.length == 0 && service.status.done">- No variables added yet -</div>
+      <div v-if="variables.length == 0 && service.status.done">- No variables added yet -</div>
 
-      <div v-for="variable in sortedVariables" :key="variable.id" class="variable">
-        <code>{{ variable }}</code>
+      <div class="table-wrapper">
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Value</th>
+            <th></th>
+            <th></th>
+          </tr>
+          <tr v-for="variable in variables" :key="variable.id" class="variable" :class="getVariableClasses(variable)">
+            <td class="variable__name">
+              <text-input-component v-model:value="variable.name" dark :disabled="isLoading" />
+            </td>
+            <td class="variable__value">
+              <text-input-component v-model:value="variable.value" dark textarea rows="3" :disabled="isLoading" />
+            </td>
+            <td class="variable__actions">
+              <button-component primary small @click="saveVariable(variable)">Save</button-component>
+              <button-component danger small @click="tryDeleteVariable(variable)">Delete</button-component>
+            </td>
+            <td class="variable__details">
+              Last updated
+              {{ formatDate(variable.lastUpdatedAtUtc) }}
+              by <b>{{ variable.lastUpdatedBy }}</b> from {{ variable.lastUpdatedSourceIP }}
+            </td>
+          </tr>
+        </table>
       </div>
 
       <button-component @click="addNewVariable" v-if="service.status.done" class="primary ml-0"
@@ -96,10 +144,50 @@ export default class GlobalVariablesPage extends Vue {
 .variables-page {
   padding-top: 20px;
 
+  .table-wrapper {
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+
+  table {
+    width: 100%;
+
+    th {
+      text-align: left;
+    }
+
+    textarea {
+      width: 100%;
+    }
+  }
+
   .variable {
-    display: block;
     padding: 5px;
     margin: 5px 0;
+
+    &__name {
+      position: relative;
+      min-width: 200px;
+
+      .input-wrapper {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+    }
+
+    &__details {
+      font-size: 11px;
+      color: var(--color--secondary);
+      width: 115px;
+      font-family: monospace;
+    }
+
+    &__actions {
+      width: 150px;
+    }
   }
 }
 </style>
