@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using XuReverseProxy.Core.Attributes;
-using XuReverseProxy.Core.Utils;
+﻿using XuReverseProxy.Core.Attributes;
+using XuReverseProxy.Core.Services;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 
@@ -15,8 +14,20 @@ public class ProxyChallengeTypeSecretQueryString : ProxyChallengeTypeBase
         return Task.FromResult<object>(new { });
     }
 
-    public override bool AutoCheckSolvedOnLoad(ProxyChallengeInvokeContext context) => HasSecret(context?.HttpContext);
+    public override async Task<bool> AutoCheckSolvedOnLoadAsync(ProxyChallengeInvokeContext context)
+    {
+        var query = context.HttpContext?.Request?.Query;
+        if (query?.Any() != true) return false;
 
-    public bool HasSecret(HttpContext? context)
-        => context?.Request?.Query?.Any(x => x.Key == "secret" && PlaceholderUtils.ResolveCommonPlaceholders(x.Value) == Secret) == true;
+        var placeholderResolver = context.GetService<IPlaceholderResolver>();
+        foreach(var kvp in query)
+        {
+            if (kvp.Key != "secret") continue;
+
+            var value = await placeholderResolver.ResolvePlaceholdersAsync(kvp.Value);
+            if (value?.Equals(Secret, StringComparison.InvariantCulture) == true) return true;
+        }
+
+        return false;
+    }
 }

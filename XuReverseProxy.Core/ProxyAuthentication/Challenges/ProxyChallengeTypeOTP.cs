@@ -3,6 +3,7 @@ using System.Web;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Common;
 using XuReverseProxy.Core.ProxyAuthentication.Attributes;
+using XuReverseProxy.Core.Services;
 using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
@@ -83,7 +84,8 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
         var httpClient = context.GetService<IHttpClientFactory>().CreateClient();
 
         var url = RequestData?.Url?.Replace("{{code}}", code);
-        url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, context.ClientIdentity, context.ProxyConfig, context.AuthenticationData);
+        var placeholderResolver = context.GetService<IPlaceholderResolver>();
+        url = await placeholderResolver.ResolvePlaceholdersAsync(url, transformer: HttpUtility.UrlEncode, placeholders: null, context.ClientIdentity, context.ProxyConfig, context.AuthenticationData);
 
         try
         {

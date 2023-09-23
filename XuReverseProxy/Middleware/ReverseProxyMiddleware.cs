@@ -47,7 +47,8 @@ public class ReverseProxyMiddleware
         IIPBlockService ipBlockService,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IPlaceholderResolver placeholderResolver)
     {
         // Check for special cases first
         if (await TryHandleInternalRequestAsync(context, _nextMiddleware))
@@ -62,7 +63,7 @@ public class ReverseProxyMiddleware
         var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
         if (ipData?.IP != null && await ipBlockService.IsIPBlockedAsync(ipData.IP))
         {
-            var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.IPBlockedHtml);
+            var html = await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.IPBlockedHtml);
             await SetResponseAsync(context, html, runtimeServerConfig.IPBlockedResponseCode);
             return;
         }
@@ -76,7 +77,7 @@ public class ReverseProxyMiddleware
         // Check killswitch
         else if (!runtimeServerConfig.EnableForwarding)
         {
-            var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
+            var html = await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.NotFoundHtml);
             await SetResponseAsync(context, html, StatusCodes.Status404NotFound);
             return;
         }
@@ -90,7 +91,7 @@ public class ReverseProxyMiddleware
             );
         if (proxyConfig == null)
         {
-            var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
+            var html = await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.NotFoundHtml);
             await SetResponseAsync(context, html, StatusCodes.Status404NotFound);
             return;
         }
@@ -106,7 +107,7 @@ public class ReverseProxyMiddleware
             clientIdentity = await proxyClientIdentityService.GetCurrentProxyClientIdentityAsync(context);
             if (clientIdentity == null)
             {
-                var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.NotFoundHtml);
+                var html = await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.NotFoundHtml);
                 await SetResponseAsync(context, html, StatusCodes.Status404NotFound);
                 return;
             }
@@ -115,7 +116,7 @@ public class ReverseProxyMiddleware
         // Check blocked
         if (clientIdentity?.Blocked == true)
         {
-            var html = PlaceholderUtils.ResolvePlaceholders(runtimeServerConfig.ClientBlockedHtml, clientIdentity)
+            var html = (await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.ClientBlockedHtml, transformer: null, placeholders: null, clientIdentity))
                 ?.Replace("{{blocked_message}}", clientIdentity.BlockedMessage, StringComparison.OrdinalIgnoreCase);
             await SetResponseAsync(context, html, runtimeServerConfig.ClientBlockedResponseCode);
             return;
@@ -286,7 +287,7 @@ public class ReverseProxyMiddleware
         var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig, clientIdentity, applicationDbContext, serviceProvider, proxyChallengeService);
 
         // Check if challenge is auto-solved on load
-        var isAutoSolved = challenge.AutoCheckSolvedOnLoad(challengeContext);
+        var isAutoSolved = await challenge.AutoCheckSolvedOnLoadAsync(challengeContext);
         if (isAutoSolved)
         {
             await proxyChallengeService.SetChallengeSolvedAsync(clientIdentity.Id, auth.Id, auth.SolvedId);

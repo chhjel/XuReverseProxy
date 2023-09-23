@@ -1,5 +1,6 @@
 ﻿using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.ProxyAuthentication.Attributes;
+using XuReverseProxy.Core.Services;
 using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
@@ -32,8 +33,9 @@ public class ProxyChallengeTypeLogin : ProxyChallengeTypeBase
         // Delay a bit to make timing attacks harder
         await AuthUtils.RandomAuthDelay();
 
-        var expectedUsername = PlaceholderUtils.ResolvePlaceholders(Username, context.ClientIdentity, context.ProxyConfig);
-        var expectedPassword = PlaceholderUtils.ResolvePlaceholders(Password, context.ClientIdentity, context.ProxyConfig);
+        var placeholderResolver = context.GetService<IPlaceholderResolver>();
+        var expectedUsername = await placeholderResolver.ResolvePlaceholdersAsync(Username, transformer: null, placeholders: null, context.ClientIdentity, context.ProxyConfig);
+        var expectedPassword = await placeholderResolver.ResolvePlaceholdersAsync(Password, transformer: null, placeholders: null, context.ClientIdentity, context.ProxyConfig);
 
         var solved = request.Username?.Equals(expectedUsername, StringComparison.InvariantCulture) == true
                && request.Password?.Equals(expectedPassword, StringComparison.InvariantCulture) == true;

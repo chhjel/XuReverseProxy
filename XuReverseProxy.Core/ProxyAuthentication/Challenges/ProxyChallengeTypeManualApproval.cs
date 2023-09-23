@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
 using System.Web;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Common;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.ProxyAuthentication.Attributes;
-using XuReverseProxy.Core.Utils;
+using XuReverseProxy.Core.Services;
 
 namespace XuReverseProxy.Core.ProxyAuthentication.Challenges;
 
@@ -80,7 +79,9 @@ public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
 
             var httpClient = context.GetService<IHttpClientFactory>().CreateClient();
             url = RequestData?.Url?.Replace("{{url}}", HttpUtility.UrlEncode(approvalUrl));
-            url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, context.ClientIdentity, context.ProxyConfig, context.AuthenticationData);
+
+            var placeholderResolver = context.GetService<IPlaceholderResolver>();
+            url = await placeholderResolver.ResolvePlaceholdersAsync(url, transformer: HttpUtility.UrlEncode, placeholders: null, context.ClientIdentity, context.ProxyConfig, context.AuthenticationData);
 
             var httpRequestMessage = RequestData?.CreateRequest(url);
             if (httpRequestMessage == null) return new(false, "Webhook not configured.");

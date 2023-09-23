@@ -14,6 +14,7 @@ import NotificationsPage from "@pages/admin/NotificationsPage.vue";
 import NotificationPage from "@pages/admin/NotificationPage.vue";
 import BlockedIPsPage from "@pages/admin/BlockedIPsPage.vue";
 import BlockedIPPage from "@pages/admin/BlockedIPPage.vue";
+import GlobalVariablesPage from "@pages/admin/GlobalVariablesPage.vue";
 import { nextTick } from "vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
 
@@ -96,6 +97,12 @@ const routes: Readonly<RouteRecordRaw[]> = [
     path: "/server-log",
     meta: { title: "Server Log" },
     component: ServerLogPage,
+  },
+  {
+    name: "variables",
+    path: "/variables",
+    meta: { title: "Variables" },
+    component: GlobalVariablesPage,
   },
   {
     name: "404",

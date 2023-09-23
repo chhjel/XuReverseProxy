@@ -27,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     public DbSet<ProxyClientIdentitySolvedChallengeData> ProxyClientIdentitySolvedChallengeDatas { get; set; }
     public DbSet<ProxyClientIdentityData> ProxyClientIdentityDatas { get; set; }
     public DbSet<RuntimeServerConfigItem> RuntimeServerConfigItems { get; set; }
+    public DbSet<GlobalVariable> GlobalVariables { get; set; }
     public DbSet<ApplicationUserRecoveryCode> RecoveryCodes { get; set; }
     public DbSet<BlockedIpData> BlockedIpDatas { get; set; }
     public DbSet<AdminAuditLogEntry> AdminAuditLogEntries { get; set; }
@@ -97,6 +98,7 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
         builder.Entity<ProxyAuthenticationData>().HasIndex(x => x.ProxyConfigId);
         builder.Entity<ProxyAuthenticationCondition>().HasIndex(x => x.AuthenticationDataId);
         builder.Entity<RuntimeServerConfigItem>().HasIndex(x => x.Key);
+        builder.Entity<GlobalVariable>().HasIndex(x => x.Name);
     }
 
     public bool IsAttached<T>(T entity) where T : class, IHasId

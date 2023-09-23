@@ -13,4 +13,6 @@ export interface AdminAuditLogEntry
 	relatedProxyConfigName: string;
 	relatedClientId: string;
 	relatedClientName: string;
+	relatedGlobalVariableId: string;
+	relatedGlobalVariableName: string;
 }
