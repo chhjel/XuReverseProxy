@@ -105,6 +105,7 @@ export default class GlobalVariablesPage extends Vue {
     <div v-if="service.status.hasDoneAtLeastOnce">
       <div v-if="variables.length == 0 && service.status.done">- No variables added yet -</div>
 
+      <p>Variables can be used in any placeholders.</p>
       <div class="table-wrapper">
         <table>
           <tr>
