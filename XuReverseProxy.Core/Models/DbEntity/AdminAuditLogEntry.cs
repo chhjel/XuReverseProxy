@@ -25,6 +25,9 @@ public class AdminAuditLogEntry : IHasId
     public Guid? RelatedClientId { get; set; }
     public string? RelatedClientName { get; set; }
 
+    public Guid? RelatedGlobalVariableId { get; set; }
+    public string? RelatedGlobalVariableName { get; set; }
+
     public AdminAuditLogEntry()
     {
         TimestampUtc = DateTime.UtcNow;
@@ -68,6 +71,14 @@ public class AdminAuditLogEntry : IHasId
         return this;
     }
 
+    public AdminAuditLogEntry SetRelatedGlobalVariable(Guid? globalVariableId, string? globalVariableName)
+    {
+        RelatedGlobalVariableId = globalVariableId;
+        RelatedGlobalVariableName = globalVariableName;
+        return this;
+    }
+
     public const string Placeholder_ProxyConfig = "[PROXYCONFIG]";
     public const string Placeholder_Client = "[CLIENT]";
+    public const string Placeholder_GlobalVariable = "[GVAR]";
 }

@@ -96,6 +96,11 @@ export default class AdminAuditLogComponent extends Vue {
       html = html.replace("[CLIENT]", `<a href="/#/client/${entry.relatedClientId}">[${name}]</a>`);
     }
 
+    if (html.includes("[GVAR]")) {
+      const name = this.htmlEncode(entry.relatedGlobalVariableName || entry.relatedGlobalVariableId);
+      html = html.replace("[GVAR]", `<a href="/#/variables/${entry.relatedGlobalVariableId}">[${name}]</a>`);
+    }
+
     return html;
   }
 

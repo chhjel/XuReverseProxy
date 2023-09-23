@@ -2,6 +2,8 @@
 import { Vue, Prop, Watch } from "vue-property-decorator";
 import { Options } from "vue-class-component";
 import { PlaceholderGroupInfo, PlaceholderInfo } from "@utils/Constants";
+import { GlobalVariable } from "@generated/Models/Core/GlobalVariable";
+import GlobalVariablesService from "@services/GlobalVariablesService";
 
 @Options({
   components: {},
@@ -15,7 +17,17 @@ export default class PlaceholderInfoComponent extends Vue {
 
   allPlaceholderData: Array<PlaceholderInfo> = [];
 
-  mounted(): void {
+  service: GlobalVariablesService = new GlobalVariablesService();
+  globalVariables: Array<GlobalVariable> = [];
+  isLoadingVariables: boolean = true;
+
+  async mounted() {
+    const variablesResult = await this.service.GetAllAsync();
+    this.isLoadingVariables = false;
+    if (variablesResult.success) {
+      this.globalVariables = variablesResult.data;
+    }
+
     this.rebuildData();
   }
 
@@ -32,6 +44,12 @@ export default class PlaceholderInfoComponent extends Vue {
       p.placeholders.forEach((d) => {
         this.allPlaceholderData.push(d);
       });
+    });
+    this.globalVariables.forEach((v) => {
+        this.allPlaceholderData.push({
+          name: v.name,
+          description: "Custom variable"
+        });
     });
   }
 

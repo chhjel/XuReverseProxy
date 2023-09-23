@@ -3,6 +3,7 @@ import { Options } from "vue-class-component";
 import { Prop, Ref, Vue, Watch } from "vue-property-decorator";
 import ProgressbarComponent from "@components/common/ProgressbarComponent.vue";
 import InputHeaderComponent from "./InputHeaderComponent.vue";
+import ValueUtils from "@utils/ValueUtils";
 
 @Options({
   components: {
@@ -41,19 +42,37 @@ export default class TextInputComponent extends Vue {
   @Prop({ required: false, default: "var(--color--primary)" })
   progressColor: string;
 
+  @Prop({ required: false, default: false })
+  dark: boolean;
+
+  @Prop({ required: false, default: false })
+  textarea: boolean;
+
+  @Prop({ required: false, default: null })
+  rows: number | null;
+
   @Ref() readonly inputElement!: HTMLInputElement;
+  @Ref() readonly textAreaElement!: HTMLTextAreaElement;
   localValue: string = "";
 
   mounted(): void {
     this.updateLocalValue();
-    this.emitLocalValue();
+    this.emitLocalValue(["update:value"]);
   }
 
   get wrapperClasses(): any {
     let classes: any = {
       disabled: this.disabled,
+      dark: this.isDark,
     };
     return classes;
+  }
+
+  get isTextArea(): boolean {
+    return ValueUtils.IsToggleTrue(this.textarea);
+  }
+  get isDark(): boolean {
+    return ValueUtils.IsToggleTrue(this.dark);
   }
 
   get showProgress(): boolean {
@@ -64,11 +83,20 @@ export default class TextInputComponent extends Vue {
     this.$emit("focus");
   }
 
+  onBlur(): void {
+    this.$emit("blur");
+  }
+
+  onChange(): void {
+    this.emitLocalValue(["change"]);
+  }
+
   public insertText(val: string): void {
-    const [start, end] = [this.inputElement.selectionStart, this.inputElement.selectionEnd];
-    this.inputElement.setRangeText(val, start, end, "select");
-    this.localValue = this.inputElement.value;
-    this.emitLocalValue();
+    const el = this.isTextArea ? this.textAreaElement : this.inputElement;
+    const [start, end] = [el.selectionStart, el.selectionEnd];
+    el.setRangeText(val, start, end, "select");
+    this.localValue = el.value;
+    this.emitLocalValue(["update:value", "change"]);
   }
 
   /////////////////
@@ -80,7 +108,11 @@ export default class TextInputComponent extends Vue {
   }
 
   @Watch("localValue")
-  emitLocalValue(): void {
+  onLocalValueChanged(): void {
+    this.emitLocalValue(["update:value"]);
+  }
+
+  emitLocalValue(types: Array<string>): void {
     if (this.disabled) {
       this.localValue = this.value;
       return;
@@ -91,13 +123,8 @@ export default class TextInputComponent extends Vue {
     if (this.emptyIsNull && valueToEmit === "") {
       valueToEmit = null;
     }
-    // else if (this.type == 'number' && valueToEmit !== null && typeof valueToEmit == 'string') {
-    //     // console.log(JSON.stringify(valueToEmit));
-    //     valueToEmit = parseInt(valueToEmit);
-    // }
 
-    this.$emit("update:value", valueToEmit);
-    this.$emit("change", valueToEmit);
+    types.forEach((x) => this.$emit(x, valueToEmit));
   }
 }
 </script>
@@ -107,14 +134,30 @@ export default class TextInputComponent extends Vue {
     <input-header-component :label="label" :description="description" />
 
     <input
+      v-if="!isTextArea"
       :type="type"
       v-model="localValue"
       :placeholder="placeholder"
       :disabled="disabled"
       :autocomplete="autocomplete"
       @focus="onFocus"
+      @blur="onBlur"
+      @change="onChange"
       ref="inputElement"
     />
+
+    <textarea
+      v-if="isTextArea"
+      v-model="localValue"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :autocomplete="autocomplete"
+      @focus="onFocus"
+      @blur="onBlur"
+      @change="onChange"
+      :rows="rows"
+      ref="textAreaElement"
+    ></textarea>
 
     <progressbar-component v-if="showProgress" :value="progress" :color="progressColor" />
   </div>

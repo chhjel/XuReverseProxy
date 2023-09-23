@@ -6,7 +6,6 @@ using XuReverseProxy.Core.Abstractions;
 using XuReverseProxy.Core.Models.Common;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
-using XuReverseProxy.Core.Utils;
 
 namespace XuReverseProxy.Core.Services;
 
@@ -23,15 +22,18 @@ public class NotificationService : INotificationService
     private readonly ILogger<NotificationService> _logger;
     private readonly RuntimeServerConfig _runtimeServerConfig;
     private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IPlaceholderResolver _placeholderResolver;
 
     public NotificationService(ApplicationDbContext dbContext, IMemoryCache memoryCache,
-        ILogger<NotificationService> logger, RuntimeServerConfig runtimeServerConfig, IServiceScopeFactory serviceScopeFactory)
+        ILogger<NotificationService> logger, RuntimeServerConfig runtimeServerConfig,
+        IServiceScopeFactory serviceScopeFactory, IPlaceholderResolver placeholderResolver)
     {
         _dbContext = dbContext;
         _memoryCache = memoryCache;
         _logger = logger;
         _runtimeServerConfig = runtimeServerConfig;
         _serviceScopeFactory = serviceScopeFactory;
+        _placeholderResolver = placeholderResolver;
     }
 
     public async Task TryNotifyEvent(NotificationTrigger trigger, params IProvidesPlaceholders?[] placeholderProviders)
@@ -48,7 +50,7 @@ public class NotificationService : INotificationService
 
         foreach (var rule in matchingRules)
         {
-            if (HandleRuleCooldown(rule, placeholders, placeholderProviders)) continue;
+            if (await HandleRuleCooldown(rule, placeholders, placeholderProviders)) continue;
             
             // Notify async
             var _ = NotifyAsync(rule, placeholders, placeholderProviders, _serviceScopeFactory, _logger);
@@ -58,7 +60,7 @@ public class NotificationService : INotificationService
     /// <summary>
     /// Returns true if the rule is on cooldown. Sets cooldown if enabled.
     /// </summary>
-    private bool HandleRuleCooldown(NotificationRule rule, Dictionary<string, string?>? placeholders, IProvidesPlaceholders?[] placeholderProviders)
+    private async Task<bool> HandleRuleCooldown(NotificationRule rule, Dictionary<string, string?>? placeholders, IProvidesPlaceholders?[] placeholderProviders)
     {
         if (!(rule.Cooldown > TimeSpan.Zero)) return false;
 
@@ -66,8 +68,7 @@ public class NotificationService : INotificationService
         if (!string.IsNullOrWhiteSpace(rule.CooldownDistinctPattern))
         {
             var distinctPattern = rule.CooldownDistinctPattern;
-            if (placeholders != null) distinctPattern = PlaceholderUtils.ResolvePlaceholders(distinctPattern, placeholders);
-            distinctPattern = PlaceholderUtils.ResolvePlaceholders(distinctPattern, placeholderProviders);
+            if (placeholders != null) distinctPattern = await _placeholderResolver.ResolvePlaceholdersAsync(distinctPattern, placeholders: placeholders, placeholderProviders: placeholderProviders);
             distinctCacheKey = $"{distinctCacheKey}_{distinctPattern}";
         }
 
@@ -101,11 +102,9 @@ public class NotificationService : INotificationService
         {
             var httpClientFactory = serviceScope.ServiceProvider.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
             var httpClient = httpClientFactory!.CreateClient();
-            if (placeholders?.Any() == true)
-            {
-                url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, placeholders);
-            }
-            url = PlaceholderUtils.ResolvePlaceholders(url, transformer: HttpUtility.UrlEncode, placeholderProviders);
+
+            var placeholderResolver = serviceScope.ServiceProvider.GetService(typeof(IPlaceholderResolver)) as IPlaceholderResolver;
+            url = await placeholderResolver!.ResolvePlaceholdersAsync(url, transformer: HttpUtility.UrlEncode, placeholders: placeholders, placeholderProviders: placeholderProviders);
 
             var requestData = new CustomRequestData
             {

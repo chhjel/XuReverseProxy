@@ -174,6 +174,7 @@ export const CommonPlaceholders: Array<PlaceholderInfo> = [
   { name: "Minute", description: "Current minute." },
   { name: "Month", description: "Current month number." },
   { name: "Year", description: "Current year." },
+  { name: "GUID", description: "A random GUID." },
 ];
 
 export const WeekdayOptions: Array<DayOfWeekFlags> = [
