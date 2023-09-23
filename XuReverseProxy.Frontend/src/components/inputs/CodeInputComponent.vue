@@ -7,12 +7,13 @@ import * as monaco from "monaco-editor";
 import DialogComponent from "@components/common/DialogComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import IdUtils from "@utils/IdUtils";
-import { isThisISOWeek } from "date-fns";
+import TextInputComponent from "./TextInputComponent.vue";
 
 @Options({
   components: {
     DialogComponent,
     ButtonComponent,
+    TextInputComponent,
   },
 })
 export default class CodeInputComponent extends Vue {
@@ -46,9 +47,11 @@ export default class CodeInputComponent extends Vue {
   isFullscreen: boolean = false;
   isEditorInited: boolean = false;
   isPreviewing: boolean = false;
+  isSimple: boolean = false;
   id: string = IdUtils.generateId();
 
   editor!: monaco.editor.IStandaloneCodeEditor;
+  localSimpleValue: string = "";
 
   mounted(): void {
     this.configureMonacoEnv();
@@ -110,6 +113,10 @@ export default class CodeInputComponent extends Vue {
     return this.language == "html";
   }
 
+  get simpleModeLabel(): string {
+    return this.isSimple ? "code" : "simple";
+  }
+
   ////////////////////////////////////////////////////////////
   //// EVENTHANDLERS /////////////////////////////////////////
   ////////////////////////////////////////////////////////////
@@ -125,6 +132,12 @@ export default class CodeInputComponent extends Vue {
     else if (model.getValue() == this.value) return;
 
     model.setValue(this.value || "");
+    this.localSimpleValue = this.value;
+  }
+
+  @Watch("localSimpleValue")
+  onLocalSimpleValueChanged(): void {
+      this.$emit("update:value", this.localSimpleValue);
   }
 
   @Watch("readOnly")
@@ -216,6 +229,7 @@ export default class CodeInputComponent extends Vue {
       let editorValue = model.getValue();
       if (this.isNull && !editorValue) editorValue = null;
       this.$emit("update:value", editorValue);
+      this.localSimpleValue = editorValue;
     });
   }
 
@@ -256,6 +270,10 @@ export default class CodeInputComponent extends Vue {
     this.isPreviewing = !this.isPreviewing;
     if (this.isPreviewing) this.iframe.srcdoc = this.value;
   }
+
+  toggleSimple(): void {
+    this.isSimple = !this.isSimple;
+  }
 }
 </script>
 
@@ -266,19 +284,32 @@ export default class CodeInputComponent extends Vue {
     </div>
     <div class="editor-component" :class="rootClasses" :style="rootStyle">
       <div class="editor-component__loader-bar" v-if="!isEditorInited">Loading...</div>
+
       <div class="editor-component__actions" v-if="!isFullscreen">
+        <div @click="toggleSimple">[{{ simpleModeLabel }}]</div>
         <div v-if="allowPreviewHtml" @click="togglePreview">[preview]</div>
         <div @click="isFullscreen = true">[fullscreen]</div>
       </div>
+
       <div v-if="isFullscreen" class="editor-component__fullscreen-bar">
         <div class="spacer"></div>
         <div class="editor-component__actions-fullscreen">
+          <div @click="toggleSimple">[{{ simpleModeLabel }}]</div>
           <div v-if="allowPreviewHtml" @click="togglePreview">[preview]</div>
           <div @click="isFullscreen = false">[Exit fullscreen]</div>
         </div>
       </div>
 
-      <div ref="editorElement" class="editor-component__editor"></div>
+      <div ref="editorElement" class="editor-component__editor" v-show="!isSimple"></div>
+      <text-input-component
+        class="editor-component__editor-simple"
+        v-model:value="localSimpleValue"
+        dark
+        textarea
+        rows="3"
+        :disabled="readOnly"
+        v-show="isSimple"
+      />
     </div>
 
     <!-- Preview Dialog -->
@@ -288,10 +319,7 @@ export default class CodeInputComponent extends Vue {
         <button-component @click="isPreviewing = false" :disabled="readOnly" class="secondary">Close</button-component>
       </template>
       <div>
-        <iframe class="html-preview-iframe"
-          :id="`${id}-preview`"
-          ref="iframe"
-        ></iframe>
+        <iframe class="html-preview-iframe" :id="`${id}-preview`" ref="iframe"></iframe>
       </div>
     </dialog-component>
   </div>
@@ -305,9 +333,14 @@ export default class CodeInputComponent extends Vue {
     margin-bottom: -14px;
   }
 
-  &__editor {
+  &__editor,
+  &__editor-simple {
     width: 100%;
     height: 100%;
+  }
+  
+  :deep(textarea) {
+    background-color: #1e1e1e;
   }
 
   &.fullscreen {
@@ -346,6 +379,7 @@ export default class CodeInputComponent extends Vue {
     color: var(--color--secondary-lighten);
     padding: 2px;
     display: flex;
+    user-select: none;
 
     > div {
       margin-left: 10px;
@@ -361,6 +395,7 @@ export default class CodeInputComponent extends Vue {
     cursor: pointer;
     color: var(--color--secondary-lighten);
     font-size: 22px;
+    user-select: none;
 
     > div {
       align-self: center;
@@ -379,7 +414,7 @@ export default class CodeInputComponent extends Vue {
   height: calc(100vh - 240px);
   border: 2px solid var(--color--secondary);
   background: #fff;
-  
+
   @media (width <= 600px) {
     width: calc(100vw - 53px);
   }
