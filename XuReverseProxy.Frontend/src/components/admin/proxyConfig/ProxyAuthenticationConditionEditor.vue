@@ -53,7 +53,7 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
     const changed = localJson != valueJson;
     if (changed) this.localValue = JSON.parse(valueJson);
 
-    const flaggedValues = this.localValue.daysOfWeekUtc.split(',').map(x => x.trim());
+    const flaggedValues = this.localValue.daysOfWeekUtc?.split(',').map(x => x.trim()) || [];
     this.weekDaysValue = this.weekdayOptions.map(x => {
       return {
         onLabel: x,
@@ -116,6 +116,5 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
 </template>
 
 <style scoped lang="scss">
-.proxyconfigauthchallenge-edit {
-}
+/* .proxyconfigauthchallenge-edit {} */
 </style>

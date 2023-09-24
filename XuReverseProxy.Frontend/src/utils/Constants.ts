@@ -189,7 +189,10 @@ export const WeekdayOptions: Array<DayOfWeekFlags> = [
 
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
-
+export const IPBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = [
+  { name: "Common", placeholders: CommonPlaceholders },
+];
+export const Html404Placeholders: Array<PlaceholderGroupInfo> = [{ name: "Common", placeholders: CommonPlaceholders }];
 export const ClientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = [
   { name: "Blocked client", placeholders: ClientIdentityPlaceholders },
   { name: "Common", placeholders: CommonPlaceholders },

@@ -56,6 +56,7 @@ export default class CodeInputComponent extends Vue {
   mounted(): void {
     this.configureMonacoEnv();
     this.editor = this.createMonacoEditor();
+    this.localSimpleValue = this.value || "";
 
     window.addEventListener("resize", this.onWindowResize);
     setTimeout(() => {
@@ -137,7 +138,7 @@ export default class CodeInputComponent extends Vue {
 
   @Watch("localSimpleValue")
   onLocalSimpleValueChanged(): void {
-      this.$emit("update:value", this.localSimpleValue);
+    this.$emit("update:value", this.localSimpleValue);
   }
 
   @Watch("readOnly")
@@ -338,7 +339,7 @@ export default class CodeInputComponent extends Vue {
     width: 100%;
     height: 100%;
   }
-  
+
   :deep(textarea) {
     background-color: #1e1e1e;
   }

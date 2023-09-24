@@ -68,7 +68,11 @@ export default class DateTimeInputComponent extends Vue {
   @Watch("value")
   updateLocalValue(): void {
     if (!this.value) {
-      this.localValue = null;
+      if (!this.emptyIsNull && !this.localValue) {
+        this.localValue = this.formatDateForInput(new Date());
+      } else {
+        this.localValue = null;
+      }
     } else {
       this.localValue = this.formatDateForInput(new Date(this.value));
     }

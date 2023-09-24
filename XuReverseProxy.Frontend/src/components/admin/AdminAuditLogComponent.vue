@@ -14,6 +14,9 @@ import DateFormats from "@utils/DateFormats";
 import PagingComponent from "@components/common/PagingComponent.vue";
 import IPDetailsComponent from "./IPDetailsComponent.vue";
 import DialogComponent from "@components/common/DialogComponent.vue";
+import { htmlAttributeEncode, htmlEncode } from "@utils/HtmlUtils";
+import { GlobalVariable } from "@generated/Models/Core/GlobalVariable";
+import GlobalVariablesService from "@services/GlobalVariablesService";
 
 @Options({
   components: {
@@ -41,6 +44,8 @@ export default class AdminAuditLogComponent extends Vue {
 
   proxyConfigService: ProxyConfigService = new ProxyConfigService();
   proxyConfigs: Array<ProxyConfig> = [];
+  variablesService: GlobalVariablesService = new GlobalVariablesService();
+  variables: Array<GlobalVariable> = [];
 
   async mounted() {
     await this.loadReferencedData();
@@ -49,6 +54,7 @@ export default class AdminAuditLogComponent extends Vue {
 
   async loadReferencedData() {
     this.proxyConfigs = (await this.proxyConfigService.GetAllAsync()).data || [];
+    this.variables = (await this.variablesService.GetAllAsync()).data || [];
   }
 
   async loadData() {
@@ -77,36 +83,48 @@ export default class AdminAuditLogComponent extends Vue {
   }
 
   createActionHtml(entry: AdminAuditLogEntry): string {
-    let html = this.htmlEncode(entry.action);
+    let html = htmlEncode(entry.action);
 
     if (html.includes("[PROXYCONFIG]")) {
       const existing = this.proxyConfigs.find((x) => x.id == entry.relatedProxyConfigId);
       const name = !existing
-        ? (this.htmlEncode(entry.relatedProxyConfigName) || "config") + " (deleted)"
-        : this.htmlEncode(existing.name || entry.relatedProxyConfigName) || "config";
+        ? (htmlEncode(entry.relatedProxyConfigName) || "config") + " (deleted)"
+        : htmlEncode(existing.name || entry.relatedProxyConfigName) || "config";
+      const nameAtTimeOfLog = entry.relatedProxyConfigName || "<no name>";
+      const titlePart =
+        existing == null || nameAtTimeOfLog == existing.name
+          ? ""
+          : `title="Name at event time: ${htmlAttributeEncode(nameAtTimeOfLog)}"`;
       const linkClass = !existing ? "missing" : "";
       html = html.replace(
         "[PROXYCONFIG]",
-        `<a href="/#/proxyconfigs/${entry.relatedProxyConfigId}" class="${linkClass}">[${name}]</a>`,
+        `<a href="/#/proxyconfigs/${entry.relatedProxyConfigId}" class="${linkClass}" ${titlePart}>[${name}]</a>`,
       );
     }
 
     if (html.includes("[CLIENT]")) {
-      const name = this.htmlEncode(entry.relatedClientName || entry.relatedClientId);
+      const name = htmlEncode(entry.relatedClientName || entry.relatedClientId);
       html = html.replace("[CLIENT]", `<a href="/#/client/${entry.relatedClientId}">[${name}]</a>`);
     }
 
     if (html.includes("[GVAR]")) {
-      const name = this.htmlEncode(entry.relatedGlobalVariableName || entry.relatedGlobalVariableId);
-      html = html.replace("[GVAR]", `<a href="/#/variables/${entry.relatedGlobalVariableId}">[${name}]</a>`);
+      const existing = this.variables.find((x) => x.id == entry.relatedGlobalVariableId);
+      const name = !existing
+        ? (htmlEncode(entry.relatedGlobalVariableName) || "variable") + " (deleted)"
+        : htmlEncode(existing.name || entry.relatedGlobalVariableName) || "variable";
+      const nameAtTimeOfLog = entry.relatedGlobalVariableName || "<no name>";
+      const titlePart =
+        (existing == null || nameAtTimeOfLog == existing.name)
+          ? ""
+          : `title="Name at event time: ${htmlAttributeEncode(nameAtTimeOfLog)}"`;
+      const linkClass = !existing ? "missing" : "";
+      html = html.replace(
+        "[GVAR]",
+        `<a href="/#/variables/${entry.relatedGlobalVariableId}" class="${linkClass}" ${titlePart}>[${name}]</a>`,
+      );
     }
 
     return html;
-  }
-
-  htmlEncode(input: string): string {
-    if (!input) return input;
-    else return input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
   async onPageIndexChanged() {

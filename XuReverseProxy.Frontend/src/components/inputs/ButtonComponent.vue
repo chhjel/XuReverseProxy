@@ -113,7 +113,7 @@ export default class ButtonComponent extends Vue {
 
   &.disabled {
     cursor: default;
-    opacity: 0.8;
+    opacity: 0.5;
     pointer-events: none;
   }
 

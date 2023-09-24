@@ -35,11 +35,19 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
 
         try
         {
-            _dbContext.EnsureDetached(entity);
+            var existingEntity = await _entities().FirstOrDefaultAsync(x => x.Id == entity.Id);
+
             var validationResult = await ValidateEntityAsync(entity);
             if (!validationResult.Success) return validationResult;
 
-            var result = _dbContext.Update(entity);
+            if (existingEntity == null)
+            {
+                _entities().Add(entity);
+            } else
+            {
+                _dbContext.Entry(existingEntity).CurrentValues.SetValues(entity);
+            }
+
             await _dbContext.SaveChangesAsync();
             OnDataModified();
 
