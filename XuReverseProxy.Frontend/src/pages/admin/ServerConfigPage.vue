@@ -9,7 +9,7 @@ import { RuntimeServerConfigItem } from "@generated/Models/Core/RuntimeServerCon
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
 import ExpandableComponent from "@components/common/ExpandableComponent.vue";
-import { ClientBlockedHtmlPlaceholders, PlaceholderGroupInfo, PlaceholderInfo } from "@utils/Constants";
+import { ClientBlockedHtmlPlaceholders, Html404Placeholders, IPBlockedHtmlPlaceholders, PlaceholderGroupInfo, PlaceholderInfo } from "@utils/Constants";
 import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponent.vue";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
 
@@ -32,6 +32,8 @@ export default class ServerConfigPage extends Vue {
   runtimeConfigs: Array<RuntimeServerConfigItem> = [];
 
   @Ref() readonly clientBlockedHtmlEditor!: any;
+  @Ref() readonly notFoundHtmlEditor!: any;
+  @Ref() readonly ipBlockedHtmlEditor!: any;
 
   clientBlockedHtmlPlaceholdersExtra: Array<PlaceholderInfo> = [
     {
@@ -40,6 +42,8 @@ export default class ServerConfigPage extends Vue {
     },
   ];
   clientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = ClientBlockedHtmlPlaceholders;
+  ipBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = IPBlockedHtmlPlaceholders;
+  html404Placeholders: Array<PlaceholderGroupInfo> = Html404Placeholders;
   config_NotFoundHtml: string = "";
   config_ClientBlockedHtml: string = "";
   config_ClientBlockedResponseCode: string = "";
@@ -116,8 +120,16 @@ export default class ServerConfigPage extends Vue {
     await this.saveConfig("IPBlockedResponseCode", this.config_IPBlockedResponseCode, "IPBlocked");
   }
 
+  insertPlaceholder404Html(val: string): void {
+    this.notFoundHtmlEditor.insertText(val);
+  }
+  
   insertPlaceholderClientBlockedHtml(val: string): void {
     this.clientBlockedHtmlEditor.insertText(val);
+  }
+  
+  insertPlaceholderIPBlockedHtml(val: string): void {
+    this.ipBlockedHtmlEditor.insertText(val);
   }
 }
 </script>
@@ -171,7 +183,15 @@ export default class ServerConfigPage extends Vue {
           :disabled="isLoading"
           language="html"
           height="400px"
+          ref="notFoundHtmlEditor"
         />
+        <expandable-component header="Supported placeholders">
+          <placeholder-info-component
+            :placeholders="html404Placeholders"
+            @insertPlaceholder="insertPlaceholder404Html"
+          />
+        </expandable-component>
+        <br>
         <button-component
           @click="saveConfig('NotFoundHtml', config_NotFoundHtml, 'NotFoundHtml')"
           :disabled="isLoading"
@@ -216,7 +236,14 @@ export default class ServerConfigPage extends Vue {
           :disabled="isLoading"
           language="html"
           height="400px"
+          ref="ipBlockedHtmlEditor"
         />
+        <expandable-component header="Supported placeholders">
+          <placeholder-info-component
+            :placeholders="ipBlockedHtmlPlaceholders"
+            @insertPlaceholder="insertPlaceholderIPBlockedHtml"
+          />
+        </expandable-component>
         <text-input-component
           label="Response code"
           v-model:value="config_IPBlockedResponseCode"
