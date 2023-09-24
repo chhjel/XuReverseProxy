@@ -4,6 +4,7 @@ import { Options } from "vue-class-component";
 import { PlaceholderGroupInfo, PlaceholderInfo } from "@utils/Constants";
 import { GlobalVariable } from "@generated/Models/Core/GlobalVariable";
 import GlobalVariablesService from "@services/GlobalVariablesService";
+import { SortBy } from "@utils/SortUtils";
 
 @Options({
   components: {},
@@ -45,12 +46,21 @@ export default class PlaceholderInfoComponent extends Vue {
         this.allPlaceholderData.push(d);
       });
     });
-    this.globalVariables.forEach((v) => {
+    this.globalVariables
+      .sort((a, b) =>
+        SortBy(
+          a,
+          b,
+          (x) => x.name,
+          (a, b) => a.name?.localeCompare(b.name),
+        ),
+      )
+      .forEach((v) => {
         this.allPlaceholderData.push({
           name: v.name,
-          description: "Custom variable"
+          description: "Custom variable",
         });
-    });
+      });
   }
 
   @Watch("placeholders", { deep: true })
