@@ -116,6 +116,5 @@ export default class ProxyAuthenticationConditionEditor extends Vue {
 </template>
 
 <style scoped lang="scss">
-.proxyconfigauthchallenge-edit {
-}
+/* .proxyconfigauthchallenge-edit {} */
 </style>

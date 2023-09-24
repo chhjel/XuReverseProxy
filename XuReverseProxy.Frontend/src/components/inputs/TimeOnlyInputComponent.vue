@@ -59,7 +59,7 @@ export default class TimeOnlyInputComponent extends Vue {
       this.localValueHours = "";
       this.localValueMinutes = "";
       this.localValueSeconds = "";
-    } else if (this.value.includes(".")) {
+    } else if (this.value.includes(":")) {
       let hmsParts = this.value.split(":");
       this.localValueHours = isNaN(parseInt(hmsParts[0])) ? "0" : parseInt(hmsParts[0]).toString() || "0";
       this.localValueMinutes = isNaN(parseInt(hmsParts[1])) ? "0" : parseInt(hmsParts[1]).toString() || "0";
