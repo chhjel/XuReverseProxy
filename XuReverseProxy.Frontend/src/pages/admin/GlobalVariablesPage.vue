@@ -27,6 +27,7 @@ export default class GlobalVariablesPage extends Vue {
 
   service: GlobalVariablesService = new GlobalVariablesService();
   variables: Array<GlobalVariable> = [];
+  savedVariableState: Array<GlobalVariable> = [];
 
   async mounted() {
     const result = await this.service.GetAllAsync();
@@ -42,6 +43,11 @@ export default class GlobalVariablesPage extends Vue {
         (a, b) => a.name?.localeCompare(b.name),
       ),
     );
+    this.updateSavedVariableState();
+  }
+
+  updateSavedVariableState(): void {
+    this.savedVariableState = JSON.parse(JSON.stringify(this.variables));
   }
 
   get isLoading(): boolean {
@@ -68,6 +74,7 @@ export default class GlobalVariablesPage extends Vue {
     } else {
       variable = result.data;
       this.variables.push(variable);
+      this.savedVariableState.push(JSON.parse(JSON.stringify(variable)));
       this.$router.push({
         name: "variables",
         params: { variableId: variable.id },
@@ -85,8 +92,23 @@ export default class GlobalVariablesPage extends Vue {
     };
   }
 
+  isVariableChanged(variable: GlobalVariable): boolean {
+    const stateItem = this.savedVariableState.find((x) => x.id == variable.id);
+    return stateItem?.name !== variable.name || stateItem?.value !== variable.value;
+  }
+
+  variableSaveButtonTooltip(variable: GlobalVariable): string {
+    if (!this.isVariableChanged(variable)) return "Nothing to save, change the name or value first.";
+    else return "";
+  }
+
   async saveVariable(variable: GlobalVariable) {
-    await this.service.CreateOrUpdateAsync(variable);
+    const result = await this.service.CreateOrUpdateAsync(variable);
+    if (result.success) {
+      const stateItem = this.savedVariableState.find((x) => x.id == variable.id);
+      stateItem.name = variable.name;
+      stateItem.value = variable.value;
+    }
   }
 
   async tryDeleteVariable(variable: GlobalVariable) {
@@ -122,8 +144,17 @@ export default class GlobalVariablesPage extends Vue {
               <text-input-component v-model:value="variable.value" dark textarea rows="3" :disabled="isLoading" />
             </td>
             <td class="variable__actions">
-              <button-component primary small @click="saveVariable(variable)">Save</button-component>
-              <button-component danger small @click="tryDeleteVariable(variable)">Delete</button-component>
+              <button-component
+                primary
+                small
+                @click="saveVariable(variable)"
+                :disabled="isLoading || !isVariableChanged(variable)"
+                :title="variableSaveButtonTooltip(variable)"
+                >Save</button-component
+              >
+              <button-component danger small @click="tryDeleteVariable(variable)" :disabled="isLoading"
+                >Delete</button-component
+              >
             </td>
             <td class="variable__details">
               Last updated
@@ -183,11 +214,13 @@ export default class GlobalVariablesPage extends Vue {
       font-size: 11px;
       color: var(--color--secondary);
       width: 115px;
+      min-width: 115px;
       font-family: monospace;
     }
 
     &__actions {
       width: 150px;
+      min-width: 150px;
     }
   }
 }
