@@ -7,11 +7,13 @@ import { ProxyChallengeTypeAdminLoginFrontendModel } from "@generated/Models/Cor
 import { VerifyLoginRequestModel } from "@generated/Models/Core/VerifyLoginRequestModel";
 import ProxyAuthService from "@services/ProxyAuthService";
 import { VerifyLoginResponseModel } from "@generated/Models/Core/VerifyLoginResponseModel";
+import TOTPTimebarComponent from "@components/common/TOTPTimebarComponent.vue";
 
 @Options({
   components: {
     TextInputComponent,
     ButtonComponent,
+    TOTPTimebarComponent,
   },
 })
 export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
@@ -97,6 +99,7 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
         :disabled="isLoading"
         @keydown.enter="onLoginClicked"
       />
+      <TOTPTimebarComponent class="mb-1" />
 
       <button-component @click="onLoginClicked" :disabled="isLoading" class="ml-0 secondary">Login</button-component>
     </div>
@@ -117,6 +120,10 @@ export default class ProxyChallengeTypeAdminLoginComponent extends Vue {
   &__inputs {
     max-width: 300px;
     margin: 20px auto 0 auto;
+
+    .input-wrapper {
+      margin-bottom: 4px;
+    }
   }
 
   &__status {
