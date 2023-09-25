@@ -14,6 +14,7 @@ import DateFormats from "@utils/DateFormats";
 import PagingComponent from "@components/common/PagingComponent.vue";
 import IPDetailsComponent from "./IPDetailsComponent.vue";
 import DialogComponent from "@components/common/DialogComponent.vue";
+import ExpandableComponent from "@components/common/ExpandableComponent.vue";
 
 @Options({
   components: {
@@ -23,6 +24,7 @@ import DialogComponent from "@components/common/DialogComponent.vue";
     LoaderComponent,
     PagingComponent,
     IPDetailsComponent,
+    ExpandableComponent,
   },
 })
 export default class ClientAuditLogComponent extends Vue {
@@ -140,6 +142,12 @@ export default class ClientAuditLogComponent extends Vue {
           @click="loadData"
           class="mr-0"
         ></button-component>
+      </div>
+
+      <div>
+        <expandable-component header="Filter">
+          todo
+        </expandable-component>
       </div>
 
       <paging-component

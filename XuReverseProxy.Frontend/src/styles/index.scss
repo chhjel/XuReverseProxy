@@ -44,3 +44,13 @@ code {
   text-align: left;
   font-family: monospace;
 }
+
+table {
+  th {
+    .sort-icon {
+      font-size: 15px;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
+  }
+}
