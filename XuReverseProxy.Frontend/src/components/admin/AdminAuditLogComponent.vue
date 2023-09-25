@@ -17,6 +17,7 @@ import DialogComponent from "@components/common/DialogComponent.vue";
 import { htmlAttributeEncode, htmlEncode } from "@utils/HtmlUtils";
 import { GlobalVariable } from "@generated/Models/Core/GlobalVariable";
 import GlobalVariablesService from "@services/GlobalVariablesService";
+import { AdminAuditLogSortBy } from "@generated/Enums/Web/AdminAuditLogSortBy";
 
 @Options({
   components: {
@@ -34,12 +35,14 @@ export default class AdminAuditLogComponent extends Vue {
   currentPageData: PaginatedResult<AdminAuditLogEntry> | null = null;
   filter: GetAdminAuditLogEntriesRequestModel = {
     fromUtc: new Date(new Date().setDate(new Date().getDate() - 1000)),
-    toUtc: new Date(new Date().setDate(new Date().getDate() + 1)),
+    toUtc: new Date(new Date().setDate(new Date().getDate() + 100)),
     pageIndex: 0,
     pageSize: 40,
     adminUserId: null,
     proxyConfigId: null,
     clientId: null,
+    sortDescending: true,
+    sortBy: AdminAuditLogSortBy.Timestamp,
   };
 
   proxyConfigService: ProxyConfigService = new ProxyConfigService();
@@ -114,7 +117,7 @@ export default class AdminAuditLogComponent extends Vue {
         : htmlEncode(existing.name || entry.relatedGlobalVariableName) || "variable";
       const nameAtTimeOfLog = entry.relatedGlobalVariableName || "<no name>";
       const titlePart =
-        (existing == null || nameAtTimeOfLog == existing.name)
+        existing == null || nameAtTimeOfLog == existing.name
           ? ""
           : `title="Name at event time: ${htmlAttributeEncode(nameAtTimeOfLog)}"`;
       const linkClass = !existing ? "missing" : "";
@@ -136,6 +139,27 @@ export default class AdminAuditLogComponent extends Vue {
   showIpDialog(ip: string): void {
     this.ipInDialog = ip;
     this.ipDialogVisible = true;
+  }
+
+  onSortHeaderClicked(type: AdminAuditLogSortBy | string): void {
+    if (this.filter.sortBy == type) {
+      if (!this.filter.sortDescending) {
+        this.filter.sortBy = null;
+        this.filter.sortDescending = true;
+      } else {
+        this.filter.sortDescending = !this.filter.sortDescending;
+      }
+    } else {
+      this.filter.sortBy = type as AdminAuditLogSortBy;
+      this.filter.sortDescending = true;
+    }
+
+    this.loadData();
+  }
+
+  getSortHeaderIcon(type: AdminAuditLogSortBy | string): string {
+    if (this.filter.sortBy != type) return "";
+    else return this.filter.sortDescending ? "expand_less" : "expand_more";
   }
 }
 </script>
@@ -172,10 +196,18 @@ export default class AdminAuditLogComponent extends Vue {
       <div class="table-wrapper">
         <table>
           <tr>
-            <th>When</th>
-            <th>IP</th>
-            <th>Who</th>
-            <th>What</th>
+            <th @click="onSortHeaderClicked('Timestamp')">
+              When<span class="material-icons sort-icon">{{ getSortHeaderIcon("Timestamp") }}</span>
+            </th>
+            <th @click="onSortHeaderClicked('IP')">
+              IP<span class="material-icons sort-icon">{{ getSortHeaderIcon("IP") }}</span>
+            </th>
+            <th @click="onSortHeaderClicked('Who')">
+              Who<span class="material-icons sort-icon">{{ getSortHeaderIcon("Who") }}</span>
+            </th>
+            <th @click="onSortHeaderClicked('What')">
+              What<span class="material-icons sort-icon">{{ getSortHeaderIcon("What") }}</span>
+            </th>
           </tr>
           <tr v-for="item in currentPageItems" :key="item.id" class="item">
             <td class="item__when">
@@ -231,6 +263,8 @@ export default class AdminAuditLogComponent extends Vue {
   }
   th {
     padding: 3px;
+    cursor: pointer;
+    user-select: none;
   }
   td {
     color: var(--color--text-dark);

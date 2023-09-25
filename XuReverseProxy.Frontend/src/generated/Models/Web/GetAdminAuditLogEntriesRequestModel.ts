@@ -2,6 +2,8 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
+import { AdminAuditLogSortBy } from '../../Enums/Web/AdminAuditLogSortBy';
+
 export interface GetAdminAuditLogEntriesRequestModel
 {
 	fromUtc: Date;
@@ -11,4 +13,6 @@ export interface GetAdminAuditLogEntriesRequestModel
 	adminUserId: string;
 	proxyConfigId: string;
 	clientId: string;
+	sortBy: AdminAuditLogSortBy;
+	sortDescending: boolean;
 }

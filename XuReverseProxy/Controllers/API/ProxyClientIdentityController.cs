@@ -22,7 +22,17 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
     public async Task<PaginatedResult<ProxyClientIdentity>> GetPagedAsync([FromBody] ProxyClientIdentitiesPagedRequestModel request)
     {
         var query = _dbContext.ProxyClientIdentities.AsQueryable();
-        // todo: filter
+
+        // Filter
+        if (!string.IsNullOrWhiteSpace(request.Filter))
+        {
+            query = query.Where(x =>
+                (x.Note != null && x.Note.Contains(request.Filter))
+                || (x.UserAgent != null && x.UserAgent.Contains(request.Filter))
+                || (x.IP != null && x.IP.Contains(request.Filter))
+            );
+        }
+
         var totalCount = await query.CountAsync();
 
         // Sort
@@ -34,16 +44,6 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
         else if (request.SortBy == ProxyClientsSortBy.Status) query = query.SortByWithToggledDirection(x => x.Blocked, request.SortDescending);
         else if (request.SortBy == ProxyClientsSortBy.UserAgent) query = query.SortByWithToggledDirection(x => x.UserAgent, request.SortDescending);
         else query = query.SortByWithToggledDirection(x => x.CreatedAtUtc, request.SortDescending);
-
-        // Filter
-        if (!string.IsNullOrWhiteSpace(request.Filter))
-        {
-            query = query.Where(x =>
-                (x.Note != null && x.Note.Contains(request.Filter))
-                || (x.UserAgent != null && x.UserAgent.Contains(request.Filter))
-                || (x.IP != null && x.IP.Contains(request.Filter))
-            );
-        }
 
         query = query
             .Skip(request.PageIndex * request.PageSize)
