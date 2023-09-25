@@ -128,7 +128,7 @@ export default class PagingComponent extends Vue {
   flex-wrap: nowrap;
   max-width: 100%;
   overflow-x: auto;
-  padding-bottom: 5px;
+  padding-bottom: 8px;
 
   .page-button {
     display: inline-flex;

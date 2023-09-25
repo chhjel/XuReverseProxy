@@ -2,6 +2,8 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
+import { ClientAuditLogSortBy } from '../../Enums/Web/ClientAuditLogSortBy';
+
 export interface GetClientAuditLogEntriesRequestModel
 {
 	fromUtc: Date;
@@ -10,4 +12,6 @@ export interface GetClientAuditLogEntriesRequestModel
 	pageSize: number;
 	proxyConfigId: string;
 	clientId: string;
+	sortBy: ClientAuditLogSortBy;
+	sortDescending: boolean;
 }

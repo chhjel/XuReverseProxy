@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using XuReverseProxy.Core.Attributes;
+using XuReverseProxy.Core.Extensions;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.Services;
 using XuReverseProxy.Models.Common;
@@ -21,11 +22,30 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
     public async Task<PaginatedResult<ProxyClientIdentity>> GetPagedAsync([FromBody] ProxyClientIdentitiesPagedRequestModel request)
     {
         var query = _dbContext.ProxyClientIdentities.AsQueryable();
-        // todo: filter
+
+        // Filter
+        if (!string.IsNullOrWhiteSpace(request.Filter))
+        {
+            query = query.Where(x =>
+                (x.Note != null && x.Note.Contains(request.Filter))
+                || (x.UserAgent != null && x.UserAgent.Contains(request.Filter))
+                || (x.IP != null && x.IP.Contains(request.Filter))
+            );
+        }
+
         var totalCount = await query.CountAsync();
 
+        // Sort
+        if (request.SortBy == ProxyClientsSortBy.Created) query = query.SortByWithToggledDirection(x => x.CreatedAtUtc, request.SortDescending);
+        else if (request.SortBy == ProxyClientsSortBy.LastAccessed) query = query.SortByWithToggledDirection(x => x.LastAccessedAtUtc, request.SortDescending);
+        else if (request.SortBy == ProxyClientsSortBy.LastAttemptedAccessed) query = query.SortByWithToggledDirection(x => x.LastAttemptedAccessedAtUtc, request.SortDescending);
+        else if (request.SortBy == ProxyClientsSortBy.Note) query = query.SortByWithToggledDirection(x => x.Note, request.SortDescending);
+        else if (request.SortBy == ProxyClientsSortBy.IP) query = query.SortByWithToggledDirection(x => x.IP, request.SortDescending);
+        else if (request.SortBy == ProxyClientsSortBy.Status) query = query.SortByWithToggledDirection(x => x.Blocked, request.SortDescending);
+        else if (request.SortBy == ProxyClientsSortBy.UserAgent) query = query.SortByWithToggledDirection(x => x.UserAgent, request.SortDescending);
+        else query = query.SortByWithToggledDirection(x => x.CreatedAtUtc, request.SortDescending);
+
         query = query
-            .OrderByDescending(x => x.CreatedAtUtc)
             .Skip(request.PageIndex * request.PageSize)
             .Take(request.PageSize);
 
@@ -37,7 +57,9 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
         };
     }
     [GenerateFrontendModel]
-    public record ProxyClientIdentitiesPagedRequestModel(int PageIndex, int PageSize);
+    public record ProxyClientIdentitiesPagedRequestModel(int PageIndex, int PageSize, ProxyClientsSortBy? SortBy = null, bool SortDescending = true, string? Filter = null);
+    [GenerateFrontendModel]
+    public enum ProxyClientsSortBy { Created, LastAccessed, LastAttemptedAccessed, Note, IP, Status, UserAgent }
 
     // Needed to preserve hash after login
     [HttpGet("redirect/to-client-details/{clientid}")]

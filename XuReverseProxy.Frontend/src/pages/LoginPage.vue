@@ -10,12 +10,14 @@ import LoginService from "@services/LoginService";
 import { CreateAccountResponse } from "@generated/Models/Web/CreateAccountResponse";
 import { Ecc, QrCode } from "@utils/QRCodeUtil";
 import { LoggedOutMessageIpChanged, isDevelopmentEnv } from "@utils/Constants";
+import TOTPTimebarComponent from "@components/common/TOTPTimebarComponent.vue";
 
 @Options({
   components: {
     VerticalLinesEffectComponent,
     TextInputComponent,
     ButtonComponent,
+    TOTPTimebarComponent,
   },
 })
 export default class LoginPage extends Vue {
@@ -199,6 +201,7 @@ export default class LoginPage extends Vue {
           :disabled="isLoading"
           @keydown.enter="onLoginClicked"
         />
+        <TOTPTimebarComponent class="mb-1" />
 
         <button-component @click="onLoginClicked" :disabled="isLoading">Login</button-component>
         <button-component v-if="isDevelopment" @click="onTestLoginClicked" :disabled="isLoading" secondary

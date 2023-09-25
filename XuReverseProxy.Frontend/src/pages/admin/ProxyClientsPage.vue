@@ -12,6 +12,8 @@ import DateFormats from "@utils/DateFormats";
 import { ProxyClientIdentitiesPagedRequestModel } from "@generated/Models/Web/ProxyClientIdentitiesPagedRequestModel";
 import { PaginatedResult } from "@generated/Models/Web/PaginatedResult";
 import PagingComponent from "@components/common/PagingComponent.vue";
+import ExpandableComponent from "@components/common/ExpandableComponent.vue";
+import { ProxyClientsSortBy } from "@generated/Enums/Web/ProxyClientsSortBy";
 
 @Options({
   components: {
@@ -20,6 +22,7 @@ import PagingComponent from "@components/common/PagingComponent.vue";
     AdminNavMenu,
     LoaderComponent,
     PagingComponent,
+    ExpandableComponent,
   },
 })
 export default class ProxyClientsPage extends Vue {
@@ -32,6 +35,9 @@ export default class ProxyClientsPage extends Vue {
   filter: ProxyClientIdentitiesPagedRequestModel = {
     pageIndex: 0,
     pageSize: 40,
+    filter: "",
+    sortBy: ProxyClientsSortBy.Created,
+    sortDescending: true,
   };
 
   async mounted() {
@@ -67,6 +73,27 @@ export default class ProxyClientsPage extends Vue {
   async onPageIndexChanged() {
     await this.loadData();
   }
+
+  onSortHeaderClicked(type: ProxyClientsSortBy | string): void {
+    if (this.filter.sortBy == type) {
+      if (!this.filter.sortDescending) {
+        this.filter.sortBy = null;
+        this.filter.sortDescending = true;
+      } else {
+        this.filter.sortDescending = !this.filter.sortDescending;
+      }
+    } else {
+      this.filter.sortBy = type as ProxyClientsSortBy;
+      this.filter.sortDescending = true;
+    }
+
+    this.loadData();
+  }
+
+  getSortHeaderIcon(type: ProxyClientsSortBy | string): string {
+    if (this.filter.sortBy != type) return "";
+    else return this.filter.sortDescending ? "expand_less" : "expand_more";
+  }
 }
 </script>
 
@@ -90,6 +117,17 @@ export default class ProxyClientsPage extends Vue {
         ></button-component>
       </div>
 
+      <div class="mb-2">
+        <expandable-component header="Filter">
+          <text-input-component
+            label=""
+            v-model:value="filter.filter"
+            placeholder="Search note, useragent and ip"
+            @keydown.enter="loadData"
+          />
+        </expandable-component>
+      </div>
+
       <paging-component
         class="pagination mb-1"
         :count="totalItemCount"
@@ -104,12 +142,26 @@ export default class ProxyClientsPage extends Vue {
       <div class="table-wrapper">
         <table>
           <tr>
-            <th>Note</th>
-            <th>IP</th>
-            <th style="font-size: 12px">Last access</th>
-            <th style="font-size: 12px">Last attempted access</th>
-            <th>Status</th>
-            <th>UserAgent</th>
+            <th @click="onSortHeaderClicked('Note')">
+              Note<span class="material-icons sort-icon">{{ getSortHeaderIcon("Note") }}</span>
+            </th>
+            <th @click="onSortHeaderClicked('IP')">
+              IP<span class="material-icons sort-icon">{{ getSortHeaderIcon("IP") }}</span>
+            </th>
+            <th @click="onSortHeaderClicked('LastAccessed')" style="font-size: 12px">
+              Last access<span class="material-icons sort-icon">{{ getSortHeaderIcon("LastAccessed") }}</span>
+            </th>
+            <th @click="onSortHeaderClicked('LastAttemptedAccessed')" style="font-size: 12px">
+              Last attempted access<span class="material-icons sort-icon">{{
+                getSortHeaderIcon("LastAttemptedAccessed")
+              }}</span>
+            </th>
+            <th @click="onSortHeaderClicked('Status')">
+              Status<span class="material-icons sort-icon">{{ getSortHeaderIcon("Status") }}</span>
+            </th>
+            <th @click="onSortHeaderClicked('UserAgent')">
+              UserAgent<span class="material-icons sort-icon">{{ getSortHeaderIcon("UserAgent") }}</span>
+            </th>
           </tr>
           <tr
             v-for="client in currentPageItems"
@@ -169,6 +221,8 @@ export default class ProxyClientsPage extends Vue {
   th {
     padding: 3px;
     white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
   }
   td {
     color: var(--color--text-dark);

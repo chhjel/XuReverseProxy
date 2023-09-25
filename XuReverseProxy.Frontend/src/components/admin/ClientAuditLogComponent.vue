@@ -14,6 +14,8 @@ import DateFormats from "@utils/DateFormats";
 import PagingComponent from "@components/common/PagingComponent.vue";
 import IPDetailsComponent from "./IPDetailsComponent.vue";
 import DialogComponent from "@components/common/DialogComponent.vue";
+import ExpandableComponent from "@components/common/ExpandableComponent.vue";
+import { ClientAuditLogSortBy } from "@generated/Enums/Web/ClientAuditLogSortBy";
 
 @Options({
   components: {
@@ -23,6 +25,7 @@ import DialogComponent from "@components/common/DialogComponent.vue";
     LoaderComponent,
     PagingComponent,
     IPDetailsComponent,
+    ExpandableComponent,
   },
 })
 export default class ClientAuditLogComponent extends Vue {
@@ -34,11 +37,13 @@ export default class ClientAuditLogComponent extends Vue {
   currentPageData: PaginatedResult<ClientAuditLogEntry> | null = null;
   filter: GetClientAuditLogEntriesRequestModel = {
     fromUtc: new Date(new Date().setDate(new Date().getDate() - 1000)),
-    toUtc: new Date(new Date().setDate(new Date().getDate() + 1)),
+    toUtc: new Date(new Date().setDate(new Date().getDate() + 100)),
     pageIndex: 0,
     pageSize: 40,
     clientId: null,
     proxyConfigId: null,
+    sortDescending: true,
+    sortBy: ClientAuditLogSortBy.Timestamp
   };
 
   proxyConfigService: ProxyConfigService = new ProxyConfigService();
@@ -120,6 +125,27 @@ export default class ClientAuditLogComponent extends Vue {
     const idPart = !id ? "no-id" : `${id.split("-")[0]}..`;
     return `[${idPart}]`;
   }
+
+  onSortHeaderClicked(type: ClientAuditLogSortBy | string): void {
+    if (this.filter.sortBy == type) {
+      if (!this.filter.sortDescending) {
+        this.filter.sortBy = null;
+        this.filter.sortDescending = true;
+      } else {
+        this.filter.sortDescending = !this.filter.sortDescending;
+      }
+    } else {
+      this.filter.sortBy = type as ClientAuditLogSortBy;
+      this.filter.sortDescending = true;
+    }
+
+    this.loadData();
+  }
+
+  getSortHeaderIcon(type: ClientAuditLogSortBy | string): string {
+    if (this.filter.sortBy != type) return "";
+    else return this.filter.sortDescending ? "expand_less" : "expand_more";
+  }
 }
 </script>
 
@@ -155,10 +181,10 @@ export default class ClientAuditLogComponent extends Vue {
       <div class="table-wrapper">
         <table>
           <tr>
-            <th>When</th>
-            <th>IP</th>
-            <th>Who</th>
-            <th>What</th>
+            <th @click="onSortHeaderClicked('Timestamp')">When<span class="material-icons sort-icon">{{ getSortHeaderIcon("Timestamp") }}</span></th>
+            <th @click="onSortHeaderClicked('IP')">IP<span class="material-icons sort-icon">{{ getSortHeaderIcon("IP") }}</span></th>
+            <th @click="onSortHeaderClicked('Who')">Who<span class="material-icons sort-icon">{{ getSortHeaderIcon("Who") }}</span></th>
+            <th @click="onSortHeaderClicked('What')">What<span class="material-icons sort-icon">{{ getSortHeaderIcon("What") }}</span></th>
           </tr>
           <tr v-for="item in currentPageItems" :key="item.id" class="item">
             <td class="item__when">
@@ -216,6 +242,8 @@ export default class ClientAuditLogComponent extends Vue {
   }
   th {
     padding: 3px;
+    cursor: pointer;
+    user-select: none;
   }
   td {
     color: var(--color--text-dark);

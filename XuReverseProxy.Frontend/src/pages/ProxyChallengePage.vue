@@ -188,6 +188,7 @@ export default class ProxyChallengePage extends Vue {
 
     &__item {
       margin-top: 10px;
+      margin-bottom: 20px;
     }
   }
 

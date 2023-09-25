@@ -20,7 +20,7 @@ export default class AdminNavMenu extends Vue {
 </script>
 
 <template>
-  <div>
+  <div class="admin-nav">
     <div class="logo-text">{{ options.serverName || "XuReverseProxy" }}</div>
 
     <nav class="admin-nav-desktop">
@@ -54,6 +54,10 @@ export default class AdminNavMenu extends Vue {
 </template>
 
 <style scoped lang="scss">
+.admin-nav {
+  user-select: none;
+}
+
 .logo-text {
   font-size: 48px;
   font-weight: 600;
