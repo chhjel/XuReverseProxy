@@ -1,3 +1,4 @@
+import { ResetChallengesForAuthenticationRequestModel } from './../generated/Models/Web/ResetChallengesForAuthenticationRequestModel';
 import { ProxyAuthenticationData } from "@generated/Models/Core/ProxyAuthenticationData";
 import { ProxyAuthenticationDataOrderData } from "@generated/Models/Web/ProxyAuthenticationDataOrderData";
 import EFCrudServiceBase from "./EFCrudServiceBase";
@@ -8,6 +9,16 @@ import { GenericResult } from "@generated/Models/Web/GenericResult";
 export default class ProxyAuthenticationDataService extends EFCrudServiceBase<ProxyAuthenticationData> {
   constructor() {
     super("proxyAuthenticationData");
+  }
+
+  public async ResetChallengesForAuthenticationAsync(
+    payload: ResetChallengesForAuthenticationRequestModel,
+    status: LoadStatus | null = null,
+  ): Promise<GenericResult> {
+    const url = `${this._baseUrl}/resetChallengesForAuthentication`;
+    const request = this.fetchExt(url, "POST", payload);
+    const result = await this.awaitWithStatus<GenericResult>(request, status);
+    return result.data;
   }
 
   public async GetFromConfigAsync(
