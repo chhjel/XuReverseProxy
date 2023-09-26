@@ -1,32 +1,73 @@
 trigger:
 - main
+- beta
 
 resources:
 - repo: self
 
-variables:
-- name: cleanSourceBranch
-  value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
-- name: buildReasonRevisionNumberCounterSeed
-  value: $[format('{0}-5', variables['CleanSourceBranch'])]
-- name: buildReasonRevisionNumber
-  value: $[counter(variables['buildReasonRevisionNumberCounterSeed'], 0)]
-- name: versionTag
-  value: '1.0.$(buildReasonRevisionNumber)'
-- name: isMain
-  value: $[eq(variables['cleanSourceBranch'], 'main')]
-- name: shouldPublish
-  value: $[eq(variables['isMain'], 'true')]
-
-stages:
-- stage: Build
-  displayName: Build Docker image
-  jobs:
-  - job: Build
-    displayName: Build
+jobs:
+  - job: PrepareVersionNumber
     pool:
       vmImage: ubuntu-latest
+    variables:
+      - name: cleanSourceBranch
+        value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
     steps:
+      - checkout: none
+      - bash: |
+          counterSeed=$(cleanSourceBranch)
+          if [ "$counterSeed" = "beta" ]; then
+            counterSeed="main"
+            echo Is beta branch, using main as counter.
+          fi
+          echo "##vso[task.setvariable variable=Value;isOutput=true]$counterSeed"
+          echo counterSeed: $counterSeed
+        name: CounterSeed
+
+  - job: Build
+    displayName: Build Docker image
+    dependsOn: PrepareVersionNumber
+    pool:
+      vmImage: ubuntu-latest
+
+    variables:
+    - name: cleanSourceBranch
+      value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
+    - name: versionSeed
+      value: $[ dependencies.PrepareVersionNumber.outputs['CounterSeed.Value'] ]
+    - name: buildReasonRevisionNumber
+      value: $[counter(variables['versionSeed'], 0)]
+    - name: versionMajorMinor
+      value: '1.1'
+    - name: versionTag
+      value: '$(versionMajorMinor).$(buildReasonRevisionNumber)'
+    - name: coreTag
+      value: 'latest'
+    - name: isMain
+      value: $[eq(variables['cleanSourceBranch'], 'main')]
+    - name: isBeta
+      value: $[eq(variables['cleanSourceBranch'], 'beta')]
+    - name: shouldPublish
+      value: $[or(eq(variables['isMain'], 'true'), eq(variables['isBeta'], 'true'))]
+
+    steps:
+    # Beta branch overrides
+    - bash: |
+        value=$(versionMajorMinor).$(buildReasonRevisionNumber)-beta
+        echo "##vso[task.setvariable variable=versionTag;]$value"
+      displayName: "Set beta versionTag"
+      condition: and(succeeded(), eq(variables['isBeta'], 'true'))
+
+    - bash: |
+        echo "##vso[task.setvariable variable=coreTag;]beta"
+      displayName: "Set core tag to beta"
+      condition: and(succeeded(), eq(variables['isBeta'], 'true'))
+
+    - script: |
+        echo buildReasonRevisionNumber: $(buildReasonRevisionNumber)
+        echo versionTag: $(versionTag)
+        echo coreTag: $(coreTag)
+      displayName: Debug output some variables
 
     - task: Docker@2
       displayName: Build docker image
@@ -38,7 +79,8 @@ stages:
         buildContext: '**/../'
         tags: |
           $(versionTag)
-          latest
+          $(coreTag)
+          latest-including-beta
         arguments: --label branch=$(cleanSourceBranch) --build-arg BUILD_VERSION="$(versionTag)"
 
     - task: Docker@2
@@ -50,4 +92,5 @@ stages:
         repository: 'christianwut/xureverseproxy'
         tags: |
           $(versionTag)
-          latest
+          $(coreTag)
+          latest-including-beta
