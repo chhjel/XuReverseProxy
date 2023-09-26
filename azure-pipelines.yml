@@ -1,5 +1,6 @@
 trigger:
 - main
+- beta
 
 resources:
 - repo: self
@@ -7,16 +8,21 @@ resources:
 variables:
 - name: cleanSourceBranch
   value: $[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]
-- name: buildReasonRevisionNumberCounterSeed
-  value: $[format('{0}-5', variables['CleanSourceBranch'])]
 - name: buildReasonRevisionNumber
-  value: $[counter(variables['buildReasonRevisionNumberCounterSeed'], 0)]
+  value: $[counter(variables['CleanSourceBranch'], 0)]
+- name: versionMajorMinor
+  value: '1.1'
 - name: versionTag
-  value: '1.0.$(buildReasonRevisionNumber)'
+  value: '$(versionMajorMinor).$(buildReasonRevisionNumber)'
+- name: coreTag
+  value: 'latest'
 - name: isMain
   value: $[eq(variables['cleanSourceBranch'], 'main')]
+- name: isBeta
+  value: $[eq(variables['cleanSourceBranch'], 'beta')]
 - name: shouldPublish
   value: $[eq(variables['isMain'], 'true')]
+  # value: $[or(eq(variables['isMain'], 'true'), eq(variables['isBeta'], 'true'))]
 
 stages:
 - stage: Build
@@ -28,6 +34,25 @@ stages:
       vmImage: ubuntu-latest
     steps:
 
+    # Beta branch overrides
+    - script: echo '##vso[task.setvariable variable=buildReasonRevisionNumber]$[counter(variables['main'], 0)]
+      displayName: "Use main counter for beta"
+      condition: and(succeeded(), eq(variables['isBeta'], 'true'))
+
+    - script: echo '##vso[task.setvariable variable=versionTag]$(versionMajorMinor).$(buildReasonRevisionNumber)-beta
+      displayName: "Set beta versionTag"
+      condition: and(succeeded(), eq(variables['isBeta'], 'true'))
+
+    - script: echo '##vso[task.setvariable variable=coreTag]beta
+      displayName: "Set core tag to beta"
+      condition: and(succeeded(), eq(variables['isBeta'], 'true'))
+
+    - script: |
+        echo buildReasonRevisionNumber: $(buildReasonRevisionNumber)
+        echo versionTag: $(versionTag)
+        echo coreTag: $(coreTag)
+      displayName: Debug output some variables
+
     - task: Docker@2
       displayName: Build docker image
       inputs:
@@ -38,7 +63,7 @@ stages:
         buildContext: '**/../'
         tags: |
           $(versionTag)
-          latest
+          $(coreTag)
         arguments: --label branch=$(cleanSourceBranch) --build-arg BUILD_VERSION="$(versionTag)"
 
     - task: Docker@2
@@ -50,4 +75,4 @@ stages:
         repository: 'christianwut/xureverseproxy'
         tags: |
           $(versionTag)
-          latest
+          $(coreTag)
