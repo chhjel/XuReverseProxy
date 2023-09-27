@@ -27,9 +27,9 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
         if (!string.IsNullOrWhiteSpace(request.Filter))
         {
             query = query.Where(x =>
-                (x.Note != null && x.Note.Contains(request.Filter))
-                || (x.UserAgent != null && x.UserAgent.Contains(request.Filter))
-                || (x.IP != null && x.IP.Contains(request.Filter))
+                (x.Note != null && x.Note.ToLower().Contains(request.Filter.ToLower()))
+                || (x.UserAgent != null && x.UserAgent.ToLower().Contains(request.Filter.ToLower()))
+                || (x.IP != null && x.IP.ToLower().Contains(request.Filter.ToLower()))
             );
         }
 
