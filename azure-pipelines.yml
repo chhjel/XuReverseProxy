@@ -69,6 +69,23 @@ jobs:
         echo coreTag: $(coreTag)
       displayName: Debug output some variables
 
+    - bash: |
+        echo { >> $(Build.ArtifactStagingDirectory)/build_variables
+        echo  \"versionTag\": \"$(versionTag)\", >> $(Build.ArtifactStagingDirectory)/build_variables
+        echo  \"coreTag\": \"$(coreTag)\" >> $(Build.ArtifactStagingDirectory)/build_variables
+        echo } >> $(Build.ArtifactStagingDirectory)/build_variables
+        
+        echo Path: $(Build.ArtifactStagingDirectory)/build_variables
+        cat $(Build.ArtifactStagingDirectory)/build_variables
+      displayName: Save variables for release pipeline
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish artifacts
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+
     - task: Docker@2
       displayName: Build docker image
       inputs:
