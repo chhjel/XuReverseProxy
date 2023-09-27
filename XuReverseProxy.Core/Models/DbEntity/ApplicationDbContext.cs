@@ -6,17 +6,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace XuReverseProxy.Core.Models.DbEntity;
 
-// dotnet ef migrations add InitialMigration --project XuReverseProxy.Core -s XuReverseProxy --verbose
-//
-// ProxyConfig - service.domain.com => 192.168.2.3:1234
-// - List<ProxyAuthenticationData> e.g. [login, otp, manual]
-//   * Contains type and json of ProxyChallengeType
-//   - List<ProxyAuthenticationCondition> e.g. [daterange, weekday]
-// 
-// ProxyClientIdentity - client session
-// - ProxyClientIdentityData - kvp store
-// - ProxyClientIdentitySolvedChallengeData - solved challenges state
-// 
+// dotnet ef migrations add <migration_name> --project XuReverseProxy.Core -s XuReverseProxy --verbose
+
 public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
 {
     public DbSet<ProxyConfig> ProxyConfigs { get; set; }
@@ -24,6 +15,7 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     public DbSet<ProxyAuthenticationCondition> ProxyAuthenticationConditions { get; set; }
     public DbSet<ProxyClientIdentity> ProxyClientIdentities { get; set; }
     public DbSet<ProxyClientIdentitySolvedChallengeData> ProxyClientIdentitySolvedChallengeDatas { get; set; }
+    public DbSet<ProxyCondition> ProxyConditions { get; set; }
     public DbSet<ProxyClientIdentityData> ProxyClientIdentityDatas { get; set; }
     public DbSet<RuntimeServerConfigItem> RuntimeServerConfigItems { get; set; }
     public DbSet<GlobalVariable> GlobalVariables { get; set; }
@@ -67,6 +59,13 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
             .HasMany(e => e.SolvedChallenges)
             .WithOne(e => e.Identity)
             .HasForeignKey(e => e.IdentityId)
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
+        
+        builder.Entity<ProxyConfig>()
+            .HasMany(e => e.ProxyConditions)
+            .WithOne(e => e.ProxyConfig)
+            .HasForeignKey(e => e.ProxyConfigId)
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
 

@@ -21,7 +21,9 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
     public ProxyConfigMode Mode { get; set; }
     public string? DestinationPrefix { get; set; }
     public string? StaticHTML { get; set; }
+
     public ICollection<ProxyAuthenticationData> Authentications { get; } = new List<ProxyAuthenticationData>();
+    public ICollection<ProxyCondition> ProxyConditions { get; } = new List<ProxyCondition>();
 
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {
