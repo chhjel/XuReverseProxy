@@ -237,6 +237,14 @@ export default class ProxyConfigPage extends Vue {
     });
     await this.proxyAuthService.UpdateAuthOrdersAsync(orders);
   }
+
+  async regenChallenge() {
+    if (!confirm(`Regenerate challenge? This will cause clients to have to complete it again.`)) return;
+    await this.proxyAuthService.ResetChallengesForAuthenticationAsync({
+      authenticationId: this.authInDialog.id,
+      identityId: null
+    });
+  }
 }
 </script>
 
@@ -323,6 +331,13 @@ export default class ProxyConfigPage extends Vue {
           <button-component @click="saveAuth" :disabled="isLoading" class="primary ml-0">Save</button-component>
           <button-component @click="authDialogVisible = false" :disabled="isLoading" class="secondary"
             >Cancel</button-component
+          >
+          <button-component
+            @click="regenChallenge"
+            :disabled="isLoading"
+            class="secondary"
+            v-if="authInDialog?.id != emptyGuid"
+            >Regenerate challenge</button-component
           >
           <button-component
             @click="deleteAuth"

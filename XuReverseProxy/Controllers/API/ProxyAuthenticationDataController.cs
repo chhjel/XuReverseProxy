@@ -2,15 +2,19 @@
 using Microsoft.EntityFrameworkCore;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.DbEntity;
+using XuReverseProxy.Core.Services;
 using XuReverseProxy.Models.Common;
 
 namespace XuReverseProxy.Controllers.API;
 
 public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthenticationData>
 {
-    public ProxyAuthenticationDataController(ApplicationDbContext context)
+    private readonly IProxyChallengeService _proxyChallengeService;
+
+    public ProxyAuthenticationDataController(ApplicationDbContext context, IProxyChallengeService proxyChallengeService)
         : base(context, () => context.ProxyAuthenticationDatas)
     {
+        _proxyChallengeService = proxyChallengeService;
     }
 
     protected override void OnDataModified()
@@ -19,6 +23,22 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
         _dbContext.InvalidateCacheFor<ProxyConfig>();
         _dbContext.InvalidateCacheFor<ProxyAuthenticationCondition>();
     }
+
+    [HttpPost("resetChallengesForAuthentication")]
+    public async Task<GenericResult> ResetChallengesForAuthenticationAsync([FromBody] ResetChallengesForAuthenticationRequestModel request)
+    {
+        try
+        {
+            await _proxyChallengeService.ResetChallengesForAuthenticationAsync(request.AuthenticationId, request.IdentityId);
+            return GenericResult.CreateSuccess();
+        }
+        catch (Exception ex)
+        {
+            return GenericResult.CreateError(ex.Message);
+        }
+    }
+    [GenerateFrontendModel]
+    public record ResetChallengesForAuthenticationRequestModel(Guid AuthenticationId, Guid? IdentityId = null);
 
     [HttpGet("fromConfig/{configId}")]
     public async Task<GenericResultData<List<ProxyAuthenticationData>>> GetFromConfigAsync([FromRoute] Guid configId)

@@ -15,6 +15,7 @@ public interface IProxyChallengeService
     Task<bool> IsChallengeSolvedAsync(Guid identityId, ProxyAuthenticationData auth);
     Task<bool> IsChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration);
     Task<ProxyClientIdentitySolvedChallengeData?> GetSolvedChallengeSolvedDataAsync(Guid identityId, Guid authenticationId, Guid solvedId, TimeSpan? solvedDuration);
+    Task<int> ResetChallengesForAuthenticationAsync(Guid authenticationId, Guid? identityId = null);
 }
 
 public class ProxyChallengeService : IProxyChallengeService
@@ -140,5 +141,19 @@ public class ProxyChallengeService : IProxyChallengeService
 
         await _dbContext.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<int> ResetChallengesForAuthenticationAsync(Guid authenticationId, Guid? identityId = null)
+    {
+        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId);
+        if (auth == null) return 0;
+
+        var query = _dbContext.ProxyClientIdentitySolvedChallengeDatas
+            .Where(x => x.AuthenticationId == authenticationId);
+
+        if (identityId != null) query = query.Where(x => x.IdentityId == identityId);
+
+        var affectedRows = await query.ExecuteDeleteAsync();
+        return affectedRows;
     }
 }
