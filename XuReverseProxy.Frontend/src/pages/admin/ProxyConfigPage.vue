@@ -233,8 +233,9 @@ export default class ProxyConfigPage extends Vue {
       </div>
 
       <!-- Conditions -->
-      <div class="block mt-4 mb-5">
+      <div class="block mt-4">
         <div class="block-title">Conditions</div>
+        <p v-if="proxyConfig.proxyConditions.length > 0">Proxy available when the conditions below are met.</p>
         <condition-datas-editor
           class="auth-conditions"
           :value="proxyConfig.proxyConditions"

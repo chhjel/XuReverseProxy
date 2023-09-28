@@ -12,6 +12,7 @@ using System.Net.Security;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using System.Web;
 using XuReverseProxy.Core.Extensions;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
@@ -123,6 +124,18 @@ public class ReverseProxyMiddleware
             return;
         }
 
+        // Proxy conditions
+        var conditionContext = conditionChecker.CreateContext();
+        if (!conditionChecker.ConditionsPassed(proxyConfig.ProxyConditions, conditionContext))
+        {
+            // todo: make a dedicated page
+            var message = HttpUtility.HtmlEncode(proxyConfig.ConditionsNotMetMessage);
+            var html = $"<!DOCTYPE html>\n<html>\n<head>\n<title>{HttpUtility.HtmlEncode(proxyConfig.ChallengeTitle)}</title>\n</head>\n<body>\n{message}\n</body>\n</html>\n";
+            html = (await placeholderResolver.ResolvePlaceholdersAsync(html, transformer: null, placeholders: null, clientIdentity));
+            await SetResponseAsync(context, html, statusCode: 200);
+            return;
+        }
+
         // Check cached approval, access allowed is cached for 5 seconds
         var allowedCacheKey = $"__client_allowed_{proxyConfig.Id}_{clientIdentity?.Id}";
         if (memoryCache.TryGetValue(allowedCacheKey, out _))
@@ -144,7 +157,6 @@ public class ReverseProxyMiddleware
                 Title = proxyConfig.ChallengeTitle ?? string.Empty,
                 Description = proxyConfig.ChallengeDescription
             };
-            var conditionContext = conditionChecker.CreateContext();
             foreach (var auth in authentications)
             {
                 var authResult = await ProcessAuthenticationCheckAsync(auth, clientIdentity, proxyConfig, context, pageModel, applicationDbContext,

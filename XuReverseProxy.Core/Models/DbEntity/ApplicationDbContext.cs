@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -103,6 +103,17 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
         if (typeof(T) == typeof(ProxyAuthenticationData))
         {
             _memoryCache.Remove($"all_{typeof(ProxyConfig)}");
+            _memoryCache.Remove($"all_{typeof(ConditionData)}");
+        }
+        else if (typeof(T) == typeof(ConditionData))
+        {
+            _memoryCache.Remove($"all_{typeof(ProxyConfig)}");
+            _memoryCache.Remove($"all_{typeof(ProxyAuthenticationData)}");
+        }
+        else if (typeof(T) == typeof(ProxyConfig))
+        {
+            _memoryCache.Remove($"all_{typeof(ProxyAuthenticationData)}");
+            _memoryCache.Remove($"all_{typeof(ConditionData)}");
         }
     }
 
@@ -125,6 +136,7 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
         if (dbSet is DbSet<ProxyConfig> proxyConfigSet)
         {
             return (await proxyConfigSet
+                .Include(x => x.ProxyConditions)
                 .Include(x => x.Authentications)
                 .ThenInclude(x => x.Conditions)
                 .ToArrayAsync())

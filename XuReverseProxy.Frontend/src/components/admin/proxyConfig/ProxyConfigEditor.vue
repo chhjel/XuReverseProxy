@@ -180,6 +180,15 @@ export default class ProxyConfigEditor extends Vue {
         class="mt-2"
       />
     </div>
+
+    <div class="block block--dark mt-4">
+      <div class="block-title">Conditions not met message</div>
+      <code-input-component
+        v-model:value="localValue.conditionsNotMetMessage"
+        height="50px"
+        :readOnly="disabled"
+      />
+    </div>
   </div>
 </template>
 

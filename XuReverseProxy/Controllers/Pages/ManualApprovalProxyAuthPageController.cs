@@ -49,7 +49,10 @@ public class ManualApprovalProxyAuthPageController : Controller
         var client = await _proxyClientIdentityService.GetProxyClientIdentityAsync(clientIdentityId);
         if (client == null) return NotFound();
 
-        var config = await _dbContext.ProxyConfigs.Include(x => x.Authentications).FirstOrDefaultAsync(x => x.Id == proxyConfigId);
+        var config = await _dbContext.ProxyConfigs
+            .Include(x => x.ProxyConditions)
+            .Include(x => x.Authentications)
+            .FirstOrDefaultAsync(x => x.Id == proxyConfigId);
         if (config == null) return NotFound();
 
         var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId);
