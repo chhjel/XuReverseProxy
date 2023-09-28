@@ -50,7 +50,7 @@ export default class ProxyClientPage extends Vue {
   service: ProxyClientIdentityService = new ProxyClientIdentityService();
   proxyConfigService: ProxyConfigService = new ProxyConfigService();
   proxyAuthService: ProxyAuthenticationDataService = new ProxyAuthenticationDataService();
-  // proxyAuthConditionService: ProxyAuthenticationConditionService = new ProxyAuthenticationConditionService();
+  // proxyAuthConditionService: ConditionDataService = new ConditionDataService();
   statuses: Array<LoadStatus> = [this.service.status, this.proxyConfigService.status, this.proxyAuthService.status];
   client: ProxyClientIdentity | null = null;
   clientId: string = "";

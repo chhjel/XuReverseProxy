@@ -48,7 +48,8 @@ public class ReverseProxyMiddleware
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         INotificationService notificationService,
-        IPlaceholderResolver placeholderResolver)
+        IPlaceholderResolver placeholderResolver,
+        IConditionChecker conditionChecker)
     {
         // Check for special cases first
         if (await TryHandleInternalRequestAsync(context, _nextMiddleware))
@@ -143,10 +144,11 @@ public class ReverseProxyMiddleware
                 Title = proxyConfig.ChallengeTitle ?? string.Empty,
                 Description = proxyConfig.ChallengeDescription
             };
+            var conditionContext = conditionChecker.CreateContext();
             foreach (var auth in authentications)
             {
                 var authResult = await ProcessAuthenticationCheckAsync(auth, clientIdentity, proxyConfig, context, pageModel, applicationDbContext,
-                    authChallengeFactory, serviceProvider, proxyChallengeService);
+                    authChallengeFactory, serviceProvider, proxyChallengeService, conditionContext);
                 if (authResult == AuthCheckResult.NotSolved) allChallengesSolved = false;
             }
             pageModel.ChallengeModels = pageModel.ChallengeModels.OrderBy(x => x.Order).ToList();
@@ -264,16 +266,22 @@ public class ReverseProxyMiddleware
     }
     private static async Task<AuthCheckResult> ProcessAuthenticationCheckAsync(ProxyAuthenticationData auth, ProxyClientIdentity clientIdentity,
         ProxyConfig proxyConfig, HttpContext context, ProxyChallengePageFrontendModel pageModel, ApplicationDbContext applicationDbContext,
-        IProxyAuthenticationChallengeFactory authChallengeFactory, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
+        IProxyAuthenticationChallengeFactory authChallengeFactory, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService,
+        ConditionContext conditionContext)
     {
-        var challengeData = await proxyChallengeService.GetChallengeRequirementDataAsync(auth.Id);
-        if (!challengeData.All(c => c.Passed))
+        var conditionsPassed = await proxyChallengeService.ChallengeRequirementPassedAsync(auth.Id, conditionContext);
+        (ConditionData.ConditionType Type, int Group, string Summary, bool Passed)[]? challengeData = null;
+        if (!conditionsPassed)
         {
-            // Update viewmodel
             if (proxyConfig.ShowChallengesWithUnmetRequirements)
             {
-                pageModel.AuthsWithUnfulfilledConditions.Add(new(auth.ChallengeTypeId!,
-                    challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
+                // Update viewmodel if enabled
+                challengeData = await proxyChallengeService.GetChallengeRequirementDataAsync(auth.Id, conditionContext);
+                if (!challengeData.All(c => c.Passed))
+                {
+                    pageModel.AuthsWithUnfulfilledConditions.Add(new(auth.ChallengeTypeId!,
+                        challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Group, x.Summary, x.Passed)).ToList()));
+                }
             }
             return AuthCheckResult.ConditionsNotMet;
         }
@@ -300,9 +308,10 @@ public class ReverseProxyMiddleware
         // Update viewmodel
         if (proxyConfig.ShowCompletedChallenges || !solved)
         {
+            challengeData ??= await proxyChallengeService.GetChallengeRequirementDataAsync(auth.Id, conditionContext);
             pageModel.ChallengeModels.Add(
                 new(auth.Id, auth.ChallengeTypeId!, auth.Order, solved, frontendModel,
-                    challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
+                    challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Group, x.Summary, x.Passed)).ToList()));
         }
 
         return solved ? AuthCheckResult.Solved : AuthCheckResult.NotSolved;

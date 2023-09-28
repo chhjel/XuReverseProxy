@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using XuReverseProxy.Core.Extensions;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.ProxyAuthentication;
-using static XuReverseProxy.Core.Models.DbEntity.ProxyAuthenticationCondition;
 
 namespace XuReverseProxy.Core.Services;
 
 public interface IProxyChallengeService
 {
-    Task<(ProxyAuthenticationConditionType Type, string Summary, bool Passed)[]> GetChallengeRequirementDataAsync(Guid authenticationDataId);
+    Task<bool> ChallengeRequirementPassedAsync(Guid authenticationDataId, ConditionContext conditionContext);
+    Task<(ConditionData.ConditionType Type, int Group, string Summary, bool Passed)[]> GetChallengeRequirementDataAsync(Guid authenticationDataId, ConditionContext conditionContext);
     Task<bool> SetChallengeSolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId);
     Task<bool> SetChallengeUnsolvedAsync(Guid identityId, Guid authenticationId, Guid solvedId);
     Task<bool> IsChallengeSolvedAsync(Guid identityId, ProxyAuthenticationData auth);
@@ -21,18 +21,18 @@ public interface IProxyChallengeService
 public class ProxyChallengeService : IProxyChallengeService
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly IProxyAuthenticationConditionChecker _proxyAuthenticationConditionChecker;
+    private readonly IConditionChecker _conditionChecker;
     private readonly IProxyClientIdentityService _proxyClientIdentityService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IProxyAuthenticationChallengeFactory _proxyAuthenticationChallengeFactory;
     private readonly INotificationService _notificationService;
 
     public ProxyChallengeService(ApplicationDbContext dbContext,
-        IProxyAuthenticationConditionChecker proxyAuthenticationConditionChecker, IProxyClientIdentityService proxyClientIdentityService,
+        IConditionChecker conditionChecker, IProxyClientIdentityService proxyClientIdentityService,
         IHttpContextAccessor httpContextAccessor, IProxyAuthenticationChallengeFactory proxyAuthenticationChallengeFactory, INotificationService notificationService)
     {
         _dbContext = dbContext;
-        _proxyAuthenticationConditionChecker = proxyAuthenticationConditionChecker;
+        _conditionChecker = conditionChecker;
         _proxyClientIdentityService = proxyClientIdentityService;
         _httpContextAccessor = httpContextAccessor;
         _proxyAuthenticationChallengeFactory = proxyAuthenticationChallengeFactory;
@@ -58,14 +58,21 @@ public class ProxyChallengeService : IProxyChallengeService
                 && (solvedDuration == null || (DateTime.UtcNow - x.SolvedAtUtc) < solvedDuration)
         );
 
-    public async Task<(ProxyAuthenticationConditionType Type, string Summary, bool Passed)[]> GetChallengeRequirementDataAsync(Guid authenticationDataId)
+    public async Task<bool> ChallengeRequirementPassedAsync(Guid authenticationDataId, ConditionContext conditionContext)
     {
-        var conditions = (await _dbContext.GetWithCacheAsync(x => x.ProxyAuthenticationConditions)).Where(x => x.AuthenticationDataId == authenticationDataId);
+        var conditions = (await _dbContext.GetWithCacheAsync(x => x.ConditionDatas)).Where(x => x.ParentId == authenticationDataId);
+        return _conditionChecker.ConditionsPassed(conditions, conditionContext);
+    }
+
+    public async Task<(ConditionData.ConditionType Type, int Group, string Summary, bool Passed)[]> GetChallengeRequirementDataAsync(Guid authenticationDataId, ConditionContext conditionContext)
+    {
+        var conditions = (await _dbContext.GetWithCacheAsync(x => x.ConditionDatas)).Where(x => x.ParentId == authenticationDataId);
         return conditions.AsEnumerable()
             .Select(c => (
-                Type: c.ConditionType,
+                c.Type,
+                c.Group,
                 Summary: c.CreateSummary(),
-                Passed: _proxyAuthenticationConditionChecker.ConditionPassed(c)
+                Passed: _conditionChecker.ConditionPassed(c, conditionContext)
             ))
             .ToArray();
     }

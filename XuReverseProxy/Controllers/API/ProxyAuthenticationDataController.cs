@@ -21,7 +21,6 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
     {
         base.OnDataModified();
         _dbContext.InvalidateCacheFor<ProxyConfig>();
-        _dbContext.InvalidateCacheFor<ProxyAuthenticationCondition>();
     }
 
     [HttpPost("resetChallengesForAuthentication")]

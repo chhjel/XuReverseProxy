@@ -6,7 +6,6 @@ import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import ProxyChallengeTypeManualApprovalComponent from "@components/proxyChallenges/ProxyChallengeTypeManualApprovalComponent.vue";
 import { ProxyChallengePageFrontendModel } from "@generated/Models/Web/ProxyChallengePageFrontendModel";
 import { ChallengeModel } from "@generated/Models/Web/ChallengeModel";
-import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
 import ProxyChallengeTypeLoginComponent from "@components/proxyChallenges/ProxyChallengeTypeLoginComponent.vue";
 import ProxyChallengeTypeAdminLoginComponent from "@components/proxyChallenges/ProxyChallengeTypeAdminLoginComponent.vue";
 import ProxyChallengeTypeOTPComponent from "@components/proxyChallenges/ProxyChallengeTypeOTPComponent.vue";
@@ -67,13 +66,6 @@ export default class ProxyChallengePage extends Vue {
           summary: c.summary,
         })),
     }));
-  }
-
-  getConditionTypeName(type: ProxyAuthenticationConditionType): string {
-    if (type == ProxyAuthenticationConditionType.DateTimeRange) return "Date";
-    else if (type == ProxyAuthenticationConditionType.TimeRange) return "Time of day";
-    else if (type == ProxyAuthenticationConditionType.WeekDays) return "Weekdays";
-    else return "?";
   }
 
   getChallengeTypeIdName(typeId: string): string {

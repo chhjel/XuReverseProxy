@@ -2,11 +2,11 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-import { ProxyAuthenticationConditionType } from '../../Enums/Core/ProxyAuthenticationConditionType';
+import { ConditionType } from '../../Enums/Core/ConditionType';
 
 export interface AuthCondition
 {
-	type: ProxyAuthenticationConditionType;
+	type: ConditionType;
 	summary: string;
 	passed: boolean;
 }

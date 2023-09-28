@@ -2,7 +2,7 @@ import { DayOfWeekFlags } from "@generated/Enums/Core/DayOfWeekFlags";
 import { BlockedIpDataType } from "./../generated/Enums/Core/BlockedIpDataType";
 import { NotificationAlertType } from "./../generated/Enums/Core/NotificationAlertType";
 import { NotificationTrigger } from "./../generated/Enums/Core/NotificationTrigger";
-import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
+import { ConditionType } from "@generated/Enums/Core/ConditionType";
 
 // eslint-disable-next-line no-var
 declare var PRODUCTION: boolean;
@@ -56,22 +56,38 @@ export const ProxyAuthChallengeTypeOptions: Array<ProxyAuthChallengeTypeOption> 
   },
 ];
 
-export interface ProxyAuthConditionTypeOption {
-  value: ProxyAuthenticationConditionType;
+export interface ConditionTypeOption {
+  value: ConditionType;
   name: string;
 }
-export const ProxyAuthConditionTypeOptions: Array<ProxyAuthConditionTypeOption> = [
+export const ConditionTypeOptions: Array<ConditionTypeOption> = [
   {
-    value: ProxyAuthenticationConditionType.DateTimeRange,
+    value: ConditionType.DateTimeRange,
     name: "Date range",
   },
   {
-    value: ProxyAuthenticationConditionType.TimeRange,
+    value: ConditionType.TimeRange,
     name: "Time range",
   },
   {
-    value: ProxyAuthenticationConditionType.WeekDays,
+    value: ConditionType.WeekDays,
     name: "Week days",
+  },
+  {
+    value: ConditionType.IPEquals,
+    name: "IP matches",
+  },
+  {
+    value: ConditionType.IPRegex,
+    name: "IP matches regex",
+  },
+  {
+    value: ConditionType.IPCIDRRange,
+    name: "IP within CIDR range",
+  },
+  {
+    value: ConditionType.IsLocalRequest,
+    name: "Is local request",
   },
 ];
 

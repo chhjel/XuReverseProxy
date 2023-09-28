@@ -22,8 +22,11 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
     public string? DestinationPrefix { get; set; }
     public string? StaticHTML { get; set; }
 
+    public string? ConditionsNotMetMessage { get; set; }
+    public bool ShowConditionsNotMet { get; set; }
+
     public ICollection<ProxyAuthenticationData> Authentications { get; } = new List<ProxyAuthenticationData>();
-    public ICollection<ProxyCondition> ProxyConditions { get; } = new List<ProxyCondition>();
+    public ICollection<ConditionData> ProxyConditions { get; } = new List<ConditionData>();
 
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {

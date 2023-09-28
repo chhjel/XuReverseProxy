@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -7,15 +7,15 @@ using Microsoft.Extensions.Configuration;
 namespace XuReverseProxy.Core.Models.DbEntity;
 
 // dotnet ef migrations add <migration_name> --project XuReverseProxy.Core -s XuReverseProxy --verbose
+// dotnet ef migrations remove --project XuReverseProxy.Core -s XuReverseProxy --verbose
 
 public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
 {
     public DbSet<ProxyConfig> ProxyConfigs { get; set; }
+    public DbSet<ConditionData> ConditionDatas { get; set; }
     public DbSet<ProxyAuthenticationData> ProxyAuthenticationDatas { get; set; }
-    public DbSet<ProxyAuthenticationCondition> ProxyAuthenticationConditions { get; set; }
     public DbSet<ProxyClientIdentity> ProxyClientIdentities { get; set; }
     public DbSet<ProxyClientIdentitySolvedChallengeData> ProxyClientIdentitySolvedChallengeDatas { get; set; }
-    public DbSet<ProxyCondition> ProxyConditions { get; set; }
     public DbSet<ProxyClientIdentityData> ProxyClientIdentityDatas { get; set; }
     public DbSet<RuntimeServerConfigItem> RuntimeServerConfigItems { get; set; }
     public DbSet<GlobalVariable> GlobalVariables { get; set; }
@@ -24,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     public DbSet<AdminAuditLogEntry> AdminAuditLogEntries { get; set; }
     public DbSet<ClientAuditLogEntry> ClientAuditLogEntries { get; set; }
     public DbSet<NotificationRule> NotificationRules { get; set; }
+    public DbSet<ConditionData> Conditions { get; set; }
 
     // IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
@@ -61,25 +62,11 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
             .HasForeignKey(e => e.IdentityId)
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
-        
-        builder.Entity<ProxyConfig>()
-            .HasMany(e => e.ProxyConditions)
-            .WithOne(e => e.ProxyConfig)
-            .HasForeignKey(e => e.ProxyConfigId)
-            .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired();
 
         builder.Entity<ProxyConfig>()
             .HasMany(e => e.Authentications)
             .WithOne(e => e.ProxyConfig)
             .HasForeignKey(e => e.ProxyConfigId)
-            .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired();
-
-        builder.Entity<ProxyAuthenticationData>()
-            .HasMany(e => e.Conditions)
-            .WithOne(e => e.AuthenticationData)
-            .HasForeignKey(e => e.AuthenticationDataId)
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
 
@@ -90,11 +77,21 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
 
+        // Conditions
+        builder.Entity<ProxyConfig>()
+            .HasMany(e => e.ProxyConditions)
+            .WithOne()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ProxyAuthenticationData>()
+            .HasMany(e => e.Conditions)
+            .WithOne()
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<ProxyClientIdentitySolvedChallengeData>().HasIndex(x => x.IdentityId);
         builder.Entity<ProxyClientIdentitySolvedChallengeData>().HasIndex(x => x.SolvedId);
         builder.Entity<ProxyClientIdentitySolvedChallengeData>().HasIndex(x => x.AuthenticationId);
         builder.Entity<ProxyAuthenticationData>().HasIndex(x => x.ProxyConfigId);
-        builder.Entity<ProxyAuthenticationCondition>().HasIndex(x => x.AuthenticationDataId);
         builder.Entity<RuntimeServerConfigItem>().HasIndex(x => x.Key);
         builder.Entity<GlobalVariable>().HasIndex(x => x.Name);
     }
@@ -105,12 +102,6 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
 
         if (typeof(T) == typeof(ProxyAuthenticationData))
         {
-            _memoryCache.Remove($"all_{typeof(ProxyAuthenticationCondition)}");
-            _memoryCache.Remove($"all_{typeof(ProxyConfig)}");
-        }
-        if (typeof(T) == typeof(ProxyAuthenticationCondition))
-        {
-            _memoryCache.Remove($"all_{typeof(ProxyAuthenticationData)}");
             _memoryCache.Remove($"all_{typeof(ProxyConfig)}");
         }
     }

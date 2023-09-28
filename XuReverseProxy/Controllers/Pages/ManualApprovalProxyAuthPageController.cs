@@ -25,10 +25,11 @@ public class ManualApprovalProxyAuthPageController : Controller
     private readonly IOptionsMonitor<ServerConfig> _serverConfig;
     private readonly IProxyChallengeService _proxyChallengeService;
     private readonly IIPBlockService _iPBlockService;
+    private readonly IConditionChecker _conditionChecker;
 
     public ManualApprovalProxyAuthPageController(IProxyClientIdentityService proxyClientIdentityService,
         ApplicationDbContext dbContext, IIPLookupService ipLookupService, IOptionsMonitor<ServerConfig> serverConfig,
-        IProxyChallengeService proxyChallengeService, IIPBlockService iPBlockService)
+        IProxyChallengeService proxyChallengeService, IIPBlockService iPBlockService, IConditionChecker conditionChecker)
     {
         _proxyClientIdentityService = proxyClientIdentityService;
         _dbContext = dbContext;
@@ -36,6 +37,7 @@ public class ManualApprovalProxyAuthPageController : Controller
         _serverConfig = serverConfig;
         _proxyChallengeService = proxyChallengeService;
         _iPBlockService = iPBlockService;
+        _conditionChecker = conditionChecker;
     }
 
     [AuthorizeIfEnabled(nameof(RuntimeServerConfig.EnableManualApprovalPageAuthentication))]
@@ -97,9 +99,10 @@ public class ManualApprovalProxyAuthPageController : Controller
         };
 
         var allChallengeData = new List<ManualApprovalProxyAuthPageViewModel.ManualApprovalProxyAuthPageFrontendModel.ChallengeDataFrontendModel>();
+        var conditionContext = _conditionChecker.CreateContext();
         foreach (var challenge in config.Authentications)
         {
-            var conditionsData = await _proxyChallengeService.GetChallengeRequirementDataAsync(challenge.Id);
+            var conditionsData = await _proxyChallengeService.GetChallengeRequirementDataAsync(challenge.Id, conditionContext);
             var solvedData = await _proxyChallengeService.GetSolvedChallengeSolvedDataAsync(client.Id, challenge.Id, challenge.SolvedId, challenge.SolvedDuration);
             allChallengeData.Add(new ManualApprovalProxyAuthPageViewModel.ManualApprovalProxyAuthPageFrontendModel.ChallengeDataFrontendModel
             {

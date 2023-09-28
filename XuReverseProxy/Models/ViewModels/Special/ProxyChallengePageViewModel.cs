@@ -19,5 +19,5 @@ public class ProxyChallengePageFrontendModel
     public readonly record struct ChallengeModel(Guid AuthId, string TypeId, int Order, bool Solved, object FrontendModel, List<AuthCondition> Conditions);
     
     [GenerateFrontendModel]
-    public readonly record struct AuthCondition(ProxyAuthenticationCondition.ProxyAuthenticationConditionType Type, string Summary, bool Passed);
+    public readonly record struct AuthCondition(ConditionData.ConditionType Type, int Group, string Summary, bool Passed);
 }

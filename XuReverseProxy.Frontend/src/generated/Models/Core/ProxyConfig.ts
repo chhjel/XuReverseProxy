@@ -4,6 +4,7 @@
 
 import { ProxyConfigMode } from '../../Enums/Core/ProxyConfigMode';
 import { ProxyAuthenticationData } from './ProxyAuthenticationData';
+import { ConditionData } from './ConditionData';
 
 export interface ProxyConfig
 {
@@ -19,5 +20,8 @@ export interface ProxyConfig
 	mode: ProxyConfigMode;
 	destinationPrefix: string;
 	staticHTML: string;
+	conditionsNotMetMessage: string;
+	showConditionsNotMet: boolean;
 	authentications: ProxyAuthenticationData[];
+	proxyConditions: ConditionData[];
 }
