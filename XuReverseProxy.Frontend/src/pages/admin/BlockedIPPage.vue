@@ -16,6 +16,7 @@ import IPBlockService from "@services/IPBlockService";
 import { BlockedIpData } from "@generated/Models/Core/BlockedIpData";
 import { BlockedIpDataType } from "@generated/Enums/Core/BlockedIpDataType";
 import MiscUtilsService from "@services/MiscUtilsService";
+import DateTimeInputComponent from "@components/inputs/DateTimeInputComponent.vue";
 
 @Options({
   components: {
@@ -26,6 +27,7 @@ import MiscUtilsService from "@services/MiscUtilsService";
     CustomRequestDataEditor,
     ExpandableComponent,
     PlaceholderInfoComponent,
+    DateTimeInputComponent,
   },
 })
 export default class BlockedIPPage extends Vue {
@@ -138,7 +140,7 @@ export default class BlockedIPPage extends Vue {
         />
         <text-input-component label="Name" v-model:value="rule.name" :disabled="isLoading" />
         <text-input-component label="Note" v-model:value="rule.note" :disabled="isLoading" />
-        <text-input-component
+        <date-time-input-component
           label="Blocked until"
           v-model:value="rule.blockedUntilUtc"
           :disabled="isLoading"

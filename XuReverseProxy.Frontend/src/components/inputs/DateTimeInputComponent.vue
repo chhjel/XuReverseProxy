@@ -86,7 +86,7 @@ export default class DateTimeInputComponent extends Vue {
     }
 
     let valueToEmit: string | null = null;
-    if (this.emptyIsNull && `${this.localValue}` === "") {
+    if (this.emptyIsNull && !this.localValue) {
       valueToEmit = null;
     } else {
       valueToEmit = this.formatDateForOutput(this.localValue);
@@ -104,11 +104,7 @@ export default class DateTimeInputComponent extends Vue {
 
     <div class="datetime__inputs">
       <div class="datetime__input-wrapper">
-        <input
-          type="datetime-local"
-          v-model="localValue"
-          :disabled="disabled"
-        />
+        <input type="datetime-local" v-model="localValue" :disabled="disabled" />
       </div>
 
       <div class="datetime__clear">
@@ -138,7 +134,6 @@ export default class DateTimeInputComponent extends Vue {
   flex-wrap: nowrap;
 }
 .datetime__input-wrapper {
-  width: 70px;
   margin-right: 4px;
   color: var(--color--text-dark);
 
@@ -147,6 +142,6 @@ export default class DateTimeInputComponent extends Vue {
   }
 }
 .datetime__clear {
-  margin-top: 22px;
+  margin-top: 4px;
 }
 </style>
