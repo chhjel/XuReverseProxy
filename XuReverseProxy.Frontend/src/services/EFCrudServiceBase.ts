@@ -50,9 +50,12 @@ export default class EFCrudServiceBase<TEntity> extends ServiceBase {
     entity: TEntity,
     status: LoadStatus | null = null,
     loaderId: string | null = null,
+    hint: string | null = null
   ): Promise<GenericResultData<TEntity>> {
     const url = `${this._baseUrl}/`;
-    const request = this.fetchExt(url, "POST", entity);
+    const request = this.fetchExt(url, "POST", entity, new Headers({
+      'XURP_HINT': hint || 'none'
+    }));
     const result = await this.awaitWithStatus<GenericResultData<TEntity>>(
       request,
       status,

@@ -1,12 +1,10 @@
-import { IPMatchesRegexRequestModel } from "./../generated/Models/Web/IPMatchesRegexRequestModel";
-import { TestCidrRangeRequestModel } from "./../generated/Models/Web/TestCidrRangeRequestModel";
 import { RemoveIPBlockByIdRequestModel } from "./../generated/Models/Web/RemoveIPBlockByIdRequestModel";
 import { BlockIPRequestModel } from "./../generated/Models/Web/BlockIPRequestModel";
 import { BlockIPRegexRequestModel } from "./../generated/Models/Web/BlockIPRegexRequestModel";
 import { BlockIPCidrRangeRequestModel } from "./../generated/Models/Web/BlockIPCidrRangeRequestModel";
 import { FetchResult, LoadStatus } from "./ServiceBase";
-import { BlockedIpData } from "@generated/Models/Core/BlockedIpData";
 import EFCrudServiceBase from "./EFCrudServiceBase";
+import { BlockedIpData } from "@generated/Models/Core/BlockedIpData";
 
 export default class IPBlockService extends EFCrudServiceBase<BlockedIpData> {
   constructor() {
@@ -64,25 +62,5 @@ export default class IPBlockService extends EFCrudServiceBase<BlockedIpData> {
     const url = `${this._baseUrl}/RemoveIPBlockById`;
     const request = this.fetchExt(url, "DELETE", payload);
     return this.awaitWithStatusNoResult(request, status);
-  }
-
-  public async IsIPInCidrRangeAsync(
-    payload: TestCidrRangeRequestModel,
-    status: LoadStatus | null = null,
-  ): Promise<boolean> {
-    const url = `${this._baseUrl}/IsIPInCidrRange`;
-    const request = this.fetchExt(url, "POST", payload);
-    const result = await this.awaitWithStatus<boolean>(request, status);
-    return result.data;
-  }
-
-  public async IPMatchesRegexAsync(
-    payload: IPMatchesRegexRequestModel,
-    status: LoadStatus | null = null,
-  ): Promise<boolean> {
-    const url = `${this._baseUrl}/IPMatchesRegex`;
-    const request = this.fetchExt(url, "POST", payload);
-    const result = await this.awaitWithStatus<boolean>(request, status);
-    return result.data;
   }
 }

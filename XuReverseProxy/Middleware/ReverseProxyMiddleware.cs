@@ -12,6 +12,7 @@ using System.Net.Security;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using System.Web;
 using XuReverseProxy.Core.Extensions;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
@@ -48,7 +49,8 @@ public class ReverseProxyMiddleware
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         INotificationService notificationService,
-        IPlaceholderResolver placeholderResolver)
+        IPlaceholderResolver placeholderResolver,
+        IConditionChecker conditionChecker)
     {
         // Check for special cases first
         if (await TryHandleInternalRequestAsync(context, _nextMiddleware))
@@ -59,6 +61,7 @@ public class ReverseProxyMiddleware
         var subdomain = hostParts.Length >= 3 ? hostParts[0] : string.Empty;
         var port = context.Request.Host.Port;
 
+        // Check ip block
         var rawIp = TKRequestUtils.GetIPAddress(context);
         var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
         if (ipData?.IP != null && await ipBlockService.IsIPBlockedAsync(ipData.IP))
@@ -122,11 +125,23 @@ public class ReverseProxyMiddleware
             return;
         }
 
+        // Proxy conditions
+        var conditionContext = conditionChecker.CreateContext();
+        if (!conditionChecker.ConditionsPassed(proxyConfig.ProxyConditions, conditionContext))
+        {
+            // todo: make a dedicated page
+            var message = HttpUtility.HtmlEncode(proxyConfig.ConditionsNotMetMessage);
+            var html = $"<!DOCTYPE html>\n<html>\n<head>\n<title>{HttpUtility.HtmlEncode(proxyConfig.ChallengeTitle)}</title>\n</head>\n<body>\n{message}\n</body>\n</html>\n";
+            html = (await placeholderResolver.ResolvePlaceholdersAsync(html, transformer: null, placeholders: null, clientIdentity));
+            await SetResponseAsync(context, html, statusCode: 200);
+            return;
+        }
+
         // Check cached approval, access allowed is cached for 5 seconds
         var allowedCacheKey = $"__client_allowed_{proxyConfig.Id}_{clientIdentity?.Id}";
         if (memoryCache.TryGetValue(allowedCacheKey, out _))
         {
-            await forwardRequest();
+            await ForwardRequestAsync(context, forwarder, serverConfig, proxyClientIdentityService, notificationService, proxyConfig, clientIdentity);
             return;
         }
 
@@ -146,7 +161,7 @@ public class ReverseProxyMiddleware
             foreach (var auth in authentications)
             {
                 var authResult = await ProcessAuthenticationCheckAsync(auth, clientIdentity, proxyConfig, context, pageModel, applicationDbContext,
-                    authChallengeFactory, serviceProvider, proxyChallengeService);
+                    authChallengeFactory, serviceProvider, proxyChallengeService, conditionContext);
                 if (authResult == AuthCheckResult.NotSolved) allChallengesSolved = false;
             }
             pageModel.ChallengeModels = pageModel.ChallengeModels.OrderBy(x => x.Order).ToList();
@@ -161,24 +176,26 @@ public class ReverseProxyMiddleware
 
         // Allowed => update cache & forward
         memoryCache.Set(allowedCacheKey, true, DateTimeOffset.Now + TimeSpan.FromSeconds(5));
-        await forwardRequest();
+        await ForwardRequestAsync(context, forwarder, serverConfig, proxyClientIdentityService, notificationService, proxyConfig, clientIdentity);
+    }
 
-        async Task forwardRequest()
-        {
-            await notificationService.TryNotifyEvent(NotificationTrigger.ClientRequest,
-                new Dictionary<string, string?> {
+    private static async Task ForwardRequestAsync(HttpContext context, IHttpForwarder forwarder, 
+        IOptionsMonitor<ServerConfig> serverConfig, IProxyClientIdentityService proxyClientIdentityService,
+        INotificationService notificationService, ProxyConfig proxyConfig, ProxyClientIdentity? clientIdentity)
+    {
+        await notificationService.TryNotifyEvent(NotificationTrigger.ClientRequest,
+            new Dictionary<string, string?> {
                     { "Url", context.Request.GetDisplayUrl() }
-                }, clientIdentity, proxyConfig);
+            }, clientIdentity, proxyConfig);
 
-            if (clientIdentity != null) await proxyClientIdentityService.TryUpdateLastAccessedAtAsync(clientIdentity.Id);
-            if (proxyConfig.Mode == ProxyConfigMode.Forward)
-            {
-                await ForwardRequestAsync(context, forwarder, proxyConfig, serverConfig.CurrentValue);
-            }
-            else if (proxyConfig.Mode == ProxyConfigMode.StaticHTML)
-            {
-                await SetResponseAsync(context, proxyConfig.StaticHTML);
-            }
+        if (clientIdentity != null) await proxyClientIdentityService.TryUpdateLastAccessedAtAsync(clientIdentity.Id);
+        if (proxyConfig.Mode == ProxyConfigMode.Forward)
+        {
+            await ForwardRequestAsync(context, forwarder, proxyConfig, serverConfig.CurrentValue);
+        }
+        else if (proxyConfig.Mode == ProxyConfigMode.StaticHTML)
+        {
+            await SetResponseAsync(context, proxyConfig.StaticHTML);
         }
     }
 
@@ -264,16 +281,22 @@ public class ReverseProxyMiddleware
     }
     private static async Task<AuthCheckResult> ProcessAuthenticationCheckAsync(ProxyAuthenticationData auth, ProxyClientIdentity clientIdentity,
         ProxyConfig proxyConfig, HttpContext context, ProxyChallengePageFrontendModel pageModel, ApplicationDbContext applicationDbContext,
-        IProxyAuthenticationChallengeFactory authChallengeFactory, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService)
+        IProxyAuthenticationChallengeFactory authChallengeFactory, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService,
+        ConditionContext conditionContext)
     {
-        var challengeData = await proxyChallengeService.GetChallengeRequirementDataAsync(auth.Id);
-        if (!challengeData.All(c => c.Passed))
+        var conditionsPassed = await proxyChallengeService.ChallengeRequirementPassedAsync(auth.Id, conditionContext);
+        (ConditionData.ConditionType Type, int Group, string Summary, bool Passed)[]? challengeData = null;
+        if (!conditionsPassed)
         {
-            // Update viewmodel
             if (proxyConfig.ShowChallengesWithUnmetRequirements)
             {
-                pageModel.AuthsWithUnfulfilledConditions.Add(new(auth.ChallengeTypeId!,
-                    challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
+                // Update viewmodel if enabled
+                challengeData = await proxyChallengeService.GetChallengeRequirementDataAsync(auth.Id, conditionContext);
+                if (!challengeData.All(c => c.Passed))
+                {
+                    pageModel.AuthsWithUnfulfilledConditions.Add(new(auth.ChallengeTypeId!,
+                        challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Group, x.Summary, x.Passed)).ToList()));
+                }
             }
             return AuthCheckResult.ConditionsNotMet;
         }
@@ -300,9 +323,10 @@ public class ReverseProxyMiddleware
         // Update viewmodel
         if (proxyConfig.ShowCompletedChallenges || !solved)
         {
+            challengeData ??= await proxyChallengeService.GetChallengeRequirementDataAsync(auth.Id, conditionContext);
             pageModel.ChallengeModels.Add(
                 new(auth.Id, auth.ChallengeTypeId!, auth.Order, solved, frontendModel,
-                    challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Summary, x.Passed)).ToList()));
+                    challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Group, x.Summary, x.Passed)).ToList()));
         }
 
         return solved ? AuthCheckResult.Solved : AuthCheckResult.NotSolved;
@@ -436,7 +460,7 @@ public class ReverseProxyMiddleware
         var error = await forwarder.SendAsync(context, destinationPrefix, httpClient, requestOptions, transformer);
         if (error != ForwarderError.None)
         {
-            // todo log. Add LastErrorAt & update if more than 5 min since last?
+            // todo: handle?
         }
     }
 }

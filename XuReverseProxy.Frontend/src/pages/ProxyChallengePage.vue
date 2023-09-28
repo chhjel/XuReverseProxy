@@ -6,13 +6,14 @@ import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import ProxyChallengeTypeManualApprovalComponent from "@components/proxyChallenges/ProxyChallengeTypeManualApprovalComponent.vue";
 import { ProxyChallengePageFrontendModel } from "@generated/Models/Web/ProxyChallengePageFrontendModel";
 import { ChallengeModel } from "@generated/Models/Web/ChallengeModel";
-import { ProxyAuthenticationConditionType } from "@generated/Enums/Core/ProxyAuthenticationConditionType";
 import ProxyChallengeTypeLoginComponent from "@components/proxyChallenges/ProxyChallengeTypeLoginComponent.vue";
 import ProxyChallengeTypeAdminLoginComponent from "@components/proxyChallenges/ProxyChallengeTypeAdminLoginComponent.vue";
 import ProxyChallengeTypeOTPComponent from "@components/proxyChallenges/ProxyChallengeTypeOTPComponent.vue";
 import ProxyChallengeTypeSecretQueryStringComponent from "@components/proxyChallenges/ProxyChallengeTypeSecretQueryStringComponent.vue";
 import { nextTick } from "vue";
 import { getProxyAuthenticationTypeName } from "@utils/ProxyAuthenticationDataUtils";
+import ConditionsStateSummary from "@components/common/ConditionsStateSummary.vue";
+import { ConditionStateSummaryItem } from "@components/common/ConditionsStateSummary.Models";
 
 interface AuthWithUnfulfilledConditions {
   name: string;
@@ -22,6 +23,7 @@ interface AuthWithUnfulfilledConditions {
 interface MaybeUnfulfilledCondition {
   name: string;
   summary: string;
+  group: number;
 }
 
 @Options({
@@ -33,6 +35,7 @@ interface MaybeUnfulfilledCondition {
     ProxyChallengeTypeAdminLoginComponent,
     ProxyChallengeTypeOTPComponent,
     ProxyChallengeTypeSecretQueryStringComponent,
+    ConditionsStateSummary,
   },
 })
 export default class ProxyChallengePage extends Vue {
@@ -42,6 +45,25 @@ export default class ProxyChallengePage extends Vue {
   solvedChallengeIds: Set<string> = new Set<string>();
 
   async mounted() {}
+
+  getConditionSummaryFor(auth: AuthWithUnfulfilledConditions): Array<ConditionStateSummaryItem> {
+    const conditions: Array<ConditionStateSummaryItem> = [];
+    auth.fulfilledConditions.forEach((x) => {
+      conditions.push({
+        group: x.group,
+        summary: x.summary,
+        completed: true,
+      });
+    });
+    auth.unfulfilledConditions.forEach((x) => {
+      conditions.push({
+        group: x.group,
+        summary: x.summary,
+        completed: false,
+      });
+    });
+    return conditions;
+  }
 
   get uncompletedChallenges(): Array<ChallengeModel> {
     return this.options.challengeModels.filter((x) => !x.solved && !this.solvedChallengeIds.has(x.authId)).sort();
@@ -59,21 +81,16 @@ export default class ProxyChallengePage extends Vue {
         .map((c) => ({
           name: c.type,
           summary: c.summary,
+          group: c.group,
         })),
       unfulfilledConditions: x.conditions
         .filter((c) => !c.passed)
         .map((c) => ({
           name: c.type,
           summary: c.summary,
+          group: c.group,
         })),
     }));
-  }
-
-  getConditionTypeName(type: ProxyAuthenticationConditionType): string {
-    if (type == ProxyAuthenticationConditionType.DateTimeRange) return "Date";
-    else if (type == ProxyAuthenticationConditionType.TimeRange) return "Time of day";
-    else if (type == ProxyAuthenticationConditionType.WeekDays) return "Weekdays";
-    else return "?";
   }
 
   getChallengeTypeIdName(typeId: string): string {
@@ -130,14 +147,7 @@ export default class ProxyChallengePage extends Vue {
       <div class="challenges-unfulfilled__title">Challenges currently not required</div>
       <div v-for="auth in unfulfilledAuths" class="challenges-unfulfilled__item">
         <b>{{ auth.name }}</b>
-        <div v-for="cond in auth.unfulfilledConditions" class="challenges-unfulfilled__conditionrow unfulfilled">
-          <div class="material-icons icon">close</div>
-          <div>{{ cond.summary }}</div>
-        </div>
-        <div v-for="cond in auth.fulfilledConditions" class="challenges-unfulfilled__conditionrow fulfilled">
-          <div class="material-icons icon">done</div>
-          <div>{{ cond.summary }}</div>
-        </div>
+        <conditions-state-summary class="challenges-unfulfilled__summary" :value="getConditionSummaryFor(auth)" />
       </div>
     </div>
   </div>
@@ -231,24 +241,9 @@ export default class ProxyChallengePage extends Vue {
       margin-top: 10px;
     }
 
-    &__conditionrow {
-      display: flex;
-      align-items: center;
-
-      .icon {
-        margin-right: 2px;
-      }
-      &.fulfilled {
-        .icon {
-          color: var(--color--success-base);
-        }
-      }
-
-      &.unfulfilled {
-        .icon {
-          color: var(--color--warning-base);
-        }
-      }
+    &__summary {
+      margin-top: 10px;
+      margin-left: 10px;
     }
   }
 }

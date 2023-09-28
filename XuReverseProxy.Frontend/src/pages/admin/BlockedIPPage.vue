@@ -15,6 +15,7 @@ import ExpandableComponent from "@components/common/ExpandableComponent.vue";
 import IPBlockService from "@services/IPBlockService";
 import { BlockedIpData } from "@generated/Models/Core/BlockedIpData";
 import { BlockedIpDataType } from "@generated/Enums/Core/BlockedIpDataType";
+import MiscUtilsService from "@services/MiscUtilsService";
 
 @Options({
   components: {
@@ -31,6 +32,7 @@ export default class BlockedIPPage extends Vue {
   @Inject()
   readonly options!: AdminPageFrontendModel;
 
+  miscUtilsService: MiscUtilsService = new MiscUtilsService();
   service: IPBlockService = new IPBlockService();
   ruleId: string | null = null;
   rule: BlockedIpData | null = null;
@@ -51,7 +53,7 @@ export default class BlockedIPPage extends Vue {
   }
 
   get isLoading(): boolean {
-    return this.service.status.inProgress;
+    return this.service.status.inProgress || this.miscUtilsService.status.inProgress;
   }
 
   async saveRule() {
@@ -94,7 +96,7 @@ export default class BlockedIPPage extends Vue {
 
     try {
       if (this.rule.type == BlockedIpDataType.CIDRRange) {
-        isMatch = await this.service.IsIPInCidrRangeAsync({
+        isMatch = await this.miscUtilsService.IsIPInCidrRangeAsync({
           ip: this.testIp,
           ipCidr: this.rule.cidrRange,
         });
@@ -103,9 +105,9 @@ export default class BlockedIPPage extends Vue {
         isMatch = this.testIp?.toLowerCase()?.trim() == this.rule.ip?.toLowerCase()?.trim();
         this.testResult = isMatch ? "IPs match." : "IPs do not match.";
       } else if (this.rule.type == BlockedIpDataType.IPRegex) {
-        isMatch = await this.service.IPMatchesRegexAsync({
-          ip: this.testIp,
-          ipRegEx: this.rule.ipRegex,
+        isMatch = await this.miscUtilsService.TestRegexAsync({
+          input: this.testIp,
+          pattern: this.rule.ipRegex,
         });
         this.testResult = isMatch ? "IP matches RegEx." : "IP does not match RegEx.";
       }

@@ -3,7 +3,7 @@
 //     the code is regenerated.
 
 import { ProxyConfig } from './ProxyConfig';
-import { ProxyAuthenticationCondition } from './ProxyAuthenticationCondition';
+import { ConditionData } from './ConditionData';
 
 export interface ProxyAuthenticationData
 {
@@ -15,5 +15,5 @@ export interface ProxyAuthenticationData
 	challengeJson: string;
 	solvedId: string;
 	solvedDuration: string;
-	conditions: ProxyAuthenticationCondition[];
+	conditions: ConditionData[];
 }

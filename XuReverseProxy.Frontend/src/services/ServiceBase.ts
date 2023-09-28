@@ -7,16 +7,18 @@ export default class ServiceBase {
 
   public status: LoadStatus = new LoadStatus();
 
-  protected fetchExt(url: string, method: string, payload: any = null): Promise<Response> {
+  protected fetchExt(url: string, method: string, payload: any = null, headers: Headers | null = null): Promise<Response> {
     const payloadJson = payload == null ? null : JSON.stringify(payload);
+    
+    headers = headers || new Headers();
+    headers.set("Content-Type", "application/json");
+    headers.set("Accept", "application/json");
+
     return fetch(url, {
       credentials: "include",
       method: method,
       body: payloadJson,
-      headers: new Headers({
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      }),
+      headers: headers,
     });
   }
 

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QoDL.Toolkit.Core.Util;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.DbEntity;
 using XuReverseProxy.Core.Services;
@@ -50,16 +49,4 @@ public class IPBlockController : EFCrudControllerBase<BlockedIpData>
         => await _ipBlockService.RemoveIPBlockByIdAsync(request.Id);
     [GenerateFrontendModel]
     public record RemoveIPBlockByIdRequestModel(Guid Id);
-
-    [HttpPost("IsIPInCidrRange")]
-    public bool IsIPInCidrRange([FromBody] TestCidrRangeRequestModel request)
-        => TKIPAddressUtils.IpMatchesOrIsWithinCidrRange(request.IP, request.IPCidr);
-    [GenerateFrontendModel]
-    public record TestCidrRangeRequestModel(string IP, string IPCidr);
-
-    [HttpPost("IPMatchesRegex")]
-    public bool IPMatchesRegex([FromBody] IPMatchesRegexRequestModel request)
-        => _ipBlockService.TryRegexMatch(request.IPRegEx, request.IP);
-    [GenerateFrontendModel]
-    public record IPMatchesRegexRequestModel(string IP, string IPRegEx);
 }
