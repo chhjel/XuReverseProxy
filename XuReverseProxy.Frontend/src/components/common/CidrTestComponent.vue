@@ -44,7 +44,7 @@ export default class CidrTestComponent extends Vue {
   <div class="cidr-test">
     <text-input-component label="Value to test CIDR range against" v-model:value="input" :disabled="isLoading" />
     <button-component @click="test" :disabled="isLoading" class="ml-0 mr-1" secondary>Test CIDR</button-component>
-    <div class="cidr-result" :class="testResultClasses" v-if="testResult">
+    <div class="cidr-test-result" :class="testResultClasses" v-if="testResult">
       {{ testResult }}
     </div>
     <loader-component :status="service.status" inline inlineYAdjustment="-4px" />
@@ -53,17 +53,16 @@ export default class CidrTestComponent extends Vue {
 
 <style scoped lang="scss">
 .cidr-test {
-  display: inline-block;
-  font-family: monospace;
-  border: 1px solid;
-  padding: 10px;
-  font-weight: 600;
-  color: var(--color--warning-base);
-  border-color: var(--color--warning-base);
+  display: block;
 
-  &.success {
-    color: var(--color--success-base);
-    border-color: var(--color--success-base);
+  &-result {
+    font-family: monospace;
+    padding: 10px;
+    font-weight: 600;
+    color: var(--color--warning-base);
+    &.success {
+      color: var(--color--success-base);
+    }
   }
 }
 </style>

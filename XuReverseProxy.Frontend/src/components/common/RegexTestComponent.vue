@@ -53,17 +53,16 @@ export default class RegexTestComponent extends Vue {
 
 <style scoped lang="scss">
 .regex-test {
-  display: inline-block;
-  font-family: monospace;
-  border: 1px solid;
-  padding: 10px;
-  font-weight: 600;
-  color: var(--color--warning-base);
-  border-color: var(--color--warning-base);
+  display: block;
 
-  &.success {
-    color: var(--color--success-base);
-    border-color: var(--color--success-base);
+  &-result {
+    font-family: monospace;
+    padding: 10px;
+    font-weight: 600;
+    color: var(--color--warning-base);
+    &.success {
+      color: var(--color--success-base);
+    }
   }
 }
 </style>
