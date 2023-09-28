@@ -97,7 +97,7 @@ export default class ConditionDataEditor extends Vue {
 
 <template>
   <div class="proxyconfigauthchallenge-edit" v-if="localValue">
-    <text-input-component label="Condition group" v-model:value="localValue.group" :disabled="disabled" type="number" />
+    <text-input-component label="Condition group" v-model:value="localValue.group" :disabled="disabled" description="Determines what group to AND this condition with." type="number" />
 
     <select v-model="localValue.type" class="mb-2 mt-2" :disabled="disabled">
       <option v-for="challengeType in conditionTypeOptions" :value="challengeType.value">

@@ -43,11 +43,6 @@ export default class ConditionDatasEditor extends Vue {
   conditionInDialog: ConditionData | null = null;
   conditionService: ConditionDataService = new ConditionDataService();
 
-  mounted(): void {
-    // this.updateLocalValue();
-    // this.emitLocalValue();
-  }
-
   get conditionGroups(): Array<ConditionGroup> {
     const map: { [key: string]: ConditionGroup } = {};
 
@@ -119,26 +114,6 @@ export default class ConditionDatasEditor extends Vue {
 
   createAuthCondSummary(cond: ConditionData): string {
     return createConditionDataSummary(cond);
-  }
-
-  /////////////////
-  //  WATCHERS  //
-  ///////////////
-  @Watch("value")
-  updateLocalValue(): void {
-    // const localJson = this.localValue ? JSON.stringify(this.localValue) : "";
-    // const valueJson = this.value ? JSON.stringify(this.value) : "";
-    // const changed = localJson != valueJson;
-    // if (changed) this.localValue = JSON.parse(valueJson);
-  }
-
-  @Watch("localValue", { deep: true })
-  emitLocalValue(): void {
-    // if (this.disabled) {
-    //   this.updateLocalValue();
-    //   return;
-    // }
-    // this.$emit("update:value", this.localValue);
   }
 }
 </script>
