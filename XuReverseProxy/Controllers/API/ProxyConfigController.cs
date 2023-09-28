@@ -82,11 +82,17 @@ public class ProxyConfigController : EFCrudControllerBase<ProxyConfig>
     }
 
     protected override IQueryable<ProxyConfig> OnGetSingle(DbSet<ProxyConfig> entities)
-        => entities.Include(c => c.Authentications).ThenInclude(a => a.Conditions);
+        => entities
+            .Include(c => c.ProxyConditions)
+            .Include(c => c.Authentications).ThenInclude(a => a.Conditions);
 
     protected override IQueryable<ProxyConfig> OnGetAllFull(DbSet<ProxyConfig> entities)
-        => entities.Include(c => c.Authentications).ThenInclude(a => a.Conditions);
+        => entities
+            .Include(c => c.ProxyConditions)
+            .Include(c => c.Authentications).ThenInclude(a => a.Conditions);
 
     protected override IQueryable<ProxyConfig> OnGetSingleFull(DbSet<ProxyConfig> entities)
-        => entities.Include(c => c.Authentications).ThenInclude(a => a.Conditions);
+        => entities
+            .Include(c => c.ProxyConditions)
+            .Include(c => c.Authentications).ThenInclude(a => a.Conditions);
 }

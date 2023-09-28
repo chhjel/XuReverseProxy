@@ -177,6 +177,17 @@ export default class ProxyConfigPage extends Vue {
   }
 
   onConditionSave(cond: ConditionData) {
+    const index = this.proxyConfig.proxyConditions.findIndex((x) => x.id == cond.id);
+    if (index == -1) this.proxyConfig.proxyConditions.push(cond);
+    else this.proxyConfig.proxyConditions[index] = cond;
+  }
+
+  onConditionDelete(cond: ConditionData) {
+    const index = this.proxyConfig.proxyConditions.findIndex((x) => x.id == cond.id);
+    if (index != -1) this.proxyConfig.proxyConditions.splice(index, 1);
+  }
+
+  onAuthConditionSave(cond: ConditionData) {
     const parent = this.proxyConfig.authentications.find((x) => x.id == cond.parentId);
     if (!parent) return;
     const index = parent.conditions.findIndex((x) => x.id == cond.id);
@@ -184,7 +195,7 @@ export default class ProxyConfigPage extends Vue {
     else parent.conditions[index] = cond;
   }
 
-  onConditionDelete(cond: ConditionData) {
+  onAuthConditionDelete(cond: ConditionData) {
     const parent = this.proxyConfig.authentications.find((x) => x.id == cond.parentId);
     if (parent != null) {
       const index = parent.conditions.findIndex((x) => x.id == cond.id);
@@ -221,6 +232,21 @@ export default class ProxyConfigPage extends Vue {
         </div>
       </div>
 
+      <!-- Conditions -->
+      <div class="block mt-4 mb-5">
+        <div class="block-title">Conditions</div>
+        <condition-datas-editor
+          class="auth-conditions"
+          :value="proxyConfig.proxyConditions"
+          :disabled="isLoading"
+          :parentId="proxyConfig.id"
+          parentType="ProxyConfig"
+          @save="onConditionSave"
+          @delete="onConditionDelete"
+          summaryLabel="Proxy is available:"
+        />
+      </div>
+
       <!-- Auths -->
       <div class="block mt-4 mb-5">
         <div class="block-title">Required authentications</div>
@@ -254,8 +280,9 @@ export default class ProxyConfigPage extends Vue {
                   :disabled="isLoading"
                   :parentId="element.id"
                   parentType="ProxyAuthenticationData"
-                  @save="onConditionSave"
-                  @delete="onConditionDelete"
+                  @save="onAuthConditionSave"
+                  @delete="onAuthConditionDelete"
+                  summaryLabel="Authentication is required:"
                 />
               </div>
             </div>

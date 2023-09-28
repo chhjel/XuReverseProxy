@@ -34,6 +34,9 @@ export default class ConditionDatasEditor extends Vue {
   @Prop()
   value: Array<ConditionData>;
 
+  @Prop({ required: false, default: "Condition passes:" })
+  summaryLabel: string;
+
   @Prop({ required: false, default: false })
   disabled: boolean;
 
@@ -166,7 +169,7 @@ export default class ConditionDatasEditor extends Vue {
         :key="conditionInDialog.id"
         v-model:value="conditionInDialog"
         :disabled="isLoading"
-        summaryLabel="Authentication is required:"
+        :summaryLabel="summaryLabel"
       />
     </dialog-component>
   </div>
