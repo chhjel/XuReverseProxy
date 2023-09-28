@@ -216,6 +216,7 @@ export default class ConditionDatasEditor extends Vue {
   }
   &__condition {
     display: flex;
+    margin-bottom: 3px;
     &-link {
       display: inline-flex;
       cursor: pointer;

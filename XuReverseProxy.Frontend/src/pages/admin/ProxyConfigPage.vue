@@ -132,22 +132,6 @@ export default class ProxyConfigPage extends Vue {
     else this.proxyConfig.authentications[index] = auth;
   }
 
-  onConditionSave(cond: ConditionData) {
-    const parent = this.proxyConfig.authentications.find((x) => x.id == cond.parentId);
-    if (!parent) return;
-    const index = parent.conditions.findIndex((x) => x.id == cond.id);
-    if (index == -1) parent.conditions.push(cond);
-    else parent.conditions[index] = cond;
-  }
-
-  onConditionDelete(cond: ConditionData) {
-    const parent = this.proxyConfig.authentications.find((x) => x.id == cond.parentId);
-    if (parent != null) {
-      const index = parent.conditions.findIndex((x) => x.id == cond.id);
-      if (index != -1) parent.conditions.splice(index, 1);
-    }
-  }
-
   createAuthSummary(auth: ProxyAuthenticationData): string {
     return createProxyAuthenticationSummary(auth);
   }
@@ -190,6 +174,22 @@ export default class ProxyConfigPage extends Vue {
       authenticationId: this.authInDialog.id,
       identityId: null,
     });
+  }
+
+  onConditionSave(cond: ConditionData) {
+    const parent = this.proxyConfig.authentications.find((x) => x.id == cond.parentId);
+    if (!parent) return;
+    const index = parent.conditions.findIndex((x) => x.id == cond.id);
+    if (index == -1) parent.conditions.push(cond);
+    else parent.conditions[index] = cond;
+  }
+
+  onConditionDelete(cond: ConditionData) {
+    const parent = this.proxyConfig.authentications.find((x) => x.id == cond.parentId);
+    if (parent != null) {
+      const index = parent.conditions.findIndex((x) => x.id == cond.id);
+      if (index != -1) parent.conditions.splice(index, 1);
+    }
   }
 }
 </script>

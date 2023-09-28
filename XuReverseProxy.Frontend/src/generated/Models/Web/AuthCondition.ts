@@ -7,6 +7,7 @@ import { ConditionType } from '../../Enums/Core/ConditionType';
 export interface AuthCondition
 {
 	type: ConditionType;
+	group: number;
 	summary: string;
 	passed: boolean;
 }
