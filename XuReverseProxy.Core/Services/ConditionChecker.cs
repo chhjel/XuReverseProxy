@@ -66,19 +66,26 @@ public class ConditionChecker : IConditionChecker
 
     public bool ConditionPassed(ConditionData condition, ConditionContext context)
     {
-        var result = condition.Type switch
+        try
         {
-            ConditionType.DateTimeRange => CheckDateTimeRange(condition),
-            ConditionType.TimeRange => CheckTimeRange(condition),
-            ConditionType.WeekDays => CheckWeekdays(condition),
-            ConditionType.IPEquals => CheckIPEquals(condition, context),
-            ConditionType.IPRegex => CheckIPRegex(condition, context),
-            ConditionType.IPCIDRRange => CheckIPCidrRange(condition, context),
-            ConditionType.IsLocalRequest => TKRequestUtils.IsLocalRequest(context.HttpContext),
-            _ => throw new NotImplementedException($"Condition type '{condition.Type}' not implemented.")
-        };
-        if (condition.Inverted) result = !result;
-        return result;
+            var result = condition.Type switch
+            {
+                ConditionType.DateTimeRange => CheckDateTimeRange(condition),
+                ConditionType.TimeRange => CheckTimeRange(condition),
+                ConditionType.WeekDays => CheckWeekdays(condition),
+                ConditionType.IPEquals => CheckIPEquals(condition, context),
+                ConditionType.IPRegex => CheckIPRegex(condition, context),
+                ConditionType.IPCIDRRange => CheckIPCidrRange(condition, context),
+                ConditionType.IsLocalRequest => TKRequestUtils.IsLocalRequest(context.HttpContext),
+                _ => throw new NotImplementedException($"Condition type '{condition.Type}' not implemented.")
+            };
+            if (condition.Inverted) result = !result;
+            return result;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     private static bool CheckIPEquals(ConditionData condition, ConditionContext context)
@@ -92,6 +99,7 @@ public class ConditionChecker : IConditionChecker
     private static bool CheckIPCidrRange(ConditionData condition, ConditionContext context)
         => !string.IsNullOrWhiteSpace(condition.IPCondition)
         && !string.IsNullOrWhiteSpace(context.RequestIP)
+        && context.RequestIP?.Equals("localhost", StringComparison.OrdinalIgnoreCase) == false
         && TKIPAddressUtils.IpMatchesOrIsWithinCidrRange(context.RequestIP, condition.IPCondition);
 
     private static readonly TKCachedRegexContainer _regexCache = new();
