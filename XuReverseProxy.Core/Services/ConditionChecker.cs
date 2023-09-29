@@ -65,7 +65,8 @@ public class ConditionChecker : IConditionChecker
     }
 
     public bool ConditionPassed(ConditionData condition, ConditionContext context)
-        => condition.Type switch
+    {
+        var result = condition.Type switch
         {
             ConditionType.DateTimeRange => CheckDateTimeRange(condition),
             ConditionType.TimeRange => CheckTimeRange(condition),
@@ -76,6 +77,9 @@ public class ConditionChecker : IConditionChecker
             ConditionType.IsLocalRequest => TKRequestUtils.IsLocalRequest(context.HttpContext),
             _ => throw new NotImplementedException($"Condition type '{condition.Type}' not implemented.")
         };
+        if (condition.Inverted) result = !result;
+        return result;
+    }
 
     private static bool CheckIPEquals(ConditionData condition, ConditionContext context)
         => condition.IPCondition?.Equals(context?.RequestIP, StringComparison.OrdinalIgnoreCase) == true;

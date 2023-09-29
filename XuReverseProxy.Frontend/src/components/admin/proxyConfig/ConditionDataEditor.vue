@@ -13,11 +13,13 @@ import { MultiCheckboxComponentOption } from "@components/inputs/MultiCheckboxCo
 import MultiCheckboxComponent from "@components/inputs/MultiCheckboxComponent.vue";
 import RegexTestComponent from "@components/common/RegexTestComponent.vue";
 import CidrTestComponent from "@components/common/CidrTestComponent.vue";
+import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 
 @Options({
   components: {
     TextInputComponent,
     ButtonComponent,
+    CheckboxComponent,
     TimeOnlyInputComponent,
     DateTimeInputComponent,
     MultiCheckboxComponent,
@@ -97,7 +99,20 @@ export default class ConditionDataEditor extends Vue {
 
 <template>
   <div class="proxyconfigauthchallenge-edit" v-if="localValue">
-    <text-input-component label="Condition group" v-model:value="localValue.group" :disabled="disabled" description="Determines what group to AND this condition with." type="number" />
+    <text-input-component
+      label="Condition group"
+      v-model:value="localValue.group"
+      :disabled="disabled"
+      description="Determines what group to AND this condition with."
+      type="number"
+    />
+    <checkbox-component
+      label="Invert check"
+      offLabel="Not inverted"
+      :value="localValue.inverted"
+      class="mt-1 mb-1"
+      :disabled="disabled"
+    />
 
     <select v-model="localValue.type" class="mb-2 mt-2" :disabled="disabled">
       <option v-for="challengeType in conditionTypeOptions" :value="challengeType.value">

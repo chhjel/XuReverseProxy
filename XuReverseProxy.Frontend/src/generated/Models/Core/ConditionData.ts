@@ -11,6 +11,7 @@ export interface ConditionData
 	parentId: string;
 	group: number;
 	type: ConditionType;
+	inverted: boolean;
 	dateTimeUtc1: Date;
 	dateTimeUtc2: Date;
 	timeOnlyUtc1: string;

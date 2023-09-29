@@ -3,26 +3,28 @@ import { ConditionData } from "@generated/Models/Core/ConditionData";
 import DateFormats from "./DateFormats";
 
 export function createConditionDataSummary(condition: ConditionData): string {
+  const prefix = (upper: string) => (condition.inverted ? `Not ${upper.toLowerCase()}` : upper);
+
   if (condition.type == ConditionType.DateTimeRange) {
     if (!condition.dateTimeUtc1 && !condition.dateTimeUtc2) return condition.type;
-    else if (!condition.dateTimeUtc1) return `Before ${formatDate(condition.dateTimeUtc2)}`;
-    else if (!condition.dateTimeUtc2) return `After ${formatDate(condition.dateTimeUtc1)}`;
-    return `Between ${formatDate(condition.dateTimeUtc1)} and ${formatDate(condition.dateTimeUtc2)}`;
+    else if (!condition.dateTimeUtc1) return `${prefix("Before")} ${formatDate(condition.dateTimeUtc2)}`;
+    else if (!condition.dateTimeUtc2) return `${prefix("After")} ${formatDate(condition.dateTimeUtc1)}`;
+    return `${prefix("Between")} ${formatDate(condition.dateTimeUtc1)} and ${formatDate(condition.dateTimeUtc2)}`;
   } else if (condition.type == ConditionType.TimeRange) {
     if (!condition.timeOnlyUtc1 && !condition.timeOnlyUtc2) return condition.type;
-    else if (!condition.timeOnlyUtc1) return `Before ${formatTime(condition.timeOnlyUtc2)}`;
-    else if (!condition.timeOnlyUtc2) return `After ${formatTime(condition.timeOnlyUtc1)}`;
-    return `Between ${formatTime(condition.timeOnlyUtc1)} and ${formatTime(condition.timeOnlyUtc2)}`;
+    else if (!condition.timeOnlyUtc1) return `${prefix("Before")} ${formatTime(condition.timeOnlyUtc2)}`;
+    else if (!condition.timeOnlyUtc2) return `${prefix("After")} ${formatTime(condition.timeOnlyUtc1)}`;
+    return `${prefix("Between")} ${formatTime(condition.timeOnlyUtc1)} and ${formatTime(condition.timeOnlyUtc2)}`;
   } else if (condition.type == ConditionType.WeekDays) {
-    return !condition.daysOfWeekUtc ? "Weekdays: None" : `${condition.daysOfWeekUtc}`;
+    return !condition.daysOfWeekUtc ? `Weekdays: ${condition.inverted ? "Any" : "None"}` : `${condition.daysOfWeekUtc}`;
   } else if (condition.type == ConditionType.IPEquals) {
-    return `When IP matches '${condition.ipCondition}'`;
+    return `${prefix("When")} IP matches '${condition.ipCondition}'`;
   } else if (condition.type == ConditionType.IPRegex) {
-    return `When IP matches regex '${condition.ipCondition}'`;
+    return `${prefix("When")} IP matches regex '${condition.ipCondition}'`;
   } else if (condition.type == ConditionType.IPCIDRRange) {
-    return `When IP is within CIDR range'${condition.ipCondition}'`;
+    return `${prefix("When")} IP is within CIDR range'${condition.ipCondition}'`;
   } else if (condition.type == ConditionType.IsLocalRequest) {
-    return `When request is local`;
+    return `${prefix("When")} request is local`;
   } else return condition.type;
 }
 
