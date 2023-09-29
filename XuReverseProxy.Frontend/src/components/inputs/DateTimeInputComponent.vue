@@ -136,9 +136,11 @@ export default class DateTimeInputComponent extends Vue {
 .datetime__input-wrapper {
   margin-right: 4px;
   color: var(--color--text-dark);
+  max-width: 100%;
 
   input {
     width: 300px;
+    max-width: calc(100% - 20px);
   }
 }
 .datetime__clear {

@@ -112,6 +112,14 @@ $util-margin-padding-list: (
   &.center-vertical {
     align-items: center;
   }
+
+  &.wrap {
+    flex-wrap: wrap;
+  }
+
+  &.align-items-flex-end {
+    align-items: flex-end;
+  }
 }
 
 .flex-right {

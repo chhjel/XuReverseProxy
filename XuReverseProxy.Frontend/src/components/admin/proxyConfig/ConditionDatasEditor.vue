@@ -107,12 +107,13 @@ export default class ConditionDatasEditor extends Vue {
       parentId: this.parentId,
       group: 0,
       type: ConditionTypeOptions[0].value,
+      inverted: false,
       dateTimeUtc1: null,
       dateTimeUtc2: null,
       daysOfWeekUtc: null,
       timeOnlyUtc1: null,
       timeOnlyUtc2: null,
-      ipCondition: null,
+      ipCondition: "",
     };
     this.showConditionDialog(cond);
   }
