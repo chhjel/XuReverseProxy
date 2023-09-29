@@ -88,6 +88,8 @@ export default class ConditionDatasEditor extends Vue {
   }
 
   async deleteCondition() {
+    if (!confirm("Delete this condition?")) return;
+
     const result = await this.conditionService.DeleteAsync(this.conditionInDialog.id);
     if (!result.success) {
       console.error(result.message);

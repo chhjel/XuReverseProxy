@@ -82,7 +82,7 @@ export default class ConditionDataEditor extends Vue {
     if (!this.localValue.timeOnlyUtc1) this.localValue.timeOnlyUtc1 = null;
     if (!this.localValue.timeOnlyUtc2) this.localValue.timeOnlyUtc2 = null;
     if (!this.localValue.daysOfWeekUtc) this.localValue.daysOfWeekUtc = DayOfWeekFlags.None;
-    if (!this.localValue.ipCondition) this.localValue.ipCondition = null;
+    if (!this.localValue.ipCondition) this.localValue.ipCondition = '';
     this.$emit("update:value", this.localValue);
   }
 
@@ -130,7 +130,7 @@ export default class ConditionDataEditor extends Vue {
       <text-input-component label="CIDR range" v-model:value="localValue.ipCondition" :disabled="disabled" />
       <div class="block block--dark mt-4">
         <label class="block-title">CIDR test</label>
-        <regex-test-component :value="localValue.ipCondition" />
+        <cidr-test-component :value="localValue.ipCondition" />
       </div>
     </div>
     <div v-else-if="localValue.type == 'IsLocalRequest'">
