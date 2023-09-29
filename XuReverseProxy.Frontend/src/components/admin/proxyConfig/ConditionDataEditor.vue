@@ -84,7 +84,7 @@ export default class ConditionDataEditor extends Vue {
     if (!this.localValue.timeOnlyUtc1) this.localValue.timeOnlyUtc1 = null;
     if (!this.localValue.timeOnlyUtc2) this.localValue.timeOnlyUtc2 = null;
     if (!this.localValue.daysOfWeekUtc) this.localValue.daysOfWeekUtc = DayOfWeekFlags.None;
-    if (!this.localValue.ipCondition) this.localValue.ipCondition = '';
+    if (!this.localValue.ipCondition) this.localValue.ipCondition = "";
     this.$emit("update:value", this.localValue);
   }
 

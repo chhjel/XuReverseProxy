@@ -16,7 +16,9 @@ export function createConditionDataSummary(condition: ConditionData): string {
     else if (!condition.timeOnlyUtc2) return `${prefix("After")} ${formatTime(condition.timeOnlyUtc1)}`;
     return `${prefix("Between")} ${formatTime(condition.timeOnlyUtc1)} and ${formatTime(condition.timeOnlyUtc2)}`;
   } else if (condition.type == ConditionType.WeekDays) {
-    return !condition.daysOfWeekUtc ? `Weekdays: ${condition.inverted ? "Any" : "None"}` : `${condition.daysOfWeekUtc}`;
+    return !condition.daysOfWeekUtc
+      ? `Weekdays: ${condition.inverted ? "Any" : "None"}`
+      : `${prefix("")}${condition.daysOfWeekUtc}`;
   } else if (condition.type == ConditionType.IPEquals) {
     return `${prefix("When")} IP matches '${condition.ipCondition}'`;
   } else if (condition.type == ConditionType.IPRegex) {

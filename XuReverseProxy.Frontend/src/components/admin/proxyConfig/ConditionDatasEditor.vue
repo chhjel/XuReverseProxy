@@ -113,7 +113,7 @@ export default class ConditionDatasEditor extends Vue {
       daysOfWeekUtc: null,
       timeOnlyUtc1: null,
       timeOnlyUtc2: null,
-      ipCondition: null,
+      ipCondition: "",
     };
     this.showConditionDialog(cond);
   }
