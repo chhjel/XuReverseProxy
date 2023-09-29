@@ -14,6 +14,7 @@ import MultiCheckboxComponent from "@components/inputs/MultiCheckboxComponent.vu
 import RegexTestComponent from "@components/common/RegexTestComponent.vue";
 import CidrTestComponent from "@components/common/CidrTestComponent.vue";
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
+import InputHeaderComponent from "@components/inputs/InputHeaderComponent.vue";
 
 @Options({
   components: {
@@ -25,6 +26,7 @@ import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
     MultiCheckboxComponent,
     CidrTestComponent,
     RegexTestComponent,
+    InputHeaderComponent,
   },
 })
 export default class ConditionDataEditor extends Vue {
@@ -100,59 +102,68 @@ export default class ConditionDataEditor extends Vue {
 <template>
   <div class="proxyconfigauthchallenge-edit" v-if="localValue">
     <text-input-component
+      class="mt-2"
       label="Condition group"
       v-model:value="localValue.group"
       :disabled="disabled"
       description="Determines what group to AND this condition with."
       type="number"
     />
-    <checkbox-component
-      label="Invert check"
-      offLabel="Not inverted"
-      :value="localValue.inverted"
-      class="mt-1 mb-1"
-      :disabled="disabled"
-    />
 
-    <select v-model="localValue.type" class="mb-2 mt-2" :disabled="disabled">
-      <option v-for="challengeType in conditionTypeOptions" :value="challengeType.value">
-        {{ challengeType.name }}
-      </option>
-    </select>
-
-    <div v-if="localValue.type == 'DateTimeRange'">
-      <date-time-input-component label="From" v-model:value="localValue.dateTimeUtc1" :disabled="disabled" />
-      <date-time-input-component label="To" v-model:value="localValue.dateTimeUtc2" :disabled="disabled" />
-    </div>
-    <div v-else-if="localValue.type == 'TimeRange'">
-      <time-only-input-component label="From" v-model:value="localValue.timeOnlyUtc1" :disabled="disabled" />
-      <time-only-input-component label="To" v-model:value="localValue.timeOnlyUtc2" :disabled="disabled" />
-    </div>
-    <div v-else-if="localValue.type == 'WeekDays'">
-      <multi-checkbox-component v-model:value="weekDaysValue" :disabled="disabled" @change="onWeekdaysChanged" />
-    </div>
-    <div v-else-if="localValue.type == 'IPEquals'">
-      <text-input-component label="IP" v-model:value="localValue.ipCondition" :disabled="disabled" />
-    </div>
-    <div v-else-if="localValue.type == 'IPRegex'">
-      <text-input-component label="RegEx pattern" v-model:value="localValue.ipCondition" :disabled="disabled" />
-      <div class="block block--dark mt-4">
-        <label class="block-title">RegEx test</label>
-        <regex-test-component :value="localValue.ipCondition" />
+    <div class="flexbox wrap align-items-flex-end mt-3 mb-2">
+      <div class="mr-2">
+        <input-header-component label="Condition type" />
+        <select v-model="localValue.type" :disabled="disabled">
+          <option v-for="challengeType in conditionTypeOptions" :value="challengeType.value">
+            {{ challengeType.name }}
+          </option>
+        </select>
+      </div>
+      <div class="mb-1 mt-2">
+        <checkbox-component
+          label="Invert check"
+          offLabel="Not inverted"
+          v-model:value="localValue.inverted"
+          :disabled="disabled"
+        />
       </div>
     </div>
-    <div v-else-if="localValue.type == 'IPCIDRRange'">
-      <text-input-component label="CIDR range" v-model:value="localValue.ipCondition" :disabled="disabled" />
-      <div class="block block--dark mt-4">
-        <label class="block-title">CIDR test</label>
-        <cidr-test-component :value="localValue.ipCondition" />
+
+    <div class="block block--dark">
+      <div v-if="localValue.type == 'DateTimeRange'">
+        <date-time-input-component label="From" v-model:value="localValue.dateTimeUtc1" :disabled="disabled" />
+        <date-time-input-component label="To" v-model:value="localValue.dateTimeUtc2" :disabled="disabled" />
       </div>
-    </div>
-    <div v-else-if="localValue.type == 'IsLocalRequest'">
-      <!-- No inputs needed here -->
-    </div>
-    <div v-else>
-      <code>Todo: support condition type {{ localValue.type }}</code>
+      <div v-else-if="localValue.type == 'TimeRange'">
+        <time-only-input-component label="From" v-model:value="localValue.timeOnlyUtc1" :disabled="disabled" />
+        <time-only-input-component label="To" v-model:value="localValue.timeOnlyUtc2" :disabled="disabled" />
+      </div>
+      <div v-else-if="localValue.type == 'WeekDays'">
+        <multi-checkbox-component v-model:value="weekDaysValue" :disabled="disabled" @change="onWeekdaysChanged" />
+      </div>
+      <div v-else-if="localValue.type == 'IPEquals'">
+        <text-input-component label="IP" v-model:value="localValue.ipCondition" :disabled="disabled" />
+      </div>
+      <div v-else-if="localValue.type == 'IPRegex'">
+        <text-input-component label="RegEx pattern" v-model:value="localValue.ipCondition" :disabled="disabled" />
+        <div class="block block--dark mt-4">
+          <label class="block-title">RegEx test</label>
+          <regex-test-component :value="localValue.ipCondition" />
+        </div>
+      </div>
+      <div v-else-if="localValue.type == 'IPCIDRRange'">
+        <text-input-component label="CIDR range" v-model:value="localValue.ipCondition" :disabled="disabled" />
+        <div class="block block--dark mt-4">
+          <label class="block-title">CIDR test</label>
+          <cidr-test-component :value="localValue.ipCondition" />
+        </div>
+      </div>
+      <div v-else-if="localValue.type == 'IsLocalRequest'">
+        <!-- No inputs needed here -->
+      </div>
+      <div v-else>
+        <code>Todo: support condition type {{ localValue.type }}</code>
+      </div>
     </div>
 
     <div class="mt-3">
