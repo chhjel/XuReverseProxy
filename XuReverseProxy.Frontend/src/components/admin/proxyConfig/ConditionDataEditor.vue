@@ -129,14 +129,24 @@ export default class ConditionDataEditor extends Vue {
       </div>
     </div>
 
-    <div class="block block--dark">
+    <div class="block block--dark mt-3">
       <div v-if="localValue.type == 'DateTimeRange'">
         <date-time-input-component label="From" v-model:value="localValue.dateTimeUtc1" :disabled="disabled" />
-        <date-time-input-component label="To" v-model:value="localValue.dateTimeUtc2" :disabled="disabled" />
+        <date-time-input-component
+          label="To"
+          v-model:value="localValue.dateTimeUtc2"
+          :disabled="disabled"
+          class="mt-3"
+        />
       </div>
       <div v-else-if="localValue.type == 'TimeRange'">
         <time-only-input-component label="From" v-model:value="localValue.timeOnlyUtc1" :disabled="disabled" />
-        <time-only-input-component label="To" v-model:value="localValue.timeOnlyUtc2" :disabled="disabled" />
+        <time-only-input-component
+          label="To"
+          v-model:value="localValue.timeOnlyUtc2"
+          :disabled="disabled"
+          class="mt-3"
+        />
       </div>
       <div v-else-if="localValue.type == 'WeekDays'">
         <multi-checkbox-component v-model:value="weekDaysValue" :disabled="disabled" @change="onWeekdaysChanged" />
