@@ -65,7 +65,7 @@ export default class AdminNavMenu extends Vue {
   margin-left: -5px;
   user-select: none;
 
-  @media (max-width: 869px) {
+  @media (max-width: 933px) {
     font-size: 24px;
     margin-left: 0;
     margin-bottom: 16px;
@@ -77,7 +77,7 @@ export default class AdminNavMenu extends Vue {
   overflow-y: auto;
   padding-bottom: 8px;
   border-bottom: 2px solid var(--color--secondary-darken);
-  @media (max-width: 869px) {
+  @media (max-width: 933px) {
     display: none;
   }
 
@@ -104,7 +104,7 @@ export default class AdminNavMenu extends Vue {
   overflow-y: auto;
   padding-bottom: 10px;
   border-bottom: 3px solid var(--color--secondary-darken);
-  @media (min-width: 870px) {
+  @media (min-width: 934px) {
     display: none;
   }
 
