@@ -33,35 +33,37 @@ public class ConditionDataController : EFCrudControllerBase<ConditionData>
         if (!ModelState.IsValid) return GenericResult.CreateError<ConditionData>(ModelState);
 
         var isNew = entity.Id == Guid.Empty;
-        if (isNew)
-        {
-            // Update relations
-            string? hint = null;
-            if (Request.Headers.TryGetValue(HeaderName_Hint, out var hintValues)) hint = hintValues.FirstOrDefault();
-            else if (string.IsNullOrWhiteSpace(hint) || hint == "none") throw new ArgumentException("Invalid hint value.", nameof(entity));
+        var auditTypeName = string.Empty;
 
-            if (hint == nameof(ProxyConfig))
-            {
-                var parent = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == entity.ParentId);
-                parent!.ProxyConditions.Add(entity);
-            }
-            else if (hint == nameof(ProxyAuthenticationData))
-            {
-                var parent = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == entity.ParentId);
-                parent!.Conditions.Add(entity);
-            }
+        // Update relations
+        string? hint = null;
+        if (Request.Headers.TryGetValue(HeaderName_Hint, out var hintValues)) hint = hintValues.FirstOrDefault();
+        else if (string.IsNullOrWhiteSpace(hint) || hint == "none") throw new ArgumentException("Invalid hint value.", nameof(entity));
+
+        ProxyConfig? relatedConfig = null;
+        if (hint == nameof(ProxyConfig))
+        {
+            var parent = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == entity.ParentId);
+            if (isNew) parent!.ProxyConditions.Add(entity);
+            auditTypeName = AdminAuditLogEntry.Placeholder_ProxyConfig;
+            relatedConfig = parent;
+        }
+        else if (hint == nameof(ProxyAuthenticationData))
+        {
+            var parent = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == entity.ParentId);
+            if (isNew) parent!.Conditions.Add(entity);
+            auditTypeName = $"{parent!.ChallengeTypeId}-auth / {AdminAuditLogEntry.Placeholder_ProxyConfig}";
+            relatedConfig = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == parent.ProxyConfigId);
         }
 
         var result = await base.CreateOrUpdateEntityAsync(entity);
         if (result.Success)
         {
-            var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == entity.ParentId);
-            var config = auth == null ? null : await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == auth.ProxyConfigId);
             _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext,
                     isNew
-                    ? $"Created new {entity.Type}-condition for {auth?.ChallengeTypeId}-auth / {AdminAuditLogEntry.Placeholder_ProxyConfig}"
-                    : $"Updated {entity.Type}-condition for {auth?.ChallengeTypeId}-auth / {AdminAuditLogEntry.Placeholder_ProxyConfig}")
-                    .SetRelatedProxyConfig(config?.Id, config?.Name)
+                    ? $"Created new {entity.Type}-condition for {auditTypeName}"
+                    : $"Updated {entity.Type}-condition for {auditTypeName}")
+                    .SetRelatedProxyConfig(relatedConfig?.Id, relatedConfig?.Name)
                 );
             await _dbContext.SaveChangesAsync();
         }
@@ -76,9 +78,20 @@ public class ConditionDataController : EFCrudControllerBase<ConditionData>
         var result = await base.DeleteEntityAsync(entityId);
         if (result.Success)
         {
-            var auth = entity == null ? null : await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == entity.ParentId);
-            var config = auth == null ? null : await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == auth.ProxyConfigId);
-            _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Deleted {entity?.Type}-condition for {auth?.ChallengeTypeId}-auth / {AdminAuditLogEntry.Placeholder_ProxyConfig}")
+            ProxyConfig? config = null;
+            var auditTypeName = AdminAuditLogEntry.Placeholder_ProxyConfig;
+            if (entity != null)
+            {
+                config = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == entity.ParentId);
+                if (config == null)
+                {
+                    var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == entity.ParentId);
+                    auditTypeName = $"{auth?.ChallengeTypeId}-auth / {AdminAuditLogEntry.Placeholder_ProxyConfig}";
+                    if (auth != null) config = await _dbContext.ProxyConfigs.FirstOrDefaultAsync(x => x.Id == auth.ProxyConfigId);
+                }
+            }
+
+            _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Deleted {entity?.Type}-condition for {auditTypeName}")
                     .SetRelatedProxyConfig(config?.Id, config?.Name)
                 );
             await _dbContext.SaveChangesAsync();

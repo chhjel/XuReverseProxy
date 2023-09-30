@@ -123,7 +123,8 @@ export default class GlobalVariablesPage extends Vue {
 
 <template>
   <div class="variables-page">
-    <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce" />
+    <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
+
     <div v-if="service.status.hasDoneAtLeastOnce">
       <div v-if="variables.length == 0 && service.status.done">- No variables added yet -</div>
 

@@ -137,6 +137,7 @@ export default class ServerConfigPage extends Vue {
 <template>
   <div class="serverconfig-page">
     <loader-component :status="service.status" :value="allowLoader" />
+    
     <div class="runtime-config" v-if="service.status.hasDoneAtLeastOnce">
       <div class="block">
         <checkbox-component

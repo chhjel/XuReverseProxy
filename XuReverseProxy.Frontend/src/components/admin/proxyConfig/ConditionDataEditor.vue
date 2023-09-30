@@ -15,6 +15,7 @@ import RegexTestComponent from "@components/common/RegexTestComponent.vue";
 import CidrTestComponent from "@components/common/CidrTestComponent.vue";
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 import InputHeaderComponent from "@components/inputs/InputHeaderComponent.vue";
+import { ConditionType } from "@generated/Enums/Core/ConditionType";
 
 @Options({
   components: {
@@ -96,6 +97,10 @@ export default class ConditionDataEditor extends Vue {
       .map((x) => x.onLabel)
       .join(", ");
   }
+
+  get showConditionBlock(): boolean {
+    return this.localValue.type != ConditionType.IsLocalRequest;
+  }
 }
 </script>
 
@@ -129,7 +134,7 @@ export default class ConditionDataEditor extends Vue {
       </div>
     </div>
 
-    <div class="block block--dark mt-3">
+    <div class="block block--dark mt-3" v-if="showConditionBlock">
       <div v-if="localValue.type == 'DateTimeRange'">
         <date-time-input-component label="From" v-model:value="localValue.dateTimeUtc1" :disabled="disabled" />
         <date-time-input-component
@@ -167,9 +172,6 @@ export default class ConditionDataEditor extends Vue {
           <label class="block-title">CIDR test</label>
           <cidr-test-component :value="localValue.ipCondition" />
         </div>
-      </div>
-      <div v-else-if="localValue.type == 'IsLocalRequest'">
-        <!-- No inputs needed here -->
       </div>
       <div v-else>
         <code>Todo: support condition type {{ localValue.type }}</code>
