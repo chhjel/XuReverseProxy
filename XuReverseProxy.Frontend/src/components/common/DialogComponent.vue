@@ -268,7 +268,7 @@ export default class DialogComponent extends Vue {
   bottom: 0;
   right: 0;
   background-color: #0000005c;
-  z-index: 1000;
+  z-index: 90001;
   animation: dialog-open-bg 0.15s ease-in-out;
 
   &.hide-overlay {

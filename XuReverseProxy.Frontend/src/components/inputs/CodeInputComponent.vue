@@ -350,7 +350,7 @@ export default class CodeInputComponent extends Vue {
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 100;
+    z-index: 90000;
     height: 100% !important;
 
     .editor-component__editor {
@@ -363,7 +363,7 @@ export default class CodeInputComponent extends Vue {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: 90000;
     height: 32px;
     background-color: var(--color--panel-light);
     display: flex;
