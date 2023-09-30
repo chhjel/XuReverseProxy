@@ -51,8 +51,8 @@ export default class ClientAuditLogComponent extends Vue {
 
   async mounted() {
     this.filter.clientId = this.clientId;
-    await this.loadReferencedData();
     await this.loadData();
+    await this.loadReferencedData();
   }
 
   async loadReferencedData() {

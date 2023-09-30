@@ -124,7 +124,7 @@ export default class BlockedIPPage extends Vue {
 
 <template>
   <div class="blocked-ip-page">
-    <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce" />
+    <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 
     <div v-if="service.status.hasDoneAtLeastOnce">
       <div v-if="rule" class="block">

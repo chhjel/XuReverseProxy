@@ -51,13 +51,13 @@ export default class AdminAuditLogComponent extends Vue {
   variables: Array<GlobalVariable> = [];
 
   async mounted() {
-    await this.loadReferencedData();
     await this.loadData();
+    await this.loadReferencedData();
   }
 
   async loadReferencedData() {
-    this.proxyConfigs = (await this.proxyConfigService.GetAllAsync()).data || [];
     this.variables = (await this.variablesService.GetAllAsync()).data || [];
+    this.proxyConfigs = (await this.proxyConfigService.GetAllAsync()).data || [];
   }
 
   async loadData() {

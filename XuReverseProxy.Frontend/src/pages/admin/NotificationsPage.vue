@@ -118,6 +118,7 @@ export default class NotificationsPage extends Vue {
 <template>
   <div class="notifications-page">
     <loader-component :status="service.status" />
+
     <div v-if="service.status.hasDoneAtLeastOnce">
       <div v-if="sortedRules.length == 0 && service.status.done">- No rules configured yet -</div>
       <div v-for="rule in sortedRules" :key="rule.id">
