@@ -41,6 +41,7 @@ COPY XuReverseProxy.FrontendModelGeneration/*.csproj ./XuReverseProxy.FrontendMo
 RUN dotnet restore
 
 COPY ./ ./
+COPY XuReverseProxy/cert/aspnetapp.pfx /https/aspnetapp.pfx
 RUN dotnet publish "XuReverseProxy/XuReverseProxy.csproj" -c ${BUILD_CONFIG} -o out -p:Version=${BUILD_VERSION}
 COPY --from=frontend-build /frontend/build/* /app/out/wwwroot/dist/
 

@@ -40,7 +40,6 @@ services:
     ports:
       - "7272:443"
     volumes:
-      - ./XuReverseProxy/cert:/https:ro
       - ./XuReverseProxy/wwwroot/dist:/app/wwwroot/dist
     depends_on:
       - db
