@@ -48,6 +48,7 @@ COPY --from=frontend-build /frontend/build/* /app/out/wwwroot/dist/
 FROM mcr.microsoft.com/dotnet/aspnet:7.0
 WORKDIR /app
 COPY --from=build-env /app/out .
+COPY XuReverseProxy/cert/aspnetapp.pfx /https/aspnetapp.pfx
 EXPOSE 80/TCP
 EXPOSE 80/UDP
 ENTRYPOINT ["dotnet", "XuReverseProxy.dll"]

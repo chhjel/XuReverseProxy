@@ -1,6 +1,7 @@
 bin
 obj
 .vs
+.vscode/
 
 /XuReverseProxy/*.user
 /XuReverseProxy/Properties/PublishProfiles/*.user
@@ -9,9 +10,7 @@ publish
 /build
 XuReverseProxy/appsettings.user.json
 XuReverseProxy/wwwroot/dist/
-
+XuReverseProxy.Frontend/build/
 Scripts/swap/bin-swap-old/
 Scripts/swap/data/
 Scripts/swap/bin-swap/
-
-XuReverseProxy.Frontend/build/
