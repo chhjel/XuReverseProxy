@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using XuReverseProxy.Core.Models.Config;
@@ -70,6 +71,12 @@ public static class ServiceCollectionExtensions
         }
 
         app.UseStatusCodePagesWithReExecute("/error/{0}");
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            // Respect downstream reverse proxy headers
+            ForwardedHeaders = ForwardedHeaders.XForwardedProto,
+            RequireHeaderSymmetry = false
+        });
         app.UseHttpsRedirection();
         app.UseStaticFiles();
 
