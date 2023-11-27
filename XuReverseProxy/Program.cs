@@ -8,7 +8,11 @@ namespace XuReverseProxy
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.WebHost.UseKestrel(option => option.AddServerHeader = false);
+            builder.WebHost.UseKestrel(options =>
+            {
+                options.AddServerHeader = false;
+                options.Limits.MaxRequestBodySize = long.MaxValue;
+            });
             builder.Logging.AddMemoryLogger();
 
             // Add services to the container.
