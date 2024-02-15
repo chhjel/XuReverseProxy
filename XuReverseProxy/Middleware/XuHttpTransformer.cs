@@ -1,6 +1,6 @@
 ﻿using XuReverseProxy.Core.Services;
-using XuReverseProxy.Extensions;
 using Yarp.ReverseProxy.Forwarder;
+using ServiceCollectionExtensions = XuReverseProxy.Extensions.ServiceCollectionExtensions;
 
 namespace XuReverseProxy.Middleware;
 

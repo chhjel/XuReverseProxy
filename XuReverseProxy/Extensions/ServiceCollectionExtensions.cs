@@ -57,7 +57,7 @@ public static class ServiceCollectionExtensions
         return app;
     }
 
-    public static WebApplication Use3rdPartyServices(this WebApplication app)
+    public static WebApplication UseCore(this WebApplication app, bool enableSentry)
     {
         if (app.Environment.IsDevelopment())
         {
@@ -81,6 +81,7 @@ public static class ServiceCollectionExtensions
         app.UseStaticFiles();
 
         app.UseRouting();
+        if (enableSentry) app.UseSentryTracing();
         app.UseAuthorization();
 
         app.MapRazorPages();
@@ -91,7 +92,7 @@ public static class ServiceCollectionExtensions
     public const string IdentityCookieName = "___xurp_identity";
     public const string AuthCookieName = "___xurp_auth";
     public const string AntiForgeryCookieName = "___xurp_antiforgery";
-    public static void Add3rdPartyServices(this IServiceCollection services, ConfigurationManager configurationManager, IWebHostEnvironment environment)
+    public static void AddCoreServices(this IServiceCollection services, ConfigurationManager configurationManager, IWebHostEnvironment environment)
     {
         if (environment.IsDevelopment())
         {

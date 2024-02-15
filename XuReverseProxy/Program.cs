@@ -8,6 +8,11 @@ namespace XuReverseProxy
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var configuration = builder.Configuration;
+
+            var enableSentry = !string.IsNullOrWhiteSpace(configuration["Sentry:Dsn"]);
+            if (enableSentry) builder.WebHost.UseSentry();
+
             builder.WebHost.UseKestrel(options =>
             {
                 options.AddServerHeader = false;
@@ -16,13 +21,15 @@ namespace XuReverseProxy
             builder.Logging.AddMemoryLogger();
 
             // Add services to the container.
-            builder.Services.Add3rdPartyServices(builder.Configuration, builder.Environment);
-            builder.Services.AddReverseProxy(builder.Configuration, builder.Environment);
+            var services = builder.Services;
+            if (enableSentry) services.AddSentry();
+            services.AddCoreServices(configuration, builder.Environment);
+            services.AddReverseProxy(configuration, builder.Environment);
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             app.UseReverseProxy();
-            app.Use3rdPartyServices();
+            app.UseCore(enableSentry);
 
             app.Run();
         }
