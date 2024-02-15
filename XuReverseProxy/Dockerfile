@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=./node_modules/.cache/webpack if [ "$BUILD_FRONTEN
 
 ##########################################################
 # Build backend
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 ARG BUILD_VERSION=1.0.0
 ARG BUILD_CONFIG=Release
 WORKDIR /app
@@ -45,7 +45,7 @@ RUN dotnet publish "XuReverseProxy/XuReverseProxy.csproj" -c ${BUILD_CONFIG} -o 
 COPY --from=frontend-build /frontend/build/* /app/out/wwwroot/dist/
 
 # Start backend
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build-env /app/out .
 COPY XuReverseProxy/cert/aspnetapp.pfx /https/aspnetapp.pfx
