@@ -11,7 +11,7 @@ namespace XuReverseProxy
             var configuration = builder.Configuration;
 
             var enableSentry = !string.IsNullOrWhiteSpace(configuration["Sentry:Dsn"]);
-            if (enableSentry) builder.WebHost.UseSentry();
+            if (enableSentry) ConfigureSentry(builder);
 
             builder.WebHost.UseKestrel(options =>
             {
@@ -32,6 +32,14 @@ namespace XuReverseProxy
             app.UseCore(enableSentry);
 
             app.Run();
+        }
+
+        private static void ConfigureSentry(WebApplicationBuilder builder)
+        {
+            builder.WebHost.UseSentry(x =>
+            {
+                x.AddExceptionFilterForType<OperationCanceledException>();
+            });
         }
     }
 }
