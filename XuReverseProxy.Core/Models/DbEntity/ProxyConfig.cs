@@ -22,6 +22,9 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
     public string? DestinationPrefix { get; set; }
     public string? StaticHTML { get; set; }
 
+    public bool RewriteDownstreamOrigin { get; set; }
+    public bool StripUpstreamSourceTraces { get; set; }
+
     public string? ConditionsNotMetMessage { get; set; }
     public bool ShowConditionsNotMet { get; set; }
 
