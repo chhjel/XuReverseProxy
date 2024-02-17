@@ -6,6 +6,7 @@
 public class ServerConfig
 {
     public required string Name { get; set; }
+    public required string DefaultDestinationPrefix { get; set; }
 
     public required SecurityConfig Security { get; set; }
     public required DomainConfig Domain { get; set; }

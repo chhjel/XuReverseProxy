@@ -37,10 +37,12 @@ WORKDIR /app
 COPY *.sln ./
 COPY XuReverseProxy/*.csproj ./XuReverseProxy/
 COPY XuReverseProxy.Core/*.csproj ./XuReverseProxy.Core/
+COPY Tests/XuReverseProxy.Core.Tests/*.csproj ./Tests/XuReverseProxy.Core.Tests/
 COPY XuReverseProxy.FrontendModelGeneration/*.csproj ./XuReverseProxy.FrontendModelGeneration/
 RUN dotnet restore
 
 COPY ./ ./
+RUN dotnet test XuReverseProxy.sln -c Release
 RUN dotnet publish "XuReverseProxy/XuReverseProxy.csproj" -c ${BUILD_CONFIG} -o out -p:Version=${BUILD_VERSION}
 COPY --from=frontend-build /frontend/build/* /app/out/wwwroot/dist/
 

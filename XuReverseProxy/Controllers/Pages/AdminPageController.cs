@@ -30,7 +30,8 @@ public class AdminPageController : Controller
                 RootDomain = _serverConfig.Domain.GetFullDomain(),
                 ServerScheme = _serverConfig.Domain.Scheme,
                 ServerPort = _serverConfig.Domain.Port,
-                ServerDomain = _serverConfig.Domain.Domain
+                ServerDomain = _serverConfig.Domain.Domain,
+                DefaultDestinationPrefix = _serverConfig.DefaultDestinationPrefix
             }
         };
         return View(model);

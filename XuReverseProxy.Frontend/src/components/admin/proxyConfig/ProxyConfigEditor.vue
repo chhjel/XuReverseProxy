@@ -134,7 +134,24 @@ export default class ProxyConfigEditor extends Vue {
           <code>{{ localValue.destinationPrefix }}</code>
         </div>
       </div>
+      <div>
+        <checkbox-component
+          label="Rewrite downstream origin"
+          offLabel="Don't rewrite downstream origin"
+          :disabled="disabled"
+          v-model:value="localValue.rewriteDownstreamOrigin"
+          class="mt-2 mb-2"
+        />
+        <checkbox-component
+          label="Strip X-Forwarded-* and referer headers."
+          offLabel="Don't strip X-Forwarded-* and referer headers."
+          :disabled="disabled"
+          v-model:value="localValue.stripUpstreamSourceTraces"
+          class="mt-2 mb-2"
+        />
+      </div>
     </div>
+
     <!-- MODE: STATIC HTML -->
     <div class="block block--dark mt-2" v-show="modeIsStaticHTML">
       <div class="block-title">Serve static HTML</div>

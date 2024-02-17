@@ -437,7 +437,7 @@ public class ReverseProxyMiddleware
         var destinationPrefix = proxyConfig.DestinationPrefix;
         if (string.IsNullOrWhiteSpace(destinationPrefix)) return;
 
-        var transformer = XuHttpTransformer.Instance; //HttpTransformer.Default;
+        var transformer = XuHttpTransformer.Instance;
         var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
 
         var socksHandler = new SocketsHttpHandler()
@@ -455,8 +455,11 @@ public class ReverseProxyMiddleware
                 RemoteCertificateValidationCallback = (object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors) => true
             };
         }
-        var httpClient = new HttpMessageInvoker(socksHandler);
 
+        context.Items[nameof(ProxyConfig.StripUpstreamSourceTraces)] = proxyConfig.StripUpstreamSourceTraces;
+        context.Items[nameof(ProxyConfig.RewriteDownstreamOrigin)] = proxyConfig.RewriteDownstreamOrigin;
+
+        var httpClient = new HttpMessageInvoker(socksHandler);
         var error = await forwarder.SendAsync(context, destinationPrefix, httpClient, requestOptions, transformer);
         if (error != ForwarderError.None)
         {

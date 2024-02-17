@@ -9,4 +9,5 @@ export interface AdminPageFrontendModel
 	serverScheme: string;
 	serverPort: number;
 	serverDomain: string;
+	defaultDestinationPrefix: string;
 }
