@@ -20,6 +20,8 @@ export interface ProxyConfig
 	mode: ProxyConfigMode;
 	destinationPrefix: string;
 	staticHTML: string;
+	rewriteDownstreamOrigin: boolean;
+	stripUpstreamSourceTraces: boolean;
 	conditionsNotMetMessage: string;
 	showConditionsNotMet: boolean;
 	authentications: ProxyAuthenticationData[];

@@ -51,13 +51,15 @@ export default class ProxyConfigsPage extends Vue {
       subdomain: "",
       challengeTitle: "",
       mode: ProxyConfigMode.Forward,
-      destinationPrefix: "http://host.docker.internal:",
+      destinationPrefix: this.options.defaultDestinationPrefix || "http://host.docker.internal:",
       staticHTML: "",
       showCompletedChallenges: true,
       showChallengesWithUnmetRequirements: true,
       conditionsNotMetMessage: '',
       showConditionsNotMet: true,
-      proxyConditions: []
+      proxyConditions: [],
+      rewriteDownstreamOrigin: true,
+      stripUpstreamSourceTraces: true
     };
     const result = await this.proxyConfigService.CreateOrUpdateAsync(config);
     if (!result.success) {

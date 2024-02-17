@@ -14,5 +14,6 @@ public class AdminPageViewModel
         public string? ServerScheme { get; set; }
         public int? ServerPort { get; set; }
         public string? ServerDomain { get; set; }
+        public string? DefaultDestinationPrefix { get; set; }
     }
 }
