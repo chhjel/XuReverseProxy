@@ -29,6 +29,7 @@ namespace XuReverseProxy.Middleware;
 /// </summary>
 public class ReverseProxyMiddleware
 {
+    private const string HeaderName_ERR = "XURP-ERR";
     private readonly RequestDelegate _nextMiddleware;
 
     public ReverseProxyMiddleware(RequestDelegate nextMiddleware)
@@ -219,7 +220,7 @@ public class ReverseProxyMiddleware
                 }
                 else
                 {
-                    context.Response.Headers["__xurp_err"] = "ip_changed";
+                    context.Response.Headers[HeaderName_ERR] = "ip_changed";
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 }
 

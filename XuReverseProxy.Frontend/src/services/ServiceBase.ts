@@ -46,7 +46,7 @@ export default class ServiceBase {
         if (response.redirected && response.url.includes("/auth/login")) {
           if (response.url.includes("err=ip_changed")) throw Error(LoggedOutMessageIpChanged);
           else throw Error(LoggedOutMessage);
-        } else if (response.status == 401 && response.headers.get("__xurp_err") == "ip_changed") {
+        } else if (response.status == 401 && response.headers.get("XURP-ERR") == "ip_changed") {
           throw Error(LoggedOutMessageIpChanged);
         } else if (response.status == 401) {
           throw Error(LoggedOutMessage);

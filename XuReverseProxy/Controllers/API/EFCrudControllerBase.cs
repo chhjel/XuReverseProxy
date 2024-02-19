@@ -17,7 +17,7 @@ public abstract class EFCrudControllerBase<TEntity> : Controller
 {
     protected readonly ApplicationDbContext _dbContext;
     protected readonly Func<DbSet<TEntity>> _entities;
-    protected const string HeaderName_Hint = "XURP_HINT";
+    protected const string HeaderName_Hint = "XURP-HINT";
 
     public EFCrudControllerBase(ApplicationDbContext context,
         Func<DbSet<TEntity>> entities)
