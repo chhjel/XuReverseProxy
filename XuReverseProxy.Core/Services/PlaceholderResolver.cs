@@ -25,7 +25,19 @@ public class PlaceholderResolver : IPlaceholderResolver
         Dictionary<string, string?>? placeholders = null,
         params IProvidesPlaceholders?[] placeholderProviders)
     {
+        template = await ResolvePlaceholdersInternalAsync(template, transformer, placeholders, placeholderProviders, iterationCounter: 0);
+        return template;
+    }
+
+    private async Task<string?> ResolvePlaceholdersInternalAsync(string? template,
+        Func<string?, string?>? transformer,
+        Dictionary<string, string?>? placeholders,
+        IProvidesPlaceholders?[] placeholderProviders,
+        int iterationCounter)
+    {
         if (string.IsNullOrWhiteSpace(template)) return template;
+        var originalTemplate = template;
+
         transformer ??= v => v ?? string.Empty;
 
         // Given dict
@@ -38,10 +50,16 @@ public class PlaceholderResolver : IPlaceholderResolver
         template = ResolveCommonPlaceholders(template, transformer)!;
 
         // Given providers
-        foreach (var placeholderProvider in placeholderProviders)
+        foreach (var placeholderProvider in placeholderProviders!)
         {
             if (placeholderProvider != null) template = placeholderProvider.ResolvePlaceholders(template, transformer);
         }
+
+        if (iterationCounter < 3 && template != originalTemplate)
+        {
+            template = await ResolvePlaceholdersInternalAsync(template, transformer, placeholders, placeholderProviders, iterationCounter++);
+        }
+
         return template;
     }
 
