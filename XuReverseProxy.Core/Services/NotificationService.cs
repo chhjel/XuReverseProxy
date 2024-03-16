@@ -105,13 +105,15 @@ public class NotificationService : INotificationService
 
             var placeholderResolver = serviceScope.ServiceProvider.GetService(typeof(IPlaceholderResolver)) as IPlaceholderResolver;
             url = await placeholderResolver!.ResolvePlaceholdersAsync(url, transformer: HttpUtility.UrlEncode, placeholders: placeholders, placeholderProviders: placeholderProviders);
+            var body = await placeholderResolver!.ResolvePlaceholdersAsync(rule.WebHookBody, transformer: null, placeholders: placeholders, placeholderProviders: placeholderProviders);
+            var headers = await placeholderResolver!.ResolvePlaceholdersAsync(rule.WebHookHeaders, transformer: null, placeholders: placeholders, placeholderProviders: placeholderProviders);
 
             var requestData = new CustomRequestData
             {
                 RequestMethod = string.IsNullOrWhiteSpace(rule.WebHookMethod) ? HttpMethod.Get.Method : new HttpMethod(rule.WebHookMethod).Method,
                 Url = url,
-                Body = rule.WebHookBody,
-                Headers = rule.WebHookHeaders
+                Body = body,
+                Headers = headers
             };
 
             var httpRequestMessage = requestData?.CreateRequest();
