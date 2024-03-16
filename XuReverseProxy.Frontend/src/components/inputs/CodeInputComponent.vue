@@ -329,6 +329,7 @@ export default class CodeInputComponent extends Vue {
 <style scoped lang="scss">
 .editor-component {
   position: relative;
+  margin-top: 20px;
 
   &__loader-bar {
     margin-bottom: -14px;
