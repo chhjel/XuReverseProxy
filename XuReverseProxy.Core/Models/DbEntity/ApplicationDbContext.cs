@@ -25,13 +25,14 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     public DbSet<ClientAuditLogEntry> ClientAuditLogEntries { get; set; }
     public DbSet<NotificationRule> NotificationRules { get; set; }
     public DbSet<ConditionData> Conditions { get; set; }
+    public DbSet<HtmlTemplate> HtmlTemplates { get; set; }
 
     // IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
     protected readonly IConfiguration Configuration;
     private readonly IMemoryCache _memoryCache;
-    private static readonly IMemoryCache _clientMemoryCache = new MemoryCache(new MemoryCacheOptions() { SizeLimit = 10000 });
+    private static readonly MemoryCache _clientMemoryCache = new(new MemoryCacheOptions() { SizeLimit = 10000 });
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IConfiguration configuration, IMemoryCache memoryCache)
         : base(options)
@@ -94,6 +95,7 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
         builder.Entity<ProxyAuthenticationData>().HasIndex(x => x.ProxyConfigId);
         builder.Entity<RuntimeServerConfigItem>().HasIndex(x => x.Key);
         builder.Entity<GlobalVariable>().HasIndex(x => x.Name);
+        builder.Entity<HtmlTemplate>().HasIndex(x => x.Type);
     }
 
     public void InvalidateCacheFor<T>()
