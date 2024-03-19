@@ -76,9 +76,9 @@ const routes: Readonly<RouteRecordRaw[]> = [
     component: BlockedIPPage,
   },
   {
-    name: "templates",
-    path: "/templates",
-    meta: { title: "Templates" },
+    name: "responses",
+    path: "/responses",
+    meta: { title: "Responses" },
     component: HtmlTemplatesPage,
   },
   {
