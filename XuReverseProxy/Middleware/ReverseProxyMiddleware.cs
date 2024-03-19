@@ -119,8 +119,7 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         if (clientIdentity?.Blocked == true)
         {
             var clientBlockedTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ClientBlocked);
-            var html = (await placeholderResolver.ResolvePlaceholdersAsync(clientBlockedTemplate.Html, transformer: null, placeholders: null, clientIdentity))
-                ?.Replace("{{blocked_message}}", clientIdentity.BlockedMessage, StringComparison.OrdinalIgnoreCase);
+            var html = (await placeholderResolver.ResolvePlaceholdersAsync(clientBlockedTemplate.Html, transformer: null, placeholders: null, clientIdentity));
             await SetResponseAsync(context, html, clientBlockedTemplate.ResponseCode);
             return;
         }

@@ -32,7 +32,7 @@ public class HtmlTemplate : IHasId
             return new()
             {
                 Type = type,
-                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>404 | XuReverseProxy</title>v</head>\n<body>\n404 / XuReverseProxy\n</body>\n</html>\n",
+                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>404 | XuReverseProxy</title>\n</head>\n<body>\n404\n</body>\n</html>\n",
                 ResponseCode = 404
             };
         }
@@ -41,7 +41,7 @@ public class HtmlTemplate : IHasId
             return new()
             {
                 Type = type,
-                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\n{{blocked_message}}\n</body>\n</html>\n",
+                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\n{{Client.BlockedMessage}}\n</body>\n</html>\n",
                 ResponseCode = 401
             };
         }
@@ -50,7 +50,7 @@ public class HtmlTemplate : IHasId
             return new()
             {
                 Type = type,
-                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\nNope</body>\n</html>\n",
+                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\n❌\n</body>\n</html>\n",
                 ResponseCode = 401
             };
         }
@@ -59,7 +59,7 @@ public class HtmlTemplate : IHasId
             return new()
             {
                 Type = type,
-                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>404 | XuReverseProxy</title>v</head>\n<body>\n404 / XuReverseProxy\n</body>\n</html>\n",
+                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>404 | XuReverseProxy</title>\n</head>\n<body>\n404\n</body>\n</html>\n",
                 ResponseCode = 404
             };
         }

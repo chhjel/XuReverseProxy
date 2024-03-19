@@ -31,34 +31,10 @@ export default class ServerConfigPage extends Vue {
   service: ServerConfigService = new ServerConfigService();
   runtimeConfigs: Array<RuntimeServerConfigItem> = [];
 
-  @Ref() readonly clientBlockedHtmlEditor!: any;
-  @Ref() readonly notFoundHtmlEditor!: any;
-  @Ref() readonly ipBlockedHtmlEditor!: any;
-
-  clientBlockedHtmlPlaceholdersExtra: Array<PlaceholderInfo> = [
-    {
-      name: "blocked_message",
-      description: "Can be used as a placeholder for the blocked message.",
-    },
-  ];
-  clientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = ClientBlockedHtmlPlaceholders;
-  ipBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = IPBlockedHtmlPlaceholders;
-  html404Placeholders: Array<PlaceholderGroupInfo> = Html404Placeholders;
-  config_NotFoundHtml: string = "";
-  config_ClientBlockedHtml: string = "";
-  config_ClientBlockedResponseCode: string = "";
-  config_IPBlockedHtml: string = "";
-  config_IPBlockedResponseCode: string = "";
   allowLoader: boolean | null = null;
 
   async mounted() {
     await this.loadConfig();
-
-    this.config_NotFoundHtml = this.getConfigString("NotFoundHtml");
-    this.config_ClientBlockedHtml = this.getConfigString("ClientBlockedHtml");
-    this.config_ClientBlockedResponseCode = this.getConfigString("ClientBlockedResponseCode");
-    this.config_IPBlockedHtml = this.getConfigString("IPBlockedHtml");
-    this.config_IPBlockedResponseCode = this.getConfigString("IPBlockedResponseCode");
   }
 
   async loadConfig() {
@@ -109,28 +85,6 @@ export default class ServerConfigPage extends Vue {
     const result = await this.service.CreateOrUpdateAsync(item, null, loaderId);
     if (!result.success) item.value = oldValue;
   }
-
-  async saveClientBlockedSection() {
-    await this.saveConfig("ClientBlockedHtml", this.config_ClientBlockedHtml, "ClientBlocked");
-    await this.saveConfig("ClientBlockedResponseCode", this.config_ClientBlockedResponseCode, "ClientBlocked");
-  }
-
-  async saveIPBlockedSection() {
-    await this.saveConfig("IPBlockedHtml", this.config_IPBlockedHtml, "IPBlocked");
-    await this.saveConfig("IPBlockedResponseCode", this.config_IPBlockedResponseCode, "IPBlocked");
-  }
-
-  insertPlaceholder404Html(val: string): void {
-    this.notFoundHtmlEditor.insertText(val);
-  }
-  
-  insertPlaceholderClientBlockedHtml(val: string): void {
-    this.clientBlockedHtmlEditor.insertText(val);
-  }
-  
-  insertPlaceholderIPBlockedHtml(val: string): void {
-    this.ipBlockedHtmlEditor.insertText(val);
-  }
 }
 </script>
 
@@ -176,84 +130,6 @@ export default class ServerConfigPage extends Vue {
           class="mt-2 mb-2"
         />
       </div>
-
-      <div class="block-title mt-4">404 HTML</div>
-      <div class="block">
-        <code-input-component
-          v-model:value="config_NotFoundHtml"
-          :disabled="isLoading"
-          language="html"
-          height="400px"
-          ref="notFoundHtmlEditor"
-        />
-        <expandable-component header="Supported placeholders">
-          <placeholder-info-component
-            :placeholders="html404Placeholders"
-            @insertPlaceholder="insertPlaceholder404Html"
-          />
-        </expandable-component>
-        <br>
-        <button-component
-          @click="saveConfig('NotFoundHtml', config_NotFoundHtml, 'NotFoundHtml')"
-          :disabled="isLoading"
-          class="ml-0 mt-3"
-          >Save</button-component
-        >
-        <loader-component :status="service.status" forId="NotFoundHtml" inline />
-      </div>
-
-      <div class="block-title mt-4">Client blocked HTML</div>
-      <div class="block">
-        <code-input-component
-          v-model:value="config_ClientBlockedHtml"
-          :disabled="isLoading"
-          language="html"
-          height="400px"
-          ref="clientBlockedHtmlEditor"
-        />
-        <expandable-component header="Supported placeholders">
-          <placeholder-info-component
-            :placeholders="clientBlockedHtmlPlaceholders"
-            :additionalPlaceholders="clientBlockedHtmlPlaceholdersExtra"
-            @insertPlaceholder="insertPlaceholderClientBlockedHtml"
-          />
-        </expandable-component>
-        <text-input-component
-          label="Response code"
-          v-model:value="config_ClientBlockedResponseCode"
-          placeholder="401"
-          class="blocked-response-code-input"
-        />
-        <button-component @click="saveClientBlockedSection" :disabled="isLoading" class="ml-0 mt-3"
-          >Save</button-component
-        >
-        <loader-component :status="service.status" forId="ClientBlocked" inline />
-      </div>
-
-      <div class="block-title mt-4">IP blocked HTML</div>
-      <div class="block">
-        <code-input-component
-          v-model:value="config_IPBlockedHtml"
-          :disabled="isLoading"
-          language="html"
-          height="400px"
-          ref="ipBlockedHtmlEditor"
-        />
-        <expandable-component header="Supported placeholders">
-          <placeholder-info-component
-            :placeholders="ipBlockedHtmlPlaceholders"
-            @insertPlaceholder="insertPlaceholderIPBlockedHtml"
-          />
-        </expandable-component>
-        <text-input-component
-          label="Response code"
-          v-model:value="config_IPBlockedResponseCode"
-          placeholder="401"
-          class="blocked-response-code-input"
-        />
-        <button-component @click="saveIPBlockedSection" :disabled="isLoading" class="ml-0 mt-3">Save</button-component>
-        <loader-component :status="service.status" forId="IPBlocked" inline />
-      </div>
     </div>
   </div>
 </template>
@@ -261,9 +137,5 @@ export default class ServerConfigPage extends Vue {
 <style scoped lang="scss">
 .serverconfig-page {
   padding-top: 20px;
-
-  .blocked-response-code-input {
-    max-width: 200px;
-  }
 }
 </style>

@@ -213,6 +213,10 @@ export const ClientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = [
   { name: "Blocked client", placeholders: ClientIdentityPlaceholders },
   { name: "Common", placeholders: CommonPlaceholders },
 ];
+export const ProxyConditionsNotMetHtmlPlaceholders: Array<PlaceholderGroupInfo> = [
+  { name: "Client", placeholders: ClientIdentityPlaceholders },
+  { name: "Common", placeholders: CommonPlaceholders },
+];
 export const LoginUsernamePasswordPlaceholders: Array<PlaceholderGroupInfo> = [
   { name: "Client", placeholders: ClientIdentityPlaceholders },
   { name: "Proxy config", placeholders: ProxyConfigPlaceholders },
