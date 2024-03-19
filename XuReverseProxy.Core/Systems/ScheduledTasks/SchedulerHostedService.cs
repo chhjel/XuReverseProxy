@@ -7,7 +7,7 @@ namespace XuReverseProxy.Core.Systems.ScheduledTasks;
 public class SchedulerHostedService(IEnumerable<IScheduledTask> scheduledTasks, ILogger<SchedulerHostedService> logger) : HostedService
 {
     public event EventHandler<UnobservedTaskExceptionEventArgs>? UnobservedTaskException;
-    private readonly List<SchedulerTaskWrapper> _scheduledTasks = new();
+    private readonly List<SchedulerTaskWrapper> _scheduledTasks = [];
     public readonly ConcurrentDictionary<Type, ScheduledTaskStatus> Statuses = new();
     public readonly ConcurrentDictionary<Type, ScheduledTaskResult> LatestResults = new();
 

@@ -6,7 +6,7 @@ namespace XuReverseProxy.Core.Logging;
 public class MemoryLogger : ILogger
 {
     public static bool Enabled { get; set; }
-    private static readonly List<LoggedEvent> _events = new();
+    private static readonly List<LoggedEvent> _events = [];
     private static readonly object _eventsLock = new();
     private const int _maxCount = 1000;
 

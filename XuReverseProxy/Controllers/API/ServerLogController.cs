@@ -19,11 +19,11 @@ public class ServerLogController : Controller
         }
         catch (Exception ex)
         {
-            return new List<MemoryLogger.LoggedEvent>
-            {
+            return
+            [
                 new MemoryLogger.LoggedEvent(DateTime.UtcNow, LogLevel.Critical, 0, null, "Failed to load log events."),
                 new MemoryLogger.LoggedEvent(DateTime.UtcNow, LogLevel.Critical, 0, null, ex.ToString())
-            };
+            ];
         }
     }
 }
