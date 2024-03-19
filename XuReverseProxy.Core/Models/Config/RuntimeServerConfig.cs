@@ -9,16 +9,8 @@ namespace XuReverseProxy.Core.Models.Config;
 /// <summary>
 /// Dynamic config that can be changed at runtime.
 /// </summary>
-public class RuntimeServerConfig
+public class RuntimeServerConfig(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor)
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public RuntimeServerConfig(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor)
-    {
-        _dbContext = dbContext;
-        _httpContextAccessor = httpContextAccessor;
-    }
 
     /// <summary>
     /// Global killswitch to disable all proxies temporarily.
@@ -74,18 +66,18 @@ public class RuntimeServerConfig
 
     private string? GetConfig(string key, string? fallback = null)
     {
-        var item = TKAsyncUtils.RunSync(() => _dbContext.GetWithCacheAsync(x => x.RuntimeServerConfigItems)).FirstOrDefault(x => x.Key == key);
+        var item = TKAsyncUtils.RunSync(() => dbContext.GetWithCacheAsync(x => x.RuntimeServerConfigItems)).FirstOrDefault(x => x.Key == key);
         return item == null ? fallback : item.Value;
     }
 
     private void SetConfig(string key, string? value)
     {
-        var existing = _dbContext.RuntimeServerConfigItems.FirstOrDefault(x => x.Key == key);
+        var existing = dbContext.RuntimeServerConfigItems.FirstOrDefault(x => x.Key == key);
         if (existing != null)
         {
             existing.Value = value;
             updateCommon(existing);
-            _dbContext.SaveChanges();
+            dbContext.SaveChanges();
         }
         else
         {
@@ -95,15 +87,15 @@ public class RuntimeServerConfig
                 Value = value
             };
             updateCommon(item);
-            _dbContext.RuntimeServerConfigItems.Add(item);
-            _dbContext.SaveChanges();
+            dbContext.RuntimeServerConfigItems.Add(item);
+            dbContext.SaveChanges();
         }
 
-        _dbContext.InvalidateCacheFor<RuntimeServerConfigItem>();
+        dbContext.InvalidateCacheFor<RuntimeServerConfigItem>();
 
         void updateCommon(RuntimeServerConfigItem existing)
         {
-            var httpContext = _httpContextAccessor.HttpContext;
+            var httpContext = httpContextAccessor.HttpContext;
             existing.LastUpdatedAtUtc = DateTime.UtcNow;
             existing.LastUpdatedBy = httpContext?.User?.Identity?.Name ?? "unknown";
             existing.LastUpdatedSourceIP = TKRequestUtils.GetIPAddress(httpContext!);

@@ -8,7 +8,7 @@ using XuReverseProxy.Core.Systems.ScheduledTasks;
 
 namespace XuReverseProxy.Core.ScheduledTasks;
 
-public class ClientIdentityCleanupTask : IScheduledTask
+public class ClientIdentityCleanupTask(IOptionsMonitor<ServerConfig> serverConfig, ILogger<ClientIdentityCleanupTask> logger, IServiceProvider serviceProvider) : IScheduledTask
 {
 #if DEBUG
     /// <summary>
@@ -26,26 +26,15 @@ public class ClientIdentityCleanupTask : IScheduledTask
 
     public string Description { get; } = "Removes old client identities.";
 
-    private readonly IOptionsMonitor<ServerConfig> _serverConfig;
-    private readonly ILogger<ClientIdentityCleanupTask> _logger;
-    private readonly IServiceProvider _serviceProvider;
-
-    public ClientIdentityCleanupTask(IOptionsMonitor<ServerConfig> serverConfig, ILogger<ClientIdentityCleanupTask> logger, IServiceProvider serviceProvider)
-    {
-        _serverConfig = serverConfig;
-        _logger = logger;
-        _serviceProvider = serviceProvider;
-    }
-
     public async Task<ScheduledTaskResult> ExecuteAsync(ScheduledTaskStatus status, CancellationToken cancellationToken)
     {
         var result = new ScheduledTaskResult() { JobType = GetType(), StartedAtUtc = DateTime.UtcNow, Result = string.Empty };
-        _logger.LogInformation($"Starting ClientIdentityCleanupTask.");
+        logger.LogInformation($"Starting ClientIdentityCleanupTask.");
 
-        var config = _serverConfig.CurrentValue.Jobs.ClientIdentityCleanupJob;
+        var config = serverConfig.CurrentValue.Jobs.ClientIdentityCleanupJob;
         if (config?.Enabled != true) return result.SetResult("Job not enabled");
 
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var totalDeleted = 0;
 
@@ -60,7 +49,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted not accessed: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation("RemoveIfNotAccessedInMinutes.Deleted = {deletedCount}", deletedCount);
+                logger.LogInformation("RemoveIfNotAccessedInMinutes.Deleted = {deletedCount}", deletedCount);
         }
 
         if (config.RemoveIfNotAttemptedAccessedInMinutes > 0)
@@ -74,7 +63,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted not attempted accessed: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation("RemoveIfNotAttemptedAccessedInMinutes.Deleted = {deletedCount}", deletedCount);
+                logger.LogInformation("RemoveIfNotAttemptedAccessedInMinutes.Deleted = {deletedCount}", deletedCount);
         }
 
         if (config.RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes > 0)
@@ -88,7 +77,7 @@ public class ClientIdentityCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted never accessed and not attempted accessed in some time: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation("RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes.Deleted = {deletedCount}", deletedCount);
+                logger.LogInformation("RemoveIfNeverAccessedAndNotAttemptedAccessedInMinutes.Deleted = {deletedCount}", deletedCount);
         }
 
         status.Message = $"Done. Total deleted: {totalDeleted}.";

@@ -3,13 +3,8 @@ using XuReverseProxy.Models.Common;
 
 namespace XuReverseProxy.Controllers.API;
 
-public class NotificationRuleController : EFCrudControllerBase<NotificationRule>
+public class NotificationRuleController(ApplicationDbContext context) : EFCrudControllerBase<NotificationRule>(context, () => context.NotificationRules)
 {
-    public NotificationRuleController(ApplicationDbContext context)
-        : base(context, () => context.NotificationRules)
-    {
-    }
-
     protected override Task<GenericResultData<NotificationRule>> ValidateEntityAsync(NotificationRule entity)
     {
         _dbContext.Entry(entity).Property(x => x.LastNotifiedAtUtc).IsModified = false;

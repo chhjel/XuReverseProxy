@@ -27,15 +27,9 @@ namespace XuReverseProxy.Middleware;
 /// <summary>
 /// Handles core logic, deciding where to send each request, when to show auth challenges etc.
 /// </summary>
-public class ReverseProxyMiddleware
+public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
 {
     private const string HeaderName_ERR = "XURP-ERR";
-    private readonly RequestDelegate _nextMiddleware;
-
-    public ReverseProxyMiddleware(RequestDelegate nextMiddleware)
-    {
-        _nextMiddleware = nextMiddleware;
-    }
 
     public async Task Invoke(HttpContext context, IHttpForwarder forwarder,
         IOptionsMonitor<ServerConfig> serverConfig,
@@ -55,7 +49,7 @@ public class ReverseProxyMiddleware
         IHtmlTemplateService htmlTemplateService)
     {
         // Check for special cases first
-        if (await TryHandleInternalRequestAsync(context, _nextMiddleware))
+        if (await TryHandleInternalRequestAsync(context, nextMiddleware))
             return;
 
         var host = context.Request.Host.Host;
@@ -242,7 +236,7 @@ public class ReverseProxyMiddleware
                 }, adminUser);
         }
 
-        await _nextMiddleware(context);
+        await nextMiddleware(context);
     }
 
     private static async Task<(bool ipChanged, ApplicationUser? user)> CheckForChangedUserIP(HttpContext context, ApplicationDbContext applicationDbContext, TKIPData? ipData,

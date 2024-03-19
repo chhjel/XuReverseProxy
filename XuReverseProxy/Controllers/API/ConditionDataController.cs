@@ -6,14 +6,9 @@ using XuReverseProxy.Models.Common;
 
 namespace XuReverseProxy.Controllers.API;
 
-public class ConditionDataController : EFCrudControllerBase<ConditionData>
+public class ConditionDataController(ApplicationDbContext context) : EFCrudControllerBase<ConditionData>(context,
+        () => context.Conditions)
 {
-    public ConditionDataController(ApplicationDbContext context)
-        : base(context,
-            () => context.Conditions)
-    {
-    }
-
     protected override void OnDataModified()
     {
         base.OnDataModified();

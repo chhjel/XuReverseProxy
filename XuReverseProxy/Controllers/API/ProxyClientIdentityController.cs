@@ -8,16 +8,8 @@ using XuReverseProxy.Models.Common;
 
 namespace XuReverseProxy.Controllers.API;
 
-public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIdentity>
+public class ProxyClientIdentityController(ApplicationDbContext context, IProxyClientIdentityService proxyClientIdentityService) : EFCrudControllerBase<ProxyClientIdentity>(context, () => context.ProxyClientIdentities)
 {
-    private readonly IProxyClientIdentityService _proxyClientIdentityService;
-
-    public ProxyClientIdentityController(ApplicationDbContext context, IProxyClientIdentityService proxyClientIdentityService)
-        : base(context, () => context.ProxyClientIdentities)
-    {
-        _proxyClientIdentityService = proxyClientIdentityService;
-    }
-
     [HttpPost("paged")]
     public async Task<PaginatedResult<ProxyClientIdentity>> GetPagedAsync([FromBody] ProxyClientIdentitiesPagedRequestModel request)
     {
@@ -73,7 +65,7 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
 
         try
         {
-            await _proxyClientIdentityService.SetClientNoteAsync(request.ClientId, request.Note);
+            await proxyClientIdentityService.SetClientNoteAsync(request.ClientId, request.Note);
             return GenericResult.CreateSuccess();
         }
         catch (Exception ex)
@@ -91,8 +83,8 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
 
         try
         {
-            if (request.Blocked) await _proxyClientIdentityService.BlockIdentityAsync(request.ClientId, request.Message);
-            else await _proxyClientIdentityService.UnBlockIdentityAsync(request.ClientId);
+            if (request.Blocked) await proxyClientIdentityService.BlockIdentityAsync(request.ClientId, request.Message);
+            else await proxyClientIdentityService.UnBlockIdentityAsync(request.ClientId);
             return GenericResult.CreateSuccess();
         }
         catch (Exception ex)

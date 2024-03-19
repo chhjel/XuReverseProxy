@@ -10,25 +10,16 @@ public interface IIPLookupService
     Task<IPLookupResult?> LookupIPAsync(string? ip);
 }
 
-public class IPWhoIsIPLookupService : IIPLookupService
+public class IPWhoIsIPLookupService(IHttpClientFactory httpClientFactory, IMemoryCache cache) : IIPLookupService
 {
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IMemoryCache _cache;
-
-    public IPWhoIsIPLookupService(IHttpClientFactory httpClientFactory, IMemoryCache cache)
-    {
-        _httpClientFactory = httpClientFactory;
-        _cache = cache;
-    }
-
     public async Task<IPLookupResult?> LookupIPAsync(string? ip)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(ip) || ip == "localhost") return new();
-            if (_cache.TryGetValue<IPLookupResult>(ip, out var cached)) return cached;
+            if (cache.TryGetValue<IPLookupResult>(ip, out var cached)) return cached;
 
-            var httpClient = _httpClientFactory.CreateClient();
+            var httpClient = httpClientFactory.CreateClient();
             var url = $"http://ipwho.is/{ip}";
             var response = await httpClient.GetFromJsonAsync<IpWhoIsLookupResult>(url);
 
@@ -43,7 +34,7 @@ public class IPWhoIsIPLookupService : IIPLookupService
                 Longitude = response?.Longitude,
                 FlagUrl = response?.Flag?.Img?.ToString()
             };
-            _cache.Set(ip, result, TimeSpan.FromMinutes(5));
+            cache.Set(ip, result, TimeSpan.FromMinutes(5));
             return result;
         }
         catch (Exception)

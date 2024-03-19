@@ -17,52 +17,33 @@ namespace XuReverseProxy.Controllers.Pages;
 /// Controller used for manually approving the proxy auth challenge <see cref="ProxyChallengeTypeManualApproval"/>.
 /// </summary>
 [Route("proxyAuth/approve/[action]")]
-public class ManualApprovalProxyAuthPageController : Controller
+public class ManualApprovalProxyAuthPageController(IProxyClientIdentityService proxyClientIdentityService,
+    ApplicationDbContext dbContext, IIPLookupService ipLookupService, IOptionsMonitor<ServerConfig> serverConfig,
+    IProxyChallengeService proxyChallengeService, IIPBlockService iPBlockService, IConditionChecker conditionChecker) : Controller
 {
-    private readonly IProxyClientIdentityService _proxyClientIdentityService;
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IIPLookupService _ipLookupService;
-    private readonly IOptionsMonitor<ServerConfig> _serverConfig;
-    private readonly IProxyChallengeService _proxyChallengeService;
-    private readonly IIPBlockService _iPBlockService;
-    private readonly IConditionChecker _conditionChecker;
-
-    public ManualApprovalProxyAuthPageController(IProxyClientIdentityService proxyClientIdentityService,
-        ApplicationDbContext dbContext, IIPLookupService ipLookupService, IOptionsMonitor<ServerConfig> serverConfig,
-        IProxyChallengeService proxyChallengeService, IIPBlockService iPBlockService, IConditionChecker conditionChecker)
-    {
-        _proxyClientIdentityService = proxyClientIdentityService;
-        _dbContext = dbContext;
-        _ipLookupService = ipLookupService;
-        _serverConfig = serverConfig;
-        _proxyChallengeService = proxyChallengeService;
-        _iPBlockService = iPBlockService;
-        _conditionChecker = conditionChecker;
-    }
-
     [AuthorizeIfEnabled(nameof(RuntimeServerConfig.EnableManualApprovalPageAuthentication))]
     [HttpGet("/proxyAuth/approve/{clientIdentityId}/{proxyConfigId}/{authenticationId}/{solvedId}")]
     public async Task<IActionResult> Index([FromRoute] Guid clientIdentityId, [FromRoute] Guid proxyConfigId, [FromRoute] Guid authenticationId, [FromRoute] Guid solvedId)
     {
         ViewBag.PageTitle = "Manual Approval";
 
-        var client = await _proxyClientIdentityService.GetProxyClientIdentityAsync(clientIdentityId);
+        var client = await proxyClientIdentityService.GetProxyClientIdentityAsync(clientIdentityId);
         if (client == null) return NotFound();
 
-        var config = await _dbContext.ProxyConfigs
+        var config = await dbContext.ProxyConfigs
             .Include(x => x.ProxyConditions)
             .Include(x => x.Authentications)
             .FirstOrDefaultAsync(x => x.Id == proxyConfigId);
         if (config == null) return NotFound();
 
-        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId);
+        var auth = await dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId);
         if (auth == null) return NotFound();
 
-        var challengeDatas = _dbContext.ProxyClientIdentityDatas
+        var challengeDatas = dbContext.ProxyClientIdentityDatas
             .Where(x => x.IdentityId == clientIdentityId && x.AuthenticationId == authenticationId)
             .ToArray();
 
-        var isApproved = await _proxyChallengeService.IsChallengeSolvedAsync(client.Id, auth);
+        var isApproved = await proxyChallengeService.IsChallengeSolvedAsync(client.Id, auth);
         var requestedAtTicks = challengeDatas.FirstOrDefault(x => x.Key.EndsWith(ProxyChallengeTypeManualApproval.DataKeyRequestedAt))?.Value ?? "0";
         var requestedAt = new DateTime(long.Parse(requestedAtTicks), DateTimeKind.Utc);
         var easyCode = challengeDatas.FirstOrDefault(x => x.Key.EndsWith(ProxyChallengeTypeManualApproval.DataKeyEasyCode))?.Value;
@@ -81,10 +62,10 @@ public class ManualApprovalProxyAuthPageController : Controller
 #endif
         if (!string.IsNullOrWhiteSpace(client.IP) && !client.IP.Equals("localhost", StringComparison.Ordinal))
         {
-            ipLocation = await _ipLookupService.LookupIPAsync(client.IP);
+            ipLocation = await ipLookupService.LookupIPAsync(client.IP);
         }
 
-        var url = _serverConfig.CurrentValue.Domain.GetDomain(config.Subdomain);
+        var url = serverConfig.CurrentValue.Domain.GetDomain(config.Subdomain);
 
         var clientData = new ManualApprovalProxyAuthPageViewModel.ManualApprovalProxyAuthPageFrontendModel.ClientDataFrontendModel
         {
@@ -102,11 +83,11 @@ public class ManualApprovalProxyAuthPageController : Controller
         };
 
         var allChallengeData = new List<ManualApprovalProxyAuthPageViewModel.ManualApprovalProxyAuthPageFrontendModel.ChallengeDataFrontendModel>();
-        var conditionContext = _conditionChecker.CreateContext();
+        var conditionContext = conditionChecker.CreateContext();
         foreach (var challenge in config.Authentications)
         {
-            var conditionsData = await _proxyChallengeService.GetChallengeRequirementDataAsync(challenge.Id, conditionContext);
-            var solvedData = await _proxyChallengeService.GetSolvedChallengeSolvedDataAsync(client.Id, challenge.Id, challenge.SolvedId, challenge.SolvedDuration);
+            var conditionsData = await proxyChallengeService.GetChallengeRequirementDataAsync(challenge.Id, conditionContext);
+            var solvedData = await proxyChallengeService.GetSolvedChallengeSolvedDataAsync(client.Id, challenge.Id, challenge.SolvedId, challenge.SolvedDuration);
             allChallengeData.Add(new ManualApprovalProxyAuthPageViewModel.ManualApprovalProxyAuthPageFrontendModel.ChallengeDataFrontendModel
             {
                 Type = challenge.ChallengeTypeId,
@@ -123,7 +104,7 @@ public class ManualApprovalProxyAuthPageController : Controller
         var ipBlockType = BlockedIpDataType.None;
         if (!string.IsNullOrWhiteSpace(client.IP))
         {
-            var blockedIpData = await _iPBlockService.GetMatchingBlockedIpDataForAsync(client.IP, allowDisabled: false);
+            var blockedIpData = await iPBlockService.GetMatchingBlockedIpDataForAsync(client.IP, allowDisabled: false);
             clientIPIsBlocked = blockedIpData != null;
             clientIpBlockId = blockedIpData?.Id;
             canUnblockIP = !string.IsNullOrWhiteSpace(blockedIpData?.IP);
@@ -172,10 +153,10 @@ public class ManualApprovalProxyAuthPageController : Controller
         if (!ModelState.IsValid) return Json(false);
 
         // Ensure id's are valid
-        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
+        var auth = await dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
         if (auth == null) return Json(false);
 
-        var success = await _proxyClientIdentityService.SetClientNoteAsync(clientIdentityId, request.Note);
+        var success = await proxyClientIdentityService.SetClientNoteAsync(clientIdentityId, request.Note);
         return Json(success);
     }
     [GenerateFrontendModel]
@@ -185,7 +166,7 @@ public class ManualApprovalProxyAuthPageController : Controller
     [HttpPost("/proxyAuth/approve/{clientIdentityId}/{authenticationId}/{solvedId}/approve")]
     public async Task<IActionResult> Approve([FromRoute] Guid clientIdentityId, [FromRoute] Guid authenticationId, [FromRoute] Guid solvedId)
     {
-        var success = await _proxyChallengeService.SetChallengeSolvedAsync(clientIdentityId, authenticationId, solvedId);
+        var success = await proxyChallengeService.SetChallengeSolvedAsync(clientIdentityId, authenticationId, solvedId);
         return Json(success);
     }
 
@@ -193,7 +174,7 @@ public class ManualApprovalProxyAuthPageController : Controller
     [HttpPost("/proxyAuth/approve/{clientIdentityId}/{authenticationId}/{solvedId}/unapprove")]
     public async Task<IActionResult> Unapprove([FromRoute] Guid clientIdentityId, [FromRoute] Guid authenticationId, [FromRoute] Guid solvedId)
     {
-        var success = await _proxyChallengeService.SetChallengeUnsolvedAsync(clientIdentityId, authenticationId, solvedId);
+        var success = await proxyChallengeService.SetChallengeUnsolvedAsync(clientIdentityId, authenticationId, solvedId);
         return Json(success);
     }
 
@@ -205,14 +186,14 @@ public class ManualApprovalProxyAuthPageController : Controller
         if (!ModelState.IsValid) return Json(false);
 
         // Ensure id's are valid
-        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
+        var auth = await dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
         if (auth == null) return Json(false);
 
         var success = false;
         if (request.Blocked)
-            success = await _proxyClientIdentityService.BlockIdentityAsync(clientIdentityId, request.Message);
+            success = await proxyClientIdentityService.BlockIdentityAsync(clientIdentityId, request.Message);
         else
-            success = await _proxyClientIdentityService.UnBlockIdentityAsync(clientIdentityId);
+            success = await proxyClientIdentityService.UnBlockIdentityAsync(clientIdentityId);
 
         return Json(success);
     }
@@ -227,12 +208,12 @@ public class ManualApprovalProxyAuthPageController : Controller
         if (!ModelState.IsValid) return Json(false);
 
         // Ensure id's are valid
-        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
+        var auth = await dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
         if (auth == null) return Json(false);
-        var client = await _proxyClientIdentityService.GetProxyClientIdentityAsync(clientIdentityId);
+        var client = await proxyClientIdentityService.GetProxyClientIdentityAsync(clientIdentityId);
         if (client == null) return Json(false);
 
-        var data = await _iPBlockService.BlockIPAsync(request.IP, request.Note, clientIdentityId);
+        var data = await iPBlockService.BlockIPAsync(request.IP, request.Note, clientIdentityId);
 
         return Json(data.Id);
     }
@@ -247,12 +228,12 @@ public class ManualApprovalProxyAuthPageController : Controller
         if (!ModelState.IsValid) return Json(false);
 
         // Ensure id's are valid
-        var auth = await _dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
+        var auth = await dbContext.ProxyAuthenticationDatas.FirstOrDefaultAsync(x => x.Id == authenticationId && x.SolvedId == solvedId);
         if (auth == null) return Json(false);
-        var client = await _proxyClientIdentityService.GetProxyClientIdentityAsync(clientIdentityId);
+        var client = await proxyClientIdentityService.GetProxyClientIdentityAsync(clientIdentityId);
         if (client == null) return Json(false);
 
-        await _iPBlockService.RemoveIPBlockByIdAsync(request.IPBlockId);
+        await iPBlockService.RemoveIPBlockByIdAsync(request.IPBlockId);
 
         return Json(true);
     }

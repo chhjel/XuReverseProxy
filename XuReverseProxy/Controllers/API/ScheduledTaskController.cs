@@ -7,24 +7,15 @@ namespace XuReverseProxy.Controllers.API;
 
 [Authorize]
 [Route("/api/[controller]")]
-public class ScheduledTasksController : Controller
+public class ScheduledTasksController(SchedulerHostedService schedulerHostedService, IEnumerable<IScheduledTask> scheduledTasks) : Controller
 {
-    private readonly SchedulerHostedService _schedulerHostedService;
-    private readonly IEnumerable<IScheduledTask> _scheduledTasks;
-
-    public ScheduledTasksController(SchedulerHostedService schedulerHostedService, IEnumerable<IScheduledTask> scheduledTasks)
-    {
-        _schedulerHostedService = schedulerHostedService;
-        _scheduledTasks = scheduledTasks;
-    }
-
     [HttpGet]
     public List<ScheduledTaskViewModel> GetTasksDetails()
     {
         var models = new List<ScheduledTaskViewModel>();
-        var statuses = _schedulerHostedService.Statuses;
-        var results = _schedulerHostedService.LatestResults;
-        foreach (var task in _scheduledTasks)
+        var statuses = schedulerHostedService.Statuses;
+        var results = schedulerHostedService.LatestResults;
+        foreach (var task in scheduledTasks)
         {
             statuses.TryGetValue(task.GetType(), out var status);
             results.TryGetValue(task.GetType(), out var result);
