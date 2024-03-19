@@ -225,7 +225,7 @@ export default class ClientAuditLogComponent extends Vue {
           >Close</button-component
         >
       </template>
-      <IPDetailsComponent :ip="ipInDialog" :key="ipInDialog || 'empty'" />
+      <IPDetailsComponent :ip="ipInDialog" :key="ipInDialog || 'empty'" :relatedClientId="clientId" />
     </dialog-component>
   </div>
 </template>

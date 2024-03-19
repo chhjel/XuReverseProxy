@@ -237,7 +237,7 @@ export default class ProxyClientPage extends Vue {
       </div>
 
       <!-- IP Details -->
-      <IPDetailsComponent :ip="client.ip" :key="client.ip || 'empty'" />
+      <IPDetailsComponent :ip="client.ip" :key="client.ip || 'empty'" :relatedClientId="clientId" />
 
       <!-- Challenges in progress -->
       <div class="block overflow-x-scroll mb-4" v-if="manualApprovalsInProgress.length > 0">

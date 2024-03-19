@@ -11,4 +11,6 @@ export interface ProxyClientIdentitiesPagedRequestModel
 	sortBy: ProxyClientsSortBy;
 	sortDescending: boolean;
 	filter: string;
+	ip: string;
+	notId: string;
 }

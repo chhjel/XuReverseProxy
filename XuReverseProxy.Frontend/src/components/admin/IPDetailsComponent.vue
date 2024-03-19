@@ -5,12 +5,14 @@ import MapComponent from "@components/common/MapComponent.vue";
 import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
 import { IPLookupResult } from "@generated/Models/Core/IPLookupResult";
-import { GenericResult } from "@generated/Models/Web/GenericResult";
 import IPBlockService from "@services/IPBlockService";
 import IPLookupService from "@services/IPLookupService";
 import { LoadStatus } from "@services/ServiceBase";
 import { Options } from "vue-class-component";
 import { Prop, Vue } from "vue-property-decorator";
+import ClientsListComponent from "./ClientsListComponent.vue";
+import { ProxyClientIdentitiesPagedRequestModel } from "@generated/Models/Web/ProxyClientIdentitiesPagedRequestModel";
+import { ProxyClientsSortBy } from "@generated/Enums/Web/ProxyClientsSortBy";
 
 @Options({
   components: {
@@ -19,6 +21,7 @@ import { Prop, Vue } from "vue-property-decorator";
     MapComponent,
     GlobeComponent,
     CheckboxComponent,
+    ClientsListComponent
   },
 })
 export default class IPDetailsComponent extends Vue {
@@ -37,6 +40,8 @@ export default class IPDetailsComponent extends Vue {
   canUnblockIp: boolean = false;
   statuses: Array<LoadStatus> = [this.ipLookupService.status, this.ipBlockService.status];
 
+  clientsListComponentFilter: ProxyClientIdentitiesPagedRequestModel | null = null;
+
   async mounted() {
     this.ipLookupService.LookupIPAsync(this.ip).then((x) => {
       this.ipLookupData = x;
@@ -48,6 +53,16 @@ export default class IPDetailsComponent extends Vue {
       this.blockedIpNote = x?.note;
       this.canUnblockIp = x != null && x.ip != null && x.ip.length > 0;
     });
+
+    this.clientsListComponentFilter = {
+      pageIndex: 0,
+      pageSize: 10,
+      filter: "",
+      sortBy: ProxyClientsSortBy.Created,
+      sortDescending: true,
+      ip: this.ip,
+      notId: this.relatedClientId
+    };
   }
 
   async toggleIPBlocked(): Promise<any> {
@@ -194,6 +209,12 @@ export default class IPDetailsComponent extends Vue {
           v-if="ipLookupData?.success == true && ipLookupData.latitude && ipLookupData.longitude"
         >
           <globe-component class="globe" :lat="ipLookupData.latitude" :lon="ipLookupData.longitude" :ping="true" />
+        </div>
+
+        <!-- CLIENTS ON SAME IP -->
+        <div class="block mb-4" v-if="clientsListComponentFilter">
+          <div class="block-title">Other clients with same IP</div>
+          <clients-list-component :filter="clientsListComponentFilter" />
         </div>
       </div>
     </div>
