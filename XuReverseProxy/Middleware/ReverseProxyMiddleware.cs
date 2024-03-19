@@ -12,7 +12,6 @@ using System.Net.Security;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
-using System.Web;
 using XuReverseProxy.Core.Extensions;
 using XuReverseProxy.Core.Models.Config;
 using XuReverseProxy.Core.Models.DbEntity;
@@ -119,7 +118,7 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         // Check blocked
         if (clientIdentity?.Blocked == true)
         {
-            var clientBlockedTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ProxyNotFound);
+            var clientBlockedTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ClientBlocked);
             var html = (await placeholderResolver.ResolvePlaceholdersAsync(clientBlockedTemplate.Html, transformer: null, placeholders: null, clientIdentity))
                 ?.Replace("{{blocked_message}}", clientIdentity.BlockedMessage, StringComparison.OrdinalIgnoreCase);
             await SetResponseAsync(context, html, clientBlockedTemplate.ResponseCode);
@@ -130,11 +129,9 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         var conditionContext = conditionChecker.CreateContext();
         if (!conditionChecker.ConditionsPassed(proxyConfig.ProxyConditions, conditionContext))
         {
-            // todo: make a dedicated page
-            var message = HttpUtility.HtmlEncode(proxyConfig.ConditionsNotMetMessage);
-            var html = $"<!DOCTYPE html>\n<html>\n<head>\n<title>{HttpUtility.HtmlEncode(proxyConfig.ChallengeTitle)}</title>\n</head>\n<body>\n{message}\n</body>\n</html>\n";
-            html = (await placeholderResolver.ResolvePlaceholdersAsync(html, transformer: null, placeholders: null, clientIdentity));
-            await SetResponseAsync(context, html, statusCode: 200);
+            var conditionsNotMetTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ProxyConditionsNotMet);
+            var html = (await placeholderResolver.ResolvePlaceholdersAsync(conditionsNotMetTemplate.Html, transformer: null, placeholders: null, clientIdentity));
+            await SetResponseAsync(context, html, conditionsNotMetTemplate.ResponseCode);
             return;
         }
 

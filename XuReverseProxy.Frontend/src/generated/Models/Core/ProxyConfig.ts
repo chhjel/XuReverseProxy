@@ -22,7 +22,6 @@ export interface ProxyConfig
 	staticHTML: string;
 	rewriteDownstreamOrigin: boolean;
 	stripUpstreamSourceTraces: boolean;
-	conditionsNotMetMessage: string;
 	showConditionsNotMet: boolean;
 	authentications: ProxyAuthenticationData[];
 	proxyConditions: ConditionData[];

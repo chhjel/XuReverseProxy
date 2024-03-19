@@ -25,7 +25,6 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
     public bool RewriteDownstreamOrigin { get; set; }
     public bool StripUpstreamSourceTraces { get; set; }
 
-    public string? ConditionsNotMetMessage { get; set; }
     public bool ShowConditionsNotMet { get; set; }
 
     public ICollection<ProxyAuthenticationData> Authentications { get; } = new List<ProxyAuthenticationData>();
