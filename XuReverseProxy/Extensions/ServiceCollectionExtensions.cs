@@ -31,6 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IIPBlockService, IPBlockService>();
         services.AddSingleton<IIPLookupService, IPWhoIsIPLookupService>();
         services.AddScoped<IPlaceholderResolver, PlaceholderResolver>();
+        services.AddScoped<IHtmlTemplateService, HtmlTemplateService>();
 
         // Scheduled tasks
         services.AddSingleton<SchedulerHostedService>();

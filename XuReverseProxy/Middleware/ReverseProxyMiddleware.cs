@@ -51,7 +51,8 @@ public class ReverseProxyMiddleware
         SignInManager<ApplicationUser> signInManager,
         INotificationService notificationService,
         IPlaceholderResolver placeholderResolver,
-        IConditionChecker conditionChecker)
+        IConditionChecker conditionChecker,
+        IHtmlTemplateService htmlTemplateService)
     {
         // Check for special cases first
         if (await TryHandleInternalRequestAsync(context, _nextMiddleware))
@@ -67,8 +68,9 @@ public class ReverseProxyMiddleware
         var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
         if (ipData?.IP != null && await ipBlockService.IsIPBlockedAsync(ipData.IP))
         {
-            var html = await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.IPBlockedHtml);
-            await SetResponseAsync(context, html, runtimeServerConfig.IPBlockedResponseCode);
+            var ipBlockedTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.IPBlocked);
+            var html = await placeholderResolver.ResolvePlaceholdersAsync(ipBlockedTemplate.Html);
+            await SetResponseAsync(context, html, ipBlockedTemplate.ResponseCode);
             return;
         }
 
@@ -81,8 +83,9 @@ public class ReverseProxyMiddleware
         // Check killswitch
         else if (!runtimeServerConfig.EnableForwarding)
         {
-            var html = await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.NotFoundHtml);
-            await SetResponseAsync(context, html, StatusCodes.Status404NotFound);
+            var notFoundTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ProxyNotFound);
+            var html = await placeholderResolver.ResolvePlaceholdersAsync(notFoundTemplate.Html);
+            await SetResponseAsync(context, html, notFoundTemplate.ResponseCode);
             return;
         }
 
@@ -95,8 +98,9 @@ public class ReverseProxyMiddleware
             );
         if (proxyConfig == null)
         {
-            var html = await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.NotFoundHtml);
-            await SetResponseAsync(context, html, StatusCodes.Status404NotFound);
+            var notFoundTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ProxyNotFound);
+            var html = await placeholderResolver.ResolvePlaceholdersAsync(notFoundTemplate.Html);
+            await SetResponseAsync(context, html, notFoundTemplate.ResponseCode);
             return;
         }
 
@@ -111,8 +115,9 @@ public class ReverseProxyMiddleware
             clientIdentity = await proxyClientIdentityService.GetCurrentProxyClientIdentityAsync(context);
             if (clientIdentity == null)
             {
-                var html = await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.NotFoundHtml);
-                await SetResponseAsync(context, html, StatusCodes.Status404NotFound);
+                var notFoundTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ProxyNotFound);
+                var html = await placeholderResolver.ResolvePlaceholdersAsync(notFoundTemplate.Html);
+                await SetResponseAsync(context, html, notFoundTemplate.ResponseCode);
                 return;
             }
         }
@@ -120,9 +125,10 @@ public class ReverseProxyMiddleware
         // Check blocked
         if (clientIdentity?.Blocked == true)
         {
-            var html = (await placeholderResolver.ResolvePlaceholdersAsync(runtimeServerConfig.ClientBlockedHtml, transformer: null, placeholders: null, clientIdentity))
+            var clientBlockedTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ProxyNotFound);
+            var html = (await placeholderResolver.ResolvePlaceholdersAsync(clientBlockedTemplate.Html, transformer: null, placeholders: null, clientIdentity))
                 ?.Replace("{{blocked_message}}", clientIdentity.BlockedMessage, StringComparison.OrdinalIgnoreCase);
-            await SetResponseAsync(context, html, runtimeServerConfig.ClientBlockedResponseCode);
+            await SetResponseAsync(context, html, clientBlockedTemplate.ResponseCode);
             return;
         }
 

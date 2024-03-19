@@ -1,24 +1,39 @@
-﻿using XuReverseProxy.Core.Attributes;
+﻿using XuReverseProxy.Core.Abstractions;
+using XuReverseProxy.Core.Attributes;
 
 namespace XuReverseProxy.Core.Models.DbEntity;
 
 [GenerateFrontendModel]
-public class HtmlTemplate
+public class HtmlTemplate : IHasId
 {
     public Guid Id { get; set; }
     public HtmlTemplateType Type { get; set; }
     public int ResponseCode { get; set; }
-    public string? Template { get; set; }
+    public string? Html { get; set; }
 
-    public static HtmlTemplate? CreateInitialValue(HtmlTemplateType type)
+    public static readonly HtmlTemplate FallbackHtmlTemplate = new()
+    {
+        Html = $"<!DOCTYPE html>\n<html>\n<head>\n<title>XuReverseProxy</title>\n</head>\n<body>\n</body>\n</html>\n",
+        ResponseCode = 404
+    };
+
+    public static Dictionary<HtmlTemplateType, HtmlTemplate> HtmlTemplateDefaults { get; } = new()
+    {
+        { HtmlTemplateType.ProxyNotFound, CreateInitialValue(HtmlTemplateType.ProxyNotFound) },
+        { HtmlTemplateType.ClientBlocked, CreateInitialValue(HtmlTemplateType.ClientBlocked) },
+        { HtmlTemplateType.IPBlocked, CreateInitialValue(HtmlTemplateType.IPBlocked) },
+        { HtmlTemplateType.ProxyConditionsNotMet, CreateInitialValue(HtmlTemplateType.ProxyConditionsNotMet) }
+    };
+
+    private static HtmlTemplate CreateInitialValue(HtmlTemplateType type)
     {
         if (type == HtmlTemplateType.ProxyNotFound)
         {
             return new()
             {
                 Type = type,
-                Template = "<!DOCTYPE html>\n<html>\n<head>\n<title>404 | XuReverseProxy</title>v</head>\n<body>\n404 / XuReverseProxy\n</body>\n</html>\n",
-                ResponseCode = 404,
+                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>404 | XuReverseProxy</title>v</head>\n<body>\n404 / XuReverseProxy\n</body>\n</html>\n",
+                ResponseCode = 404
             };
         }
         else if (type == HtmlTemplateType.ClientBlocked)
@@ -26,8 +41,8 @@ public class HtmlTemplate
             return new()
             {
                 Type = type,
-                Template = "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\n{{blocked_message}}\n</body>\n</html>\n",
-                ResponseCode = 401,
+                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\n{{blocked_message}}\n</body>\n</html>\n",
+                ResponseCode = 401
             };
         }
         else if (type == HtmlTemplateType.IPBlocked)
@@ -35,16 +50,26 @@ public class HtmlTemplate
             return new()
             {
                 Type = type,
-                Template = "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\nNope</body>\n</html>\n",
-                ResponseCode = 401,
+                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\nNope</body>\n</html>\n",
+                ResponseCode = 401
             };
         }
         else if (type == HtmlTemplateType.ProxyConditionsNotMet)
         {
-            // No defaults yet
-            return null;
+            return new()
+            {
+                Type = type,
+                Html = "<!DOCTYPE html>\n<html>\n<head>\n<title>404 | XuReverseProxy</title>v</head>\n<body>\n404 / XuReverseProxy\n</body>\n</html>\n",
+                ResponseCode = 404
+            };
         }
-        return null;
+
+        return new()
+        {
+            Type = type,
+            Html = $"<!DOCTYPE html>\n<html>\n<head>\n<title>{type} | XuReverseProxy</title>\n</head>\n<body>\n${type}</body>\n</html>\n",
+            ResponseCode = 404
+        };
     }
 }
 
