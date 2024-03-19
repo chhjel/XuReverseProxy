@@ -45,9 +45,12 @@ export default class ManualApprovalProxyAuthPage extends Vue {
     this.blockedIpId = this.options.clientIPBlockId;
     this.clientNote = this.options.client.note || "";
 
-    setTimeout(() => {
-      this.hideGlobe = true;
-    }, 4000);
+    this.hideGlobe = !this.options.client.ipLocation.latitude && !this.options.client.ipLocation.longitude;
+    if (!this.hideGlobe) {
+      setTimeout(() => {
+          this.hideGlobe = true;
+        }, 4000);
+    }
   }
 
   get isLoading(): boolean {
@@ -224,11 +227,7 @@ export default class ManualApprovalProxyAuthPage extends Vue {
 <template>
   <div class="manual-approval-page">
     <!-- GLOBE -->
-    <div
-      class="globe"
-      v-if="!hideGlobe && options.client.ipLocation.latitude && options.client.ipLocation.longitude"
-      @click="hideGlobe = true"
-    >
+    <div class="globe" v-if="!hideGlobe" @click="hideGlobe = true">
       <globe-component
         :lat="options.client.ipLocation.latitude"
         :lon="options.client.ipLocation.longitude"
