@@ -95,7 +95,7 @@ public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
         catch (Exception ex)
         {
             var logger = context.GetService<ILogger<ProxyChallengeTypeManualApproval>>();
-            logger.LogError(ex, "Failed to send manual approval webhook to '{url}'", url);
+            logger.LogError(ex, $"Failed to send manual approval webhook to '{url}'", url);
             var error =
 #if DEBUG
                 $"Something failed while attempting to request access. {ex.Message}";

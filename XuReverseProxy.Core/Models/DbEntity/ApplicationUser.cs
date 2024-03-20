@@ -7,7 +7,7 @@ public class ApplicationUser : IdentityUser, IProvidesPlaceholders
 {
     public string? LastConnectedFromIP { get; set; }
     public string? TOTPSecretKey { get; set; }
-    public ICollection<ApplicationUserRecoveryCode> RecoveryCodes { get; } = new List<ApplicationUserRecoveryCode>();
+    public ICollection<ApplicationUserRecoveryCode> RecoveryCodes { get; } = [];
 
     public bool TOTPEnabled => !string.IsNullOrWhiteSpace(TOTPSecretKey);
 

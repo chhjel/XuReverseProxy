@@ -17,6 +17,7 @@ import BlockedIPPage from "@pages/admin/BlockedIPPage.vue";
 import GlobalVariablesPage from "@pages/admin/GlobalVariablesPage.vue";
 import { nextTick } from "vue";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
+import HtmlTemplatesPage from "@pages/admin/HtmlTemplatesPage.vue";
 
 const routes: Readonly<RouteRecordRaw[]> = [
   { name: "/", path: "/", meta: { title: "" }, component: AdminOverviewPage },
@@ -73,6 +74,12 @@ const routes: Readonly<RouteRecordRaw[]> = [
     path: "/blocked-ip/:blockedId",
     meta: { title: "Blocked IP" },
     component: BlockedIPPage,
+  },
+  {
+    name: "responses",
+    path: "/responses",
+    meta: { title: "Responses" },
+    component: HtmlTemplatesPage,
   },
   {
     name: "jobs",

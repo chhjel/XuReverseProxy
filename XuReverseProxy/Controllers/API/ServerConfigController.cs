@@ -8,13 +8,8 @@ using XuReverseProxy.Models.Common;
 
 namespace XuReverseProxy.Controllers.API;
 
-public class ServerConfigController : EFCrudControllerBase<RuntimeServerConfigItem>
+public class ServerConfigController(ApplicationDbContext context) : EFCrudControllerBase<RuntimeServerConfigItem>(context, () => context.RuntimeServerConfigItems)
 {
-    public ServerConfigController(ApplicationDbContext context)
-        : base(context, () => context.RuntimeServerConfigItems)
-    {
-    }
-
     [HttpPost("configValue")]
     public async Task<string?> GetConfigValue([FromBody] string key)
     {

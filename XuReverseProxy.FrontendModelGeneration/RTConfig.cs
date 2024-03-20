@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Reinforced.Typings;
 using Reinforced.Typings.Ast.TypeNames;
 using Reinforced.Typings.Fluent;
 using System.Reflection;
@@ -63,6 +64,12 @@ public static class RTConfig
         config.WithAllMethods(m => m.Ignore());
         config.WithAllProperties((c) =>
         {
+            if (c.Member.IsStatic())
+            {
+                c.Ignore();
+                return;
+            }
+
             if (c.Member.GetCustomAttributes().FirstOrDefault(x => x is GenerateFrontendModelPropertyAttribute) is GenerateFrontendModelPropertyAttribute attr)
             {
                 if (attr.ForcedNullable)

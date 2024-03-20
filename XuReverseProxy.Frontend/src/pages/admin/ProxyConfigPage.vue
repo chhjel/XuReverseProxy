@@ -9,14 +9,12 @@ import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendM
 import { ProxyConfig } from "@generated/Models/Core/ProxyConfig";
 import StringUtils from "@utils/StringUtils";
 import ProxyAuthenticationDataService from "@services/ProxyAuthenticationDataService";
-import ConditionDataService from "@services/ConditionDataService";
 import { ProxyAuthenticationData } from "@generated/Models/Core/ProxyAuthenticationData";
 import DialogComponent from "@components/common/DialogComponent.vue";
 import ProxyConfigEditor from "@components/admin/proxyConfig/ProxyConfigEditor.vue";
 import ProxyAuthenticationDataEditor from "@components/admin/proxyConfig/ProxyAuthenticationDataEditor.vue";
 import { ConditionData } from "@generated/Models/Core/ConditionData";
 import { createProxyAuthenticationSummary } from "@utils/ProxyAuthenticationDataUtils";
-import { createConditionDataSummary } from "@utils/ConditionDataUtils";
 import IdUtils from "@utils/IdUtils";
 import { EmptyGuid, ProxyAuthChallengeTypeOptions } from "@utils/Constants";
 import CheckboxComponent from "@components/inputs/CheckboxComponent.vue";
@@ -24,6 +22,10 @@ import draggable from "vuedraggable";
 import { ProxyAuthenticationDataOrderData } from "@generated/Models/Web/ProxyAuthenticationDataOrderData";
 import LoaderComponent from "@components/common/LoaderComponent.vue";
 import ConditionDatasEditor from "@components/admin/proxyConfig/ConditionDatasEditor.vue";
+import HtmlTemplateEditorComponent from "@components/admin/templates/HtmlTemplateEditorComponent.vue";
+import HtmlTemplatesService from "@services/HtmlTemplatesService";
+import { HtmlTemplate } from "@generated/Models/Core/HtmlTemplate";
+import { HtmlTemplateType } from "@generated/Enums/Core/HtmlTemplateType";
 
 @Options({
   components: {
@@ -37,6 +39,7 @@ import ConditionDatasEditor from "@components/admin/proxyConfig/ConditionDatasEd
     draggable,
     LoaderComponent,
     ConditionDatasEditor,
+    HtmlTemplateEditorComponent,
   },
 })
 export default class ProxyConfigPage extends Vue {
@@ -45,6 +48,7 @@ export default class ProxyConfigPage extends Vue {
 
   proxyConfigService: ProxyConfigService = new ProxyConfigService();
   proxyAuthService: ProxyAuthenticationDataService = new ProxyAuthenticationDataService();
+  templatesService: HtmlTemplatesService = new HtmlTemplatesService();
 
   proxyConfig: ProxyConfig | null = null;
   notFound: boolean = false;
@@ -52,9 +56,21 @@ export default class ProxyConfigPage extends Vue {
   authInDialog: ProxyAuthenticationData | null = null;
   emptyGuid: string = EmptyGuid;
   allowInitialLoader: boolean | null = null;
+  templateOverrides: Array<HtmlTemplate> = [];
+  allowedTemplateOverrideTypes: Array<HtmlTemplateType> = [HtmlTemplateType.ClientBlocked, HtmlTemplateType.ProxyConditionsNotMet];
 
   async mounted() {
     await this.loadConfig();
+    await this.loadTemplates();
+  }
+
+  async loadTemplates() {
+    const result = await this.templatesService.GetAllAsync();
+    if (!result.success) {
+      console.error(result.message);
+    }
+
+    this.templateOverrides = (result.data || []).filter(x => x.proxyConfigId == this.proxyConfig.id);
   }
 
   async loadConfig() {
@@ -153,6 +169,29 @@ export default class ProxyConfigPage extends Vue {
       conditions: [],
     };
     this.showAuthDialog(auth);
+  }
+
+  async onAddResponseOverrideClicked(): Promise<any> {
+    const template: HtmlTemplate = {
+      id: EmptyGuid,
+      html: '',
+      proxyConfigId: this.proxyConfig.id,
+      responseCode: 200,
+      type: this.allowedTemplateOverrideTypes[0]
+    };
+    const result = await this.templatesService.CreateOrUpdateAsync(template);
+    if (result.success) {
+      this.templateOverrides.push(result.data);
+    }
+  }
+
+  onResponseOverrideUpdated(template: HtmlTemplate): void {
+    const index = this.templateOverrides.findIndex(x => x.id == template.id);
+    if (index != -1) this.templateOverrides[index] = template;
+  }
+
+  async onResponseOverrideRemoved(template: HtmlTemplate): Promise<any> {
+    this.templateOverrides = this.templateOverrides.filter(x => x.id != template.id);
   }
 
   get isLoading(): boolean {
@@ -291,6 +330,20 @@ export default class ProxyConfigPage extends Vue {
         </draggable>
         <button-component @click="onAddAuthClicked" small secondary class="add-auth-button ml-0" icon="add"
           >Add authentication</button-component
+        >
+      </div>
+      
+      <!-- Html template overrides -->
+      <div class="block mt-4">
+        <div class="block-title">HTML template overrides</div>
+        <div v-for="template in templateOverrides" :key="template.id" class="template block block--dark mt-2">
+          <HtmlTemplateEditorComponent :value="template" :disabled="isLoading" :allowRemove="true"
+            :allowedTypes="allowedTemplateOverrideTypes"
+            @update:value="onResponseOverrideUpdated(template)"
+            @onRemoved="onResponseOverrideRemoved" />
+        </div>
+        <button-component @click="onAddResponseOverrideClicked" small secondary class="add-template-override-button ml-0" icon="add"
+          >Add new response override</button-component
         >
       </div>
 

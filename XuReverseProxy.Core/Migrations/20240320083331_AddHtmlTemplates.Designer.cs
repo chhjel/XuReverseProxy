@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using XuReverseProxy.Core.Models.DbEntity;
@@ -11,9 +12,11 @@ using XuReverseProxy.Core.Models.DbEntity;
 namespace XuReverseProxy.Core.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240320083331_AddHtmlTemplates")]
+    partial class AddHtmlTemplates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -473,9 +476,6 @@ namespace XuReverseProxy.Core.Migrations
                     b.Property<string>("Html")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("ProxyConfigId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("ResponseCode")
                         .HasColumnType("integer");
 
@@ -483,8 +483,6 @@ namespace XuReverseProxy.Core.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProxyConfigId");
 
                     b.HasIndex("Type");
 
@@ -831,14 +829,6 @@ namespace XuReverseProxy.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("XuReverseProxy.Core.Models.DbEntity.HtmlTemplate", b =>
-                {
-                    b.HasOne("XuReverseProxy.Core.Models.DbEntity.ProxyConfig", null)
-                        .WithMany("HtmlTemplateOverrides")
-                        .HasForeignKey("ProxyConfigId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
             modelBuilder.Entity("XuReverseProxy.Core.Models.DbEntity.ProxyAuthenticationData", b =>
                 {
                     b.HasOne("XuReverseProxy.Core.Models.DbEntity.ProxyConfig", "ProxyConfig")
@@ -887,8 +877,6 @@ namespace XuReverseProxy.Core.Migrations
             modelBuilder.Entity("XuReverseProxy.Core.Models.DbEntity.ProxyConfig", b =>
                 {
                     b.Navigation("Authentications");
-
-                    b.Navigation("HtmlTemplateOverrides");
 
                     b.Navigation("ProxyConditions");
                 });

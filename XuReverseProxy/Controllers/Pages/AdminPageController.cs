@@ -8,14 +8,9 @@ namespace XuReverseProxy.Controllers.Pages;
 
 [Authorize]
 [Route("[action]")]
-public class AdminPageController : Controller
+public class AdminPageController(IOptionsMonitor<ServerConfig> serverConfig) : Controller
 {
-    private readonly ServerConfig _serverConfig;
-
-    public AdminPageController(IOptionsMonitor<ServerConfig> serverConfig)
-    {
-        _serverConfig = serverConfig.CurrentValue;
-    }
+    private readonly ServerConfig _serverConfig = serverConfig.CurrentValue;
 
     [HttpGet("/")]
     public IActionResult Index()

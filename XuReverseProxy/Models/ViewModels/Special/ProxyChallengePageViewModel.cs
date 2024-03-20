@@ -9,8 +9,8 @@ public class ProxyChallengePageFrontendModel
     public required string Title { get; set; }
     public required string? Description { get; set; }
 
-    public List<AuthWithUnfulfilledConditions> AuthsWithUnfulfilledConditions { get; set; } = new();
-    public List<ChallengeModel> ChallengeModels { get; set; } = new();
+    public List<AuthWithUnfulfilledConditions> AuthsWithUnfulfilledConditions { get; set; } = [];
+    public List<ChallengeModel> ChallengeModels { get; set; } = [];
 
     [GenerateFrontendModel]
     public readonly record struct AuthWithUnfulfilledConditions(string TypeId, List<AuthCondition> Conditions);

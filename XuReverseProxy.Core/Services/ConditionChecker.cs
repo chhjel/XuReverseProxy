@@ -20,18 +20,11 @@ public class ConditionContext
     public HttpContext? HttpContext { get; set; }
 }
 
-public class ConditionChecker : IConditionChecker
+public class ConditionChecker(IHttpContextAccessor contextAccessor) : IConditionChecker
 {
-    private readonly IHttpContextAccessor _contextAccessor;
-
-    public ConditionChecker(IHttpContextAccessor contextAccessor)
-    {
-        _contextAccessor = contextAccessor;
-    }
-
     public ConditionContext CreateContext()
     {
-        var httpContext = _contextAccessor.HttpContext;
+        var httpContext = contextAccessor.HttpContext;
         return new()
         {
             HttpContext = httpContext,

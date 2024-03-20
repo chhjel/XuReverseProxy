@@ -4,21 +4,12 @@ using XuReverseProxy.Core.Systems.ScheduledTasks.Cron;
 
 namespace XuReverseProxy.Core.Systems.ScheduledTasks;
 
-public class SchedulerHostedService : HostedService
+public class SchedulerHostedService(IEnumerable<IScheduledTask> scheduledTasks, ILogger<SchedulerHostedService> logger) : HostedService
 {
     public event EventHandler<UnobservedTaskExceptionEventArgs>? UnobservedTaskException;
-    private readonly List<SchedulerTaskWrapper> _scheduledTasks = new();
-    private readonly IEnumerable<IScheduledTask> _tasks;
-    private readonly ILogger<SchedulerHostedService> _logger;
-
+    private readonly List<SchedulerTaskWrapper> _scheduledTasks = [];
     public readonly ConcurrentDictionary<Type, ScheduledTaskStatus> Statuses = new();
     public readonly ConcurrentDictionary<Type, ScheduledTaskResult> LatestResults = new();
-
-    public SchedulerHostedService(IEnumerable<IScheduledTask> scheduledTasks, ILogger<SchedulerHostedService> logger)
-    {
-        _tasks = scheduledTasks;
-        _logger = logger;
-    }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -35,7 +26,7 @@ public class SchedulerHostedService : HostedService
     {
         DateTime referenceTime = DateTime.UtcNow;
 
-        foreach (IScheduledTask scheduledTask in _tasks)
+        foreach (IScheduledTask scheduledTask in scheduledTasks)
         {
             var taskType = scheduledTask.GetType();
             if (!Statuses.ContainsKey(taskType)) Statuses[taskType] = new() { JobType = taskType, Message = "Not started yet." };
@@ -89,7 +80,7 @@ public class SchedulerHostedService : HostedService
                         };
 
                         var taskName = task.Task.GetType().Name;
-                        _logger.LogError(ex, "Task '{taskName}' threw an exception.", taskName);
+                        logger.LogError(ex, "Task '{taskName}' threw an exception.", taskName);
                         UnobservedTaskExceptionEventArgs args = new(ex as AggregateException ?? new AggregateException(ex));
 
                         UnobservedTaskException?.Invoke(this, args);
@@ -109,19 +100,12 @@ public class SchedulerHostedService : HostedService
         }
     }
 
-    private class SchedulerTaskWrapper
+    private class SchedulerTaskWrapper(CrontabSchedule schedule, IScheduledTask task, DateTime nextRunTime)
     {
-        public CrontabSchedule Schedule { get; set; }
-        public IScheduledTask Task { get; set; }
-        public DateTime NextRunTime { get; set; }
+        public CrontabSchedule Schedule { get; set; } = schedule;
+        public IScheduledTask Task { get; set; } = task;
+        public DateTime NextRunTime { get; set; } = nextRunTime;
         public DateTime LastRunTime { get; set; }
-
-        public SchedulerTaskWrapper(CrontabSchedule schedule, IScheduledTask task, DateTime nextRunTime)
-        {
-            Schedule = schedule;
-            Task = task;
-            NextRunTime = nextRunTime;
-        }
 
         public void Increment()
         {

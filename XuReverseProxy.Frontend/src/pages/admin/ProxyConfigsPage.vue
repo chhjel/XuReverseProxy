@@ -55,11 +55,11 @@ export default class ProxyConfigsPage extends Vue {
       staticHTML: "",
       showCompletedChallenges: true,
       showChallengesWithUnmetRequirements: true,
-      conditionsNotMetMessage: '',
       showConditionsNotMet: true,
       proxyConditions: [],
       rewriteDownstreamOrigin: true,
-      stripUpstreamSourceTraces: true
+      stripUpstreamSourceTraces: true,
+      htmlTemplateOverrides: []
     };
     const result = await this.proxyConfigService.CreateOrUpdateAsync(config);
     if (!result.success) {

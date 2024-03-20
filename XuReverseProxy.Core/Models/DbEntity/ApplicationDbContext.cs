@@ -9,7 +9,7 @@ namespace XuReverseProxy.Core.Models.DbEntity;
 // dotnet ef migrations add <migration_name> --project XuReverseProxy.Core -s XuReverseProxy --verbose
 // dotnet ef migrations remove --project XuReverseProxy.Core -s XuReverseProxy --verbose
 
-public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IConfiguration configuration, IMemoryCache memoryCache) : IdentityDbContext(options), IDataProtectionKeyContext
 {
     public DbSet<ProxyConfig> ProxyConfigs { get; set; }
     public DbSet<ConditionData> ConditionDatas { get; set; }
@@ -25,20 +25,13 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     public DbSet<ClientAuditLogEntry> ClientAuditLogEntries { get; set; }
     public DbSet<NotificationRule> NotificationRules { get; set; }
     public DbSet<ConditionData> Conditions { get; set; }
+    public DbSet<HtmlTemplate> HtmlTemplates { get; set; }
 
     // IDataProtectionKeyContext
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
-    protected readonly IConfiguration Configuration;
-    private readonly IMemoryCache _memoryCache;
-    private static readonly IMemoryCache _clientMemoryCache = new MemoryCache(new MemoryCacheOptions() { SizeLimit = 10000 });
-
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IConfiguration configuration, IMemoryCache memoryCache)
-        : base(options)
-    {
-        Configuration = configuration;
-        _memoryCache = memoryCache;
-    }
+    protected readonly IConfiguration Configuration = configuration;
+    private static readonly MemoryCache _clientMemoryCache = new(new MemoryCacheOptions() { SizeLimit = 10000 });
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -83,6 +76,12 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
             .WithOne()
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<ProxyConfig>()
+            .HasMany(e => e.HtmlTemplateOverrides)
+            .WithOne()
+            .HasForeignKey(e => e.ProxyConfigId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<ProxyAuthenticationData>()
             .HasMany(e => e.Conditions)
             .WithOne()
@@ -94,26 +93,28 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
         builder.Entity<ProxyAuthenticationData>().HasIndex(x => x.ProxyConfigId);
         builder.Entity<RuntimeServerConfigItem>().HasIndex(x => x.Key);
         builder.Entity<GlobalVariable>().HasIndex(x => x.Name);
+        builder.Entity<HtmlTemplate>().HasIndex(x => x.Type);
+        builder.Entity<HtmlTemplate>().HasIndex(x => x.ProxyConfigId);
     }
 
     public void InvalidateCacheFor<T>()
     {
-        _memoryCache.Remove($"all_{typeof(T)}");
+        memoryCache.Remove($"all_{typeof(T)}");
 
         if (typeof(T) == typeof(ProxyAuthenticationData))
         {
-            _memoryCache.Remove($"all_{typeof(ProxyConfig)}");
-            _memoryCache.Remove($"all_{typeof(ConditionData)}");
+            memoryCache.Remove($"all_{typeof(ProxyConfig)}");
+            memoryCache.Remove($"all_{typeof(ConditionData)}");
         }
         else if (typeof(T) == typeof(ConditionData))
         {
-            _memoryCache.Remove($"all_{typeof(ProxyConfig)}");
-            _memoryCache.Remove($"all_{typeof(ProxyAuthenticationData)}");
+            memoryCache.Remove($"all_{typeof(ProxyConfig)}");
+            memoryCache.Remove($"all_{typeof(ProxyAuthenticationData)}");
         }
         else if (typeof(T) == typeof(ProxyConfig))
         {
-            _memoryCache.Remove($"all_{typeof(ProxyAuthenticationData)}");
-            _memoryCache.Remove($"all_{typeof(ConditionData)}");
+            memoryCache.Remove($"all_{typeof(ProxyAuthenticationData)}");
+            memoryCache.Remove($"all_{typeof(ConditionData)}");
         }
     }
 
@@ -121,12 +122,12 @@ public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
         where T : class
     {
         var cacheKey = $"all_{typeof(T)}";
-        if (_memoryCache.TryGetValue(cacheKey, out var val) && val is List<T> list) return list;
+        if (memoryCache.TryGetValue(cacheKey, out var val) && val is List<T> list) return list;
 
         var data = entities(this);
 
         list = await LoadEntitiesForCacheAsync(data);
-        _memoryCache.Set(cacheKey, list, TimeSpan.FromMinutes(5));
+        memoryCache.Set(cacheKey, list, TimeSpan.FromMinutes(5));
         return list;
     }
 

@@ -5,13 +5,8 @@ using XuReverseProxy.Models.Common;
 
 namespace XuReverseProxy.Controllers.API;
 
-public class GlobalVariablesController : EFCrudControllerBase<GlobalVariable>
+public class GlobalVariablesController(ApplicationDbContext context) : EFCrudControllerBase<GlobalVariable>(context, () => context.GlobalVariables)
 {
-    public GlobalVariablesController(ApplicationDbContext context)
-        : base(context, () => context.GlobalVariables)
-    {
-    }
-
     public override async Task<GenericResultData<GlobalVariable>> CreateOrUpdateEntityAsync([FromBody] GlobalVariable entity)
     {
         if (!ModelState.IsValid) return GenericResult.CreateError<GlobalVariable>(ModelState);

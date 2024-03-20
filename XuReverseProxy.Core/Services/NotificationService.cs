@@ -15,36 +15,19 @@ public interface INotificationService
     Task TryNotifyEvent(NotificationTrigger trigger, Dictionary<string, string?>? placeholders, params IProvidesPlaceholders?[] placeholderProviders);
 }
 
-public class NotificationService : INotificationService
+public class NotificationService(ApplicationDbContext dbContext, IMemoryCache memoryCache,
+    ILogger<NotificationService> logger, RuntimeServerConfig runtimeServerConfig,
+    IServiceScopeFactory serviceScopeFactory, IPlaceholderResolver placeholderResolver) : INotificationService
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IMemoryCache _memoryCache;
-    private readonly ILogger<NotificationService> _logger;
-    private readonly RuntimeServerConfig _runtimeServerConfig;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly IPlaceholderResolver _placeholderResolver;
-
-    public NotificationService(ApplicationDbContext dbContext, IMemoryCache memoryCache,
-        ILogger<NotificationService> logger, RuntimeServerConfig runtimeServerConfig,
-        IServiceScopeFactory serviceScopeFactory, IPlaceholderResolver placeholderResolver)
-    {
-        _dbContext = dbContext;
-        _memoryCache = memoryCache;
-        _logger = logger;
-        _runtimeServerConfig = runtimeServerConfig;
-        _serviceScopeFactory = serviceScopeFactory;
-        _placeholderResolver = placeholderResolver;
-    }
-
     public async Task TryNotifyEvent(NotificationTrigger trigger, params IProvidesPlaceholders?[] placeholderProviders)
         => await TryNotifyEvent(trigger, null, placeholderProviders);
 
     public async Task TryNotifyEvent(NotificationTrigger trigger, Dictionary<string, string?>? placeholders, params IProvidesPlaceholders?[] placeholderProviders)
     {
-        if (!_runtimeServerConfig.EnableNotifications) return;
+        if (!runtimeServerConfig.EnableNotifications) return;
 
         var now = DateTime.UtcNow;
-        var matchingRules = (await _dbContext.GetWithCacheAsync(x => x.NotificationRules))
+        var matchingRules = (await dbContext.GetWithCacheAsync(x => x.NotificationRules))
             .Where(x => x.Enabled && x.TriggerType == trigger)
             .ToList();
 
@@ -53,7 +36,7 @@ public class NotificationService : INotificationService
             if (await HandleRuleCooldown(rule, placeholders, placeholderProviders)) continue;
             
             // Notify async
-            var _ = NotifyAsync(rule, placeholders, placeholderProviders, _serviceScopeFactory, _logger);
+            var _ = NotifyAsync(rule, placeholders, placeholderProviders, serviceScopeFactory, logger);
         }
     }
 
@@ -68,13 +51,13 @@ public class NotificationService : INotificationService
         if (!string.IsNullOrWhiteSpace(rule.CooldownDistinctPattern))
         {
             var distinctPattern = rule.CooldownDistinctPattern;
-            if (placeholders != null) distinctPattern = await _placeholderResolver.ResolvePlaceholdersAsync(distinctPattern, placeholders: placeholders, placeholderProviders: placeholderProviders);
+            if (placeholders != null) distinctPattern = await placeholderResolver.ResolvePlaceholdersAsync(distinctPattern, placeholders: placeholders, placeholderProviders: placeholderProviders);
             distinctCacheKey = $"{distinctCacheKey}_{distinctPattern}";
         }
 
-        if (_memoryCache.TryGetValue(distinctCacheKey, out _)) return true;
+        if (memoryCache.TryGetValue(distinctCacheKey, out _)) return true;
 
-        _memoryCache.Set(distinctCacheKey, (byte)0x01, rule.Cooldown.Value);
+        memoryCache.Set(distinctCacheKey, (byte)0x01, rule.Cooldown.Value);
         return false;
     }
 

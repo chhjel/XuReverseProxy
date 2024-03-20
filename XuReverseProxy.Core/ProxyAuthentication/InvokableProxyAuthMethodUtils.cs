@@ -32,7 +32,7 @@ public static class InvokableProxyAuthMethodUtils
         {
             if (_methodDefs != null) return;
 
-            _methodDefs = new();
+            _methodDefs = [];
             foreach (var assembly in assemblies)
             {
                 foreach (var type in assembly.ExportedTypes)

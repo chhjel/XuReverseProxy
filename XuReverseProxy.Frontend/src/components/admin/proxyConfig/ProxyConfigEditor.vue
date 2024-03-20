@@ -198,14 +198,14 @@ export default class ProxyConfigEditor extends Vue {
       />
     </div>
 
-    <div class="block block--dark mt-4">
-      <div class="block-title">Conditions not met message</div>
+    <!-- <div class="block block--dark mt-4">
+      <div class="block-title">Template overrides</div>
       <code-input-component
         v-model:value="localValue.conditionsNotMetMessage"
         height="50px"
         :readOnly="disabled"
       />
-    </div>
+    </div> -->
   </div>
 </template>
 

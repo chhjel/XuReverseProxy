@@ -8,7 +8,7 @@ using XuReverseProxy.Core.Systems.ScheduledTasks;
 
 namespace XuReverseProxy.Core.ScheduledTasks;
 
-public class AuditLogsCleanupTask : IScheduledTask
+public class AuditLogsCleanupTask(IOptionsMonitor<ServerConfig> serverConfig, ILogger<AuditLogsCleanupTask> logger, IServiceProvider serviceProvider) : IScheduledTask
 {
 #if DEBUG
     /// <summary>
@@ -26,26 +26,15 @@ public class AuditLogsCleanupTask : IScheduledTask
 
     public string Description { get; } = "Removes old audit log entries.";
 
-    private readonly IOptionsMonitor<ServerConfig> _serverConfig;
-    private readonly ILogger<AuditLogsCleanupTask> _logger;
-    private readonly IServiceProvider _serviceProvider;
-
-    public AuditLogsCleanupTask(IOptionsMonitor<ServerConfig> serverConfig, ILogger<AuditLogsCleanupTask> logger, IServiceProvider serviceProvider)
-    {
-        _serverConfig = serverConfig;
-        _logger = logger;
-        _serviceProvider = serviceProvider;
-    }
-
     public async Task<ScheduledTaskResult> ExecuteAsync(ScheduledTaskStatus status, CancellationToken cancellationToken)
     {
         var result = new ScheduledTaskResult() { JobType = GetType(), StartedAtUtc = DateTime.UtcNow, Result = string.Empty };
-        _logger.LogInformation($"Starting AuditLogsCleanupJob.");
+        logger.LogInformation($"Starting AuditLogsCleanupJob.");
 
-        var config = _serverConfig.CurrentValue.Jobs.AuditLogCleanupJob;
+        var config = serverConfig.CurrentValue.Jobs.AuditLogCleanupJob;
         if (config?.Enabled != true) return result.SetResult("Job not enabled");
 
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var totalDeleted = 0;
 
@@ -60,7 +49,7 @@ public class AuditLogsCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted admin events: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation("Deleted admin events = {deletedCount}", deletedCount);
+                logger.LogInformation("Deleted admin events = {deletedCount}", deletedCount);
         }
 
         if (config.MaxClientEntryAgeInHours > 0)
@@ -74,7 +63,7 @@ public class AuditLogsCleanupTask : IScheduledTask
             totalDeleted += deletedCount;
             result.Result += $"Deleted client events: {deletedCount}. ";
             if (deletedCount > 0)
-                _logger.LogInformation("Deleted client events = {deletedCount}", deletedCount);
+                logger.LogInformation("Deleted client events = {deletedCount}", deletedCount);
         }
 
         status.Message = $"Done. Total deleted: {totalDeleted}.";

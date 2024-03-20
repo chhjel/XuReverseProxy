@@ -10,14 +10,9 @@ namespace XuReverseProxy.Controllers.API;
 
 [Authorize]
 [Route("/api/[controller]")]
-public class AuditLogController : Controller
+public class AuditLogController(ApplicationDbContext context) : Controller
 {
-    protected readonly ApplicationDbContext _dbContext;
-
-    public AuditLogController(ApplicationDbContext context)
-    {
-        _dbContext = context;
-    }
+    protected readonly ApplicationDbContext _dbContext = context;
 
     [HttpPost("adminLog")]
     public async Task<PaginatedResult<AdminAuditLogEntry>> GetAdminAuditLogEntriesAsync([FromBody] GetAdminAuditLogEntriesRequestModel request)

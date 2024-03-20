@@ -47,7 +47,7 @@ public class ProxyAuthenticationChallengeFactory : IProxyAuthenticationChallenge
         }
     }
 
-    private static readonly Dictionary<string, ProxyChallengeTypeBase> _baseChallengeDataCache = new();
+    private static readonly Dictionary<string, ProxyChallengeTypeBase> _baseChallengeDataCache = [];
 
     private static readonly Dictionary<string, Type> _challengeTypes = new()
     {

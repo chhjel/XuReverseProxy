@@ -25,31 +25,15 @@ public interface IProxyClientIdentityService
     Task<bool> SetClientNoteAsync(Guid identityId, string note);
 }
 
-public class ProxyClientIdentityService : IProxyClientIdentityService
+public class ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, ILogger<ProxyClientIdentityService> logger,
+    IMemoryCache memoryCache, IDataProtectionProvider dataProtectorProvider, IHttpContextAccessor httpContextAccessor, INotificationService notificationService) : IProxyClientIdentityService
 {
     public const string ClientIdCookieName = "___xupid";
-    private readonly IOptionsMonitor<ServerConfig> _serverConfig;
-    private readonly ApplicationDbContext _dbContext;
-    private readonly ILogger<ProxyClientIdentityService> _logger;
-    private readonly IMemoryCache _memoryCache;
-    private readonly IDataProtector _dataProtector;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly INotificationService _notificationService;
-
-    public ProxyClientIdentityService(IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, ILogger<ProxyClientIdentityService> logger,
-        IMemoryCache memoryCache, IDataProtectionProvider dataProtectorProvider, IHttpContextAccessor httpContextAccessor, INotificationService notificationService)
-    {
-        _serverConfig = serverConfig;
-        _dbContext = dbContext;
-        _logger = logger;
-        _memoryCache = memoryCache;
-        _dataProtector = dataProtectorProvider.CreateProtector("XuReverseProxy");
-        _httpContextAccessor = httpContextAccessor;
-        _notificationService = notificationService;
-    }
+    private readonly IOptionsMonitor<ServerConfig> _serverConfig = serverConfig;
+    private readonly IDataProtector _dataProtector = dataProtectorProvider.CreateProtector("XuReverseProxy");
 
     public async Task<ProxyClientIdentity?> GetProxyClientIdentityAsync(Guid id)
-        => await _dbContext.GetClientWithCacheAsync(id);
+        => await dbContext.GetClientWithCacheAsync(id);
 
     public async Task<ProxyClientIdentity?> GetCurrentProxyClientIdentityAsync(HttpContext context)
     {
@@ -70,15 +54,15 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
             isNewIdentity = true;
             context.Response.Cookies.Append(ClientIdCookieName, _dataProtector.Protect(identityId.ToString()), CreateClientCookieOptions());
 
-            if (MemoryLogger.Enabled) _logger.LogInformation("Creating new client identity '{identityId}' from {Method} request to '{path}'", identityId, context.Request.Method, context.Request.Path);
+            if (MemoryLogger.Enabled) logger.LogInformation("Creating new client identity '{identityId}' from {Method} request to '{path}'", identityId, context.Request.Method, context.Request.Path);
         }
 
         // Extend client cookie periodically
         var cookieExtendCacheKey = $"_cext_{identityId}";
-        if (!isNewIdentity && !_memoryCache.TryGetValue<byte>(cookieExtendCacheKey, out _))
+        if (!isNewIdentity && !memoryCache.TryGetValue<byte>(cookieExtendCacheKey, out _))
         {
             context.Response.Cookies.Append(ClientIdCookieName, _dataProtector.Protect(identityId.ToString()), CreateClientCookieOptions());
-            _memoryCache.Set(cookieExtendCacheKey, (byte)0x01, TimeSpan.FromMinutes(5));
+            memoryCache.Set(cookieExtendCacheKey, (byte)0x01, TimeSpan.FromMinutes(5));
         }
 
         var rawIp = TKRequestUtils.GetIPAddress(context);
@@ -87,7 +71,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         var userAgent = context.Request.Headers.UserAgent; // CleanUserAgent(context.Request.Headers.UserAgent);
 
         // Get or create identity
-        var identity = await _dbContext.GetClientWithCacheAsync(identityId);
+        var identity = await dbContext.GetClientWithCacheAsync(identityId);
         if (identity == null)
         {
             identity = new ProxyClientIdentity
@@ -98,9 +82,9 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
                 CreatedAtUtc = DateTime.UtcNow,
                 LastAttemptedAccessedAtUtc = DateTime.UtcNow
             };
-            await _dbContext.ProxyClientIdentities.AddAsync(identity);
-            await _dbContext.SaveChangesAsync();
-            await _notificationService.TryNotifyEvent(NotificationTrigger.NewClient,
+            await dbContext.ProxyClientIdentities.AddAsync(identity);
+            await dbContext.SaveChangesAsync();
+            await notificationService.TryNotifyEvent(NotificationTrigger.NewClient,
                 new Dictionary<string, string?> {
                     { "Url", context.Request.GetDisplayUrl() }
                 }, identity);
@@ -126,7 +110,7 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
         if (shouldUpdate)
         {
             identity.LastAttemptedAccessedAtUtc = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         }
 
         return identity;
@@ -182,64 +166,64 @@ public class ProxyClientIdentityService : IProxyClientIdentityService
 
     public async Task<bool> BlockIdentityAsync(Guid identityId, string message)
     {
-        var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
+        var data = await dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
         if (data == null) return false;
 
         data.Blocked = true;
         data.BlockedMessage = message;
         data.BlockedAtUtc = DateTime.UtcNow;
 
-        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext,
+        dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(httpContextAccessor.HttpContext,
                 $"Blocked client {AdminAuditLogEntry.Placeholder_Client}")
                 .SetRelatedClient(data.Id, data.NameForLog())
         );
-        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, data.NameForLog(), $"Was blocked"));
-        await _dbContext.SaveChangesAsync();
-        _dbContext.InvalidateClientCache(identityId);
+        dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(httpContextAccessor.HttpContext, identityId, data.NameForLog(), $"Was blocked"));
+        await dbContext.SaveChangesAsync();
+        dbContext.InvalidateClientCache(identityId);
         return true;
     }
     public async Task<bool> UnBlockIdentityAsync(Guid identityId)
     {
-        var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
+        var data = await dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
         if (data == null) return false;
 
         data.Blocked = false;
         data.BlockedMessage = null;
         data.BlockedAtUtc = null;
 
-        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(_httpContextAccessor.HttpContext,
+        dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(httpContextAccessor.HttpContext,
                 $"Unblocked client {AdminAuditLogEntry.Placeholder_Client}")
                 .SetRelatedClient(data.Id, data.NameForLog())
             );
-        _dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(_httpContextAccessor.HttpContext, identityId, data.NameForLog(), $"Was unblocked"));
+        dbContext.ClientAuditLogEntries.Add(new ClientAuditLogEntry(httpContextAccessor.HttpContext, identityId, data.NameForLog(), $"Was unblocked"));
 
-        await _dbContext.SaveChangesAsync();
-        _dbContext.InvalidateClientCache(identityId);
+        await dbContext.SaveChangesAsync();
+        dbContext.InvalidateClientCache(identityId);
         return true;
     }
 
     public async Task<bool> SetClientNoteAsync(Guid identityId, string note)
     {
-        var data = await _dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
+        var data = await dbContext.ProxyClientIdentities.FirstOrDefaultAsync(x => x.Id == identityId);
         if (data == null) return false;
 
         data.Note = note;
 
-        await _dbContext.SaveChangesAsync();
-        _dbContext.InvalidateClientCache(identityId);
+        await dbContext.SaveChangesAsync();
+        dbContext.InvalidateClientCache(identityId);
         return true;
     }
 
     public async Task TryUpdateLastAccessedAtAsync(Guid identityId)
     {
-        var data = await _dbContext.GetClientWithCacheAsync(identityId);
+        var data = await dbContext.GetClientWithCacheAsync(identityId);
         if (data == null) return;
 
         // Only update last accessed timestamp after 5 minutes
         if ((DateTime.UtcNow - data.LastAccessedAtUtc) < TimeSpan.FromMinutes(5)) return;
 
         data.LastAccessedAtUtc = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync();
-        _dbContext.InvalidateClientCache(identityId);
+        await dbContext.SaveChangesAsync();
+        dbContext.InvalidateClientCache(identityId);
     }
 }

@@ -28,7 +28,7 @@ public class ProxyAuthenticationData : IHasId, IProvidesPlaceholders
     public Guid SolvedId { get; set; }
 
     public TimeSpan? SolvedDuration { get; set; }
-    public ICollection<ConditionData> Conditions { get; } = new List<ConditionData>();
+    public ICollection<ConditionData> Conditions { get; } = [];
 
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {

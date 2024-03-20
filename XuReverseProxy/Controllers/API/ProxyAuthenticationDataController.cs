@@ -7,16 +7,8 @@ using XuReverseProxy.Models.Common;
 
 namespace XuReverseProxy.Controllers.API;
 
-public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthenticationData>
+public class ProxyAuthenticationDataController(ApplicationDbContext context, IProxyChallengeService proxyChallengeService) : EFCrudControllerBase<ProxyAuthenticationData>(context, () => context.ProxyAuthenticationDatas)
 {
-    private readonly IProxyChallengeService _proxyChallengeService;
-
-    public ProxyAuthenticationDataController(ApplicationDbContext context, IProxyChallengeService proxyChallengeService)
-        : base(context, () => context.ProxyAuthenticationDatas)
-    {
-        _proxyChallengeService = proxyChallengeService;
-    }
-
     protected override void OnDataModified()
     {
         base.OnDataModified();
@@ -28,7 +20,7 @@ public class ProxyAuthenticationDataController : EFCrudControllerBase<ProxyAuthe
     {
         try
         {
-            await _proxyChallengeService.ResetChallengesForAuthenticationAsync(request.AuthenticationId, request.IdentityId);
+            await proxyChallengeService.ResetChallengesForAuthenticationAsync(request.AuthenticationId, request.IdentityId);
             return GenericResult.CreateSuccess();
         }
         catch (Exception ex)

@@ -10,15 +10,9 @@ public interface IPlaceholderResolver
         Dictionary<string, string?>? placeholders = null, params IProvidesPlaceholders?[] placeholderProviders);
 }
 
-public class PlaceholderResolver : IPlaceholderResolver
+public class PlaceholderResolver(ApplicationDbContext dbContext) : IPlaceholderResolver
 {
-    private readonly ApplicationDbContext _dbContext;
     private static readonly CultureInfo _placeholderLocale = CultureInfo.CreateSpecificCulture("en");
-
-    public PlaceholderResolver(ApplicationDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
 
     public async Task<string?> ResolvePlaceholdersAsync(string? template,
         Func<string?, string?>? transformer = null,
@@ -98,7 +92,7 @@ public class PlaceholderResolver : IPlaceholderResolver
         if (string.IsNullOrWhiteSpace(template)) return template;
         string transform(string val) => transformer?.Invoke(val) ?? val;
 
-        var globalVars = await _dbContext.GetWithCacheAsync(x => x.GlobalVariables);
+        var globalVars = await dbContext.GetWithCacheAsync(x => x.GlobalVariables);
         foreach (var gvar in globalVars)
         {
             if (string.IsNullOrWhiteSpace(gvar.Name)) continue;

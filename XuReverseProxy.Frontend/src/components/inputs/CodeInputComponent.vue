@@ -347,7 +347,7 @@ export default class CodeInputComponent extends Vue {
 
   &.fullscreen {
     position: fixed;
-    top: 32px;
+    top: 12px;
     left: 0;
     right: 0;
     bottom: 0;

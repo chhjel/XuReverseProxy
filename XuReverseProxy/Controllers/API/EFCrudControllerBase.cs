@@ -12,19 +12,13 @@ namespace XuReverseProxy.Controllers.API;
 /// </summary>
 [Authorize]
 [Route("/api/[controller]")]
-public abstract class EFCrudControllerBase<TEntity> : Controller
+public abstract class EFCrudControllerBase<TEntity>(ApplicationDbContext context,
+    Func<DbSet<TEntity>> entities) : Controller
     where TEntity : class, IHasId, new()
 {
-    protected readonly ApplicationDbContext _dbContext;
-    protected readonly Func<DbSet<TEntity>> _entities;
+    protected readonly ApplicationDbContext _dbContext = context;
+    protected readonly Func<DbSet<TEntity>> _entities = entities;
     protected const string HeaderName_Hint = "XURP-HINT";
-
-    public EFCrudControllerBase(ApplicationDbContext context,
-        Func<DbSet<TEntity>> entities)
-    {
-        _dbContext = context;
-        _entities = entities;
-    }
 
     /// <summary>
     /// Create or update entity.

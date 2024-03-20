@@ -5,13 +5,8 @@ using XuReverseProxy.Models.Common;
 
 namespace XuReverseProxy.Controllers.API;
 
-public class ProxyConfigController : EFCrudControllerBase<ProxyConfig>
+public class ProxyConfigController(ApplicationDbContext context) : EFCrudControllerBase<ProxyConfig>(context, () => context.ProxyConfigs)
 {
-    public ProxyConfigController(ApplicationDbContext context)
-        : base(context, () => context.ProxyConfigs)
-    {
-    }
-
     protected override void OnDataModified()
     {
         base.OnDataModified();

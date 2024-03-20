@@ -6,5 +6,5 @@ namespace XuReverseProxy.Models.Common;
 public class PaginatedResult<TData>
 {
     public int TotalItemCount { get; set; }
-    public List<TData> PageItems { get; set; } = new();
+    public List<TData> PageItems { get; set; } = [];
 }

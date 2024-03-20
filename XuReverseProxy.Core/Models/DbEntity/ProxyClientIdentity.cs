@@ -22,8 +22,8 @@ public class ProxyClientIdentity : IProvidesPlaceholders, IHasId
     public DateTime? BlockedAtUtc { get; set; }
     public string? BlockedMessage { get; set; }
 
-    public ICollection<ProxyClientIdentitySolvedChallengeData> SolvedChallenges { get; } = new List<ProxyClientIdentitySolvedChallengeData>();
-    public ICollection<ProxyClientIdentityData> Data { get; } = new List<ProxyClientIdentityData>();
+    public ICollection<ProxyClientIdentitySolvedChallengeData> SolvedChallenges { get; } = [];
+    public ICollection<ProxyClientIdentityData> Data { get; } = [];
 
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {

@@ -17,24 +17,9 @@ using XuReverseProxy.Models.ViewModels.Pages;
 namespace XuReverseProxy.Controllers.Pages;
 
 [Route("auth/login/[action]")]
-public class LoginPageController : Controller
+public class LoginPageController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
+    IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, INotificationService notificationService) : Controller
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IOptionsMonitor<ServerConfig> _serverConfig;
-    private readonly ApplicationDbContext _dbContext;
-    private readonly INotificationService _notificationService;
-
-    public LoginPageController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
-        IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, INotificationService notificationService)
-    {
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _serverConfig = serverConfig;
-        _dbContext = dbContext;
-        _notificationService = notificationService;
-    }
-
     [HttpGet("/auth/login")]
     public IActionResult Index([FromQuery] string? @return = null, [FromQuery] string? e = null)
     {
@@ -49,7 +34,7 @@ public class LoginPageController : Controller
 
         // Keep it simple for now. If no users exist, allow creating an admin account.
         var allowCreateAdmin = false;
-        if (!_userManager.Users.Any())
+        if (!userManager.Users.Any())
         {
             allowCreateAdmin = true;
         }
@@ -58,10 +43,10 @@ public class LoginPageController : Controller
         {
             FrontendModel = new LoginPageViewModel.LoginPageFrontendModel
             {
-                ServerName = _serverConfig.CurrentValue.Name,
+                ServerName = serverConfig.CurrentValue.Name,
                 ReturnUrl = @return,
                 ErrorCode = e,
-                IsRestrictedToLocalhost = _serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext),
+                IsRestrictedToLocalhost = serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext),
                 AllowCreateAdmin = allowCreateAdmin,
                 FreshTotpSecret = allowCreateAdmin ? TotpUtils.GenerateNewKey() : null
             }
@@ -76,7 +61,7 @@ public class LoginPageController : Controller
         await AuthUtils.RandomAuthDelay();
 
         if (!ModelState.IsValid) return BadRequest();
-        else if (_serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
+        else if (serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
 
         IActionResult createResult(bool success, string? redirect = null, string? error = null)
             => Json(new LoginResponse { Success = success, Redirect = redirect, Error = error });
@@ -87,11 +72,11 @@ public class LoginPageController : Controller
         (var success, var error) = await TryLoginUser(request.Username, request.Password, request.TOTP);
         if (!success)
         {
-            await _notificationService.TryNotifyEvent(NotificationTrigger.AdminLoginFailed, request);
+            await notificationService.TryNotifyEvent(NotificationTrigger.AdminLoginFailed, request);
             return createResult(false, error: error);
         }
 
-        await _notificationService.TryNotifyEvent(NotificationTrigger.AdminLoginSuccess, request);
+        await notificationService.TryNotifyEvent(NotificationTrigger.AdminLoginSuccess, request);
 
         var returnPath = request.ReturnPath;
         if (returnPath?.StartsWith("/") != true) returnPath = $"/";
@@ -102,8 +87,8 @@ public class LoginPageController : Controller
     public async Task<IActionResult> CreateAccount([FromBody] CreateAccountRequest request)
     {
         if (!ModelState.IsValid) return BadRequest();
-        else if (_userManager.Users.Any()) return createResult(false, error: "An admin account already exists.");
-        else if (_serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
+        else if (userManager.Users.Any()) return createResult(false, error: "An admin account already exists.");
+        else if (serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
 
         var enableTotp = !string.IsNullOrWhiteSpace(request.TOTPSecret);
         if (enableTotp && !TotpUtils.ValidateCode(request.TOTPSecret, request.TOTPCode)) return createResult(false, error: "Invalid TOTP code");
@@ -123,17 +108,17 @@ public class LoginPageController : Controller
             TOTPSecretKey = enableTotp ? request.TOTPSecret : null,
             LastConnectedFromIP = ipData?.IP
         };
-        var createUserResult = await _userManager.CreateAsync(user, request.Password);
+        var createUserResult = await userManager.CreateAsync(user, request.Password);
         if (createUserResult.Succeeded == false)
             return createResult(false, error: string.Join(" ", createUserResult.Errors.Select(x => x.Description)));
 
         // Generate some recovery codes
-        await _dbContext.RecoveryCodes.AddRangeAsync(Enumerable.Range(0, 8).Select(x => createNewRecoveryCode(user)));
-        _dbContext.SaveChanges();
+        await dbContext.RecoveryCodes.AddRangeAsync(Enumerable.Range(0, 8).Select(x => createNewRecoveryCode(user)));
+        dbContext.SaveChanges();
 
         // Login user
-        user = await _userManager.FindByNameAsync(user.UserName);
-        await _signInManager.SignInAsync(user!, isPersistent: true);
+        user = await userManager.FindByNameAsync(user.UserName);
+        await signInManager.SignInAsync(user!, isPersistent: true);
 
         return createResult(true, "/");
 
@@ -146,17 +131,17 @@ public class LoginPageController : Controller
     [HttpGet("/auth/logout")]
     public async Task<IActionResult> Logout()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user != null && _serverConfig.CurrentValue.Security.InvalidateAllSessionsOnAdminLogout)
+        var user = await userManager.GetUserAsync(User);
+        if (user != null && serverConfig.CurrentValue.Security.InvalidateAllSessionsOnAdminLogout)
         {
-            await _userManager.UpdateSecurityStampAsync(user);
+            await userManager.UpdateSecurityStampAsync(user);
         }
 
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        await _signInManager.SignOutAsync();
+        await signInManager.SignOutAsync();
 
-        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Logged out manually."));
-        await _dbContext.SaveChangesAsync();
+        dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Logged out manually."));
+        await dbContext.SaveChangesAsync();
 
         return RedirectToAction(nameof(Login), new { @return = "/" });
     }
@@ -170,38 +155,38 @@ public class LoginPageController : Controller
     {
         const string loginErrorMessage = "Invalid username, password or TOTP code.";
 
-        var user = await _userManager.FindByNameAsync(username);
+        var user = await userManager.FindByNameAsync(username);
         if (user == null) return (success: false, error: loginErrorMessage);
 
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        await _signInManager.SignOutAsync();
+        await signInManager.SignOutAsync();
 
-        var usernamePasswordOk = await _userManager.CheckPasswordAsync(user, password);
+        var usernamePasswordOk = await userManager.CheckPasswordAsync(user, password);
         if (usernamePasswordOk && user.TOTPEnabled)
         {
             if (!TotpUtils.ValidateCode(user.TOTPSecretKey, totpCode)) return (success: false, error: loginErrorMessage);
 
             // Update security timestamp before logging in to invalidate any other sessions
-            if (_serverConfig.CurrentValue.Security.InvalidateAllSessionsOnAdminLogin)
+            if (serverConfig.CurrentValue.Security.InvalidateAllSessionsOnAdminLogin)
             {
-                await _userManager.UpdateSecurityStampAsync(user);
+                await userManager.UpdateSecurityStampAsync(user);
             }
         }
 
-        var result = await _signInManager.PasswordSignInAsync(user, password, true, false);
+        var result = await signInManager.PasswordSignInAsync(user, password, true, false);
         if (!result.Succeeded) return (success: false, error: loginErrorMessage);
 
-        if ((await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == user.Id)) is not ApplicationUser appUser)
+        if ((await dbContext.Users.FirstOrDefaultAsync(x => x.Id == user.Id)) is not ApplicationUser appUser)
             return (success: false, error: "User not found (ERR:2)");
 
         var rawIp = TKRequestUtils.GetIPAddress(Request.HttpContext);
         var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
         appUser.LastConnectedFromIP = ipData.IP;
 
-        _dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Logged in from '{ipData?.IP}'.")
+        dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Logged in from '{ipData?.IP}'.")
             .TrySetAdminUserId(appUser.Id));
 
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
 
         return (success: true, error: null);
     }

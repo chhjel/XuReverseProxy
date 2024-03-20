@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using QoDL.Toolkit.Core.Util;
 using QoDL.Toolkit.Web.Core.Utils;
-using System.Globalization;
 using XuReverseProxy.Core.Logging;
 using XuReverseProxy.Core.Models.DbEntity;
 
@@ -10,16 +9,8 @@ namespace XuReverseProxy.Core.Models.Config;
 /// <summary>
 /// Dynamic config that can be changed at runtime.
 /// </summary>
-public class RuntimeServerConfig
+public class RuntimeServerConfig(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor)
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public RuntimeServerConfig(ApplicationDbContext dbContext, IHttpContextAccessor httpContextAccessor)
-    {
-        _dbContext = dbContext;
-        _httpContextAccessor = httpContextAccessor;
-    }
 
     /// <summary>
     /// Global killswitch to disable all proxies temporarily.
@@ -54,41 +45,6 @@ public class RuntimeServerConfig
         set => MemoryLogger.Enabled = value;
     }
 
-    /// <summary></summary>
-    public string NotFoundHtml
-    {
-        get => GetConfig(nameof(NotFoundHtml)) ?? "<!DOCTYPE html>\n<html>\n<head>\n<title>404 | XuReverseProxy</title>v</head>\n<body>\n404 / XuReverseProxy\n</body>\n</html>\n";
-        set => SetConfig(nameof(NotFoundHtml), value);
-    }
-
-    /// <summary></summary>
-    public string ClientBlockedHtml
-    {
-        get => GetConfig(nameof(ClientBlockedHtml)) ?? "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\n{{blocked_message}}\n</body>\n</html>\n";
-        set => SetConfig(nameof(ClientBlockedHtml), value);
-    }
-
-    /// <summary></summary>
-    public int ClientBlockedResponseCode
-    {
-        get => GetConfigInt(nameof(ClientBlockedResponseCode), 401);
-        set => SetConfigInt(nameof(ClientBlockedResponseCode), value);
-    }
-
-    /// <summary></summary>
-    public string IPBlockedHtml
-    {
-        get => GetConfig(nameof(IPBlockedHtml)) ?? "<!DOCTYPE html>\n<html>\n<head>\n<title>Blocked | XuReverseProxy</title>\n</head>\n<body>\nNope</body>\n</html>\n";
-        set => SetConfig(nameof(IPBlockedHtml), value);
-    }
-
-    /// <summary></summary>
-    public int IPBlockedResponseCode
-    {
-        get => GetConfigInt(nameof(IPBlockedResponseCode), 401);
-        set => SetConfigInt(nameof(IPBlockedResponseCode), value);
-    }
-
     /// <summary>
     /// Since the db is not updated with default values until the configs are first changed,
     /// ensure the db rows exist on startup so that we can read them on the admin config page.
@@ -99,23 +55,8 @@ public class RuntimeServerConfig
         EnableForwarding = EnableForwarding;
         EnableNotifications = EnableNotifications;
         EnableManualApprovalPageAuthentication = EnableManualApprovalPageAuthentication;
-        NotFoundHtml = NotFoundHtml;
-        ClientBlockedHtml = ClientBlockedHtml;
-        ClientBlockedResponseCode = ClientBlockedResponseCode;
-        IPBlockedHtml = IPBlockedHtml;
-        IPBlockedResponseCode = IPBlockedResponseCode;
 #pragma warning restore CA2245 // Do not assign a property to itself
     }
-
-    private int GetConfigInt(string key, int defaultValue)
-    {
-        var rawValue = GetConfig(key, defaultValue.ToString());
-        if (int.TryParse(rawValue, NumberStyles.Integer, null, out var parsedInt)) return parsedInt;
-        else return defaultValue;
-    }
-
-    private void SetConfigInt(string key, int value)
-        => SetConfig(key, value.ToString());
 
     public bool GetConfigBool(string key, bool defaultValue)
         => GetConfig(key, defaultValue ? "true" : "false")?.Equals("true", StringComparison.OrdinalIgnoreCase) == true;
@@ -125,18 +66,18 @@ public class RuntimeServerConfig
 
     private string? GetConfig(string key, string? fallback = null)
     {
-        var item = TKAsyncUtils.RunSync(() => _dbContext.GetWithCacheAsync(x => x.RuntimeServerConfigItems)).FirstOrDefault(x => x.Key == key);
+        var item = TKAsyncUtils.RunSync(() => dbContext.GetWithCacheAsync(x => x.RuntimeServerConfigItems)).FirstOrDefault(x => x.Key == key);
         return item == null ? fallback : item.Value;
     }
 
     private void SetConfig(string key, string? value)
     {
-        var existing = _dbContext.RuntimeServerConfigItems.FirstOrDefault(x => x.Key == key);
+        var existing = dbContext.RuntimeServerConfigItems.FirstOrDefault(x => x.Key == key);
         if (existing != null)
         {
             existing.Value = value;
             updateCommon(existing);
-            _dbContext.SaveChanges();
+            dbContext.SaveChanges();
         }
         else
         {
@@ -146,15 +87,15 @@ public class RuntimeServerConfig
                 Value = value
             };
             updateCommon(item);
-            _dbContext.RuntimeServerConfigItems.Add(item);
-            _dbContext.SaveChanges();
+            dbContext.RuntimeServerConfigItems.Add(item);
+            dbContext.SaveChanges();
         }
 
-        _dbContext.InvalidateCacheFor<RuntimeServerConfigItem>();
+        dbContext.InvalidateCacheFor<RuntimeServerConfigItem>();
 
         void updateCommon(RuntimeServerConfigItem existing)
         {
-            var httpContext = _httpContextAccessor.HttpContext;
+            var httpContext = httpContextAccessor.HttpContext;
             existing.LastUpdatedAtUtc = DateTime.UtcNow;
             existing.LastUpdatedBy = httpContext?.User?.Identity?.Name ?? "unknown";
             existing.LastUpdatedSourceIP = TKRequestUtils.GetIPAddress(httpContext!);

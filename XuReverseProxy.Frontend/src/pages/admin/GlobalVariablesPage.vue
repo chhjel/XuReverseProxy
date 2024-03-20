@@ -126,9 +126,7 @@ export default class GlobalVariablesPage extends Vue {
     <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 
     <div v-if="service.status.hasDoneAtLeastOnce">
-      <div v-if="variables.length == 0 && service.status.done">- No variables added yet -</div>
-
-      <p>Variables can be used in any placeholders.</p>
+      <p>Variables can be used in any placeholders, and support up to 3 levels of recursion.</p>
       <div class="table-wrapper">
         <table>
           <tr>
@@ -165,6 +163,8 @@ export default class GlobalVariablesPage extends Vue {
           </tr>
         </table>
       </div>
+      
+      <div v-if="variables.length == 0 && service.status.done">- No variables added yet -</div>
 
       <button-component @click="addNewVariable" v-if="service.status.done" class="primary ml-0"
         >Add new variable</button-component
