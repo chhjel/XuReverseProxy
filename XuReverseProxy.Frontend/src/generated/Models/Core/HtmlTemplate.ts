@@ -11,5 +11,4 @@ export interface HtmlTemplate
 	proxyConfigId: string;
 	responseCode: number;
 	html: string;
-	htmlTemplateDefaults: { [key in HtmlTemplateType]: HtmlTemplate };
 }

@@ -11,6 +11,7 @@ import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
 import { HtmlTemplateType } from "@generated/Enums/Core/HtmlTemplateType";
 import ExpandableComponent from "@components/common/ExpandableComponent.vue";
 import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponent.vue";
+import InputHeaderComponent from "@components/inputs/InputHeaderComponent.vue";
 import {
   ClientBlockedHtmlPlaceholders,
   Html404Placeholders,
@@ -28,6 +29,7 @@ import {
     CodeInputComponent,
     ExpandableComponent,
     PlaceholderInfoComponent,
+    InputHeaderComponent,
   },
 })
 export default class HtmlTemplateEditorComponent extends Vue {
@@ -36,6 +38,12 @@ export default class HtmlTemplateEditorComponent extends Vue {
 
   @Prop({ required: false, default: false })
   disabled: boolean;
+
+  @Prop({ required: false, default: false })
+  allowRemove: boolean;
+
+  @Prop({ required: false, default: () => null })
+  allowedTypes: Array<HtmlTemplateType> | null;
 
   @Ref() readonly htmlEditor!: any;
 
@@ -55,16 +63,29 @@ export default class HtmlTemplateEditorComponent extends Vue {
     return this.isLoading || this.disabled;
   }
 
+  get showTypes(): boolean {
+    return this.allowedTypes != null && this.allowedTypes.length > 0;
+  }
+
+  get typeOptions(): Array<any> {
+    return this.allowedTypes.map((x) => {
+      return {
+        name: this.getTemplateName(x),
+        value: x,
+      };
+    });
+  }
+
   async saveTemplate(template: HtmlTemplate) {
     await this.service.CreateOrUpdateAsync(template);
   }
 
-  getTemplateName(template: HtmlTemplate): string {
-    if (template.type == HtmlTemplateType.ClientBlocked) return "Client blocked response";
-    else if (template.type == HtmlTemplateType.IPBlocked) return "IP blocked response";
-    else if (template.type == HtmlTemplateType.ProxyConditionsNotMet) return "Proxy conditions not met response";
-    else if (template.type == HtmlTemplateType.ProxyNotFound) return "Proxy not found response";
-    else return template.type;
+  getTemplateName(type: HtmlTemplateType): string {
+    if (type == HtmlTemplateType.ClientBlocked) return "Client blocked response";
+    else if (type == HtmlTemplateType.IPBlocked) return "IP blocked response";
+    else if (type == HtmlTemplateType.ProxyConditionsNotMet) return "Proxy conditions not met response";
+    else if (type == HtmlTemplateType.ProxyNotFound) return "Proxy not found response";
+    else return type;
   }
 
   getPlaceholdersFor(type: HtmlTemplateType): Array<PlaceholderGroupInfo> {
@@ -75,11 +96,19 @@ export default class HtmlTemplateEditorComponent extends Vue {
     else return [];
   }
 
-  insertPlaceholder(val: string, type: HtmlTemplateType): void {
+  insertPlaceholder(val: string): void {
     if (this.isDisabled) return;
     this.htmlEditor.insertText(val);
   }
-  
+
+  async onRemoveResponseOverrideClicked(): Promise<any> {
+    if (!confirm(`Remove html template override for ${this.getTemplateName(this.localValue.type)}?`)) return;
+    const result = await this.service.DeleteAsync(this.localValue.id);
+    if (result.success) {
+      this.$emit("onRemoved", this.localValue);
+    }
+  }
+
   /////////////////
   //  WATCHERS  //
   ///////////////
@@ -106,32 +135,42 @@ export default class HtmlTemplateEditorComponent extends Vue {
     <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 
     <div v-if="localValue">
-      <div class="title">{{ getTemplateName(localValue) }}</div>
-  
+      <div v-if="showTypes">
+        <input-header-component label="Type" />
+        <select v-model="localValue.type" :disabled="disabled">
+          <option v-for="type in typeOptions" :value="type.value">
+            {{ type.name }}
+          </option>
+        </select>
+      </div>
+
       <code-input-component
-          v-model:value="localValue.html"
-          language="html"
-          class="mt-0"
-          height="400px"
-          :readOnly="isDisabled"
-          ref="htmlEditor"
+        v-model:value="localValue.html"
+        language="html"
+        class="mt-0"
+        height="400px"
+        :readOnly="isDisabled"
+        ref="htmlEditor"
       />
       <expandable-component header="Supported placeholders">
-          <placeholder-info-component
+        <placeholder-info-component
           :placeholders="getPlaceholdersFor(localValue.type)"
-          @insertPlaceholder="(x) => insertPlaceholder(x, localValue.type)"
-          />
+          @insertPlaceholder="(x) => insertPlaceholder(x)"
+        />
       </expandable-component>
-  
+
       <text-input-component
-          label="Response code"
-          v-model:value="localValue.responseCode"
-          :readOnly="isDisabled"
-          class="blocked-response-code-input mt-2"
+        label="Response code"
+        v-model:value="localValue.responseCode"
+        :readOnly="isDisabled"
+        class="blocked-response-code-input mt-2"
       />
-  
-      <button-component primary @click="saveTemplate(localValue)" :disabled="isDisabled" class="ml-0 mt-2"
-          >Save</button-component
+
+      <button-component primary @click="saveTemplate(localValue)" :disabled="isDisabled" class="ml-0 mt-3"
+        >Save</button-component
+      >
+      <button-component @click="onRemoveResponseOverrideClicked()" danger class="ml-0 mt-3" v-if="allowRemove"
+        >Remove</button-component
       >
     </div>
   </div>
@@ -142,8 +181,8 @@ export default class HtmlTemplateEditorComponent extends Vue {
   /* padding-top: 20px; */
 
   .title {
-	font-size: 22px;
-	color: var(--color--text-dark);
+    font-size: 16px;
+    color: var(--color--text-dark);
   }
 
   .blocked-response-code-input {

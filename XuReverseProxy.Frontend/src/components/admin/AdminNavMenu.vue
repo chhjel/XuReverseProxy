@@ -29,7 +29,7 @@ export default class AdminNavMenu extends Vue {
       <router-link to="/variables">Variables</router-link> |
       <router-link to="/blocked-ips">IP Block</router-link> |
       <router-link to="/serverconfig">Server config</router-link> |
-      <router-link to="/responses">Responses</router-link> | <router-link to="/jobs">Jobs</router-link> |
+      <router-link to="/responses">HTML templates</router-link> | <router-link to="/jobs">Jobs</router-link> |
       <router-link to="/admin-audit-log">Admin log</router-link> |
       <router-link to="/client-audit-log">Client log</router-link>
       <span v-if="memoryLoggingEnabled"> | </span>
@@ -45,7 +45,7 @@ export default class AdminNavMenu extends Vue {
       <router-link to="/variables">Variables</router-link>
       <router-link to="/blocked-ips">IP Block</router-link>
       <router-link to="/serverconfig">Server config</router-link>
-      <router-link to="/responses">Responses</router-link>
+      <router-link to="/responses">HTML templates</router-link>
       <router-link to="/jobs">Jobs</router-link>
       <router-link to="/admin-audit-log">Admin log</router-link>
       <router-link to="/client-audit-log">Client log</router-link>

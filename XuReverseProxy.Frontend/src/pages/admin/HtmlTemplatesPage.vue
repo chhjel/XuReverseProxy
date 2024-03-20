@@ -13,13 +13,6 @@ import CodeInputComponent from "@components/inputs/CodeInputComponent.vue";
 import { HtmlTemplateType } from "@generated/Enums/Core/HtmlTemplateType";
 import ExpandableComponent from "@components/common/ExpandableComponent.vue";
 import PlaceholderInfoComponent from "@components/common/PlaceholderInfoComponent.vue";
-import {
-  ClientBlockedHtmlPlaceholders,
-  Html404Placeholders,
-  IPBlockedHtmlPlaceholders,
-  PlaceholderGroupInfo,
-  ProxyConditionsNotMetHtmlPlaceholders,
-} from "@utils/Constants";
 import HtmlTemplateEditorComponent from "@components/admin/templates/HtmlTemplateEditorComponent.vue";
 
 @Options({
