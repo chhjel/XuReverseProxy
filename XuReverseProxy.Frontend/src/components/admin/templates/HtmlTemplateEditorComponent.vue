@@ -135,6 +135,8 @@ export default class HtmlTemplateEditorComponent extends Vue {
     <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 
     <div v-if="localValue">
+      <div class="title" v-if="!showTypes">{{ getTemplateName(localValue.type) }}</div>
+
       <div v-if="showTypes">
         <input-header-component label="Type" />
         <select v-model="localValue.type" :disabled="disabled">
