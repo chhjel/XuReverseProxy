@@ -1,9 +1,6 @@
 <script lang="ts">
 import { Options } from "vue-class-component";
-import { Vue, Inject } from "vue-property-decorator";
-import TextInputComponent from "@components/inputs/TextInputComponent.vue";
-import ButtonComponent from "@components/inputs/ButtonComponent.vue";
-import AdminNavMenu from "@components/admin/AdminNavMenu.vue";
+import { Vue, Inject, Prop } from "vue-property-decorator";
 import { AdminPageFrontendModel } from "@generated/Models/Web/AdminPageFrontendModel";
 import ProxyClientIdentityService from "@services/ProxyClientIdentityService";
 import { ProxyClientIdentity } from "@generated/Models/Core/ProxyClientIdentity";
@@ -12,42 +9,39 @@ import DateFormats from "@utils/DateFormats";
 import { ProxyClientIdentitiesPagedRequestModel } from "@generated/Models/Web/ProxyClientIdentitiesPagedRequestModel";
 import { PaginatedResult } from "@generated/Models/Web/PaginatedResult";
 import PagingComponent from "@components/common/PagingComponent.vue";
-import ExpandableComponent from "@components/common/ExpandableComponent.vue";
 import { ProxyClientsSortBy } from "@generated/Enums/Web/ProxyClientsSortBy";
 
 @Options({
   components: {
-    TextInputComponent,
-    ButtonComponent,
-    AdminNavMenu,
     LoaderComponent,
     PagingComponent,
-    ExpandableComponent,
   },
 })
-export default class ProxyClientsPage extends Vue {
+export default class ClientsListComponent extends Vue {
   @Inject()
   readonly options!: AdminPageFrontendModel;
 
-  service: ProxyClientIdentityService = new ProxyClientIdentityService();
+  @Prop()
+  filter: ProxyClientIdentitiesPagedRequestModel | null;
 
+  service: ProxyClientIdentityService = new ProxyClientIdentityService();
   currentPageData: PaginatedResult<ProxyClientIdentity> | null = null;
-  filter: ProxyClientIdentitiesPagedRequestModel = {
-    pageIndex: 0,
-    pageSize: 40,
-    filter: "",
-    sortBy: ProxyClientsSortBy.Created,
-    sortDescending: true,
-    ip: "",
-    notId: null
-  };
 
   async mounted() {
     await this.loadData();
   }
 
   async loadData() {
-    this.currentPageData = await this.service.GetPagedAsync(this.filter);
+    const resolvedFilter: ProxyClientIdentitiesPagedRequestModel = this.filter || {
+      pageIndex: 0,
+      pageSize: 10,
+      filter: "",
+      sortBy: ProxyClientsSortBy.Created,
+      sortDescending: true,
+      ip: "",
+      notId: null
+    };
+    this.currentPageData = await this.service.GetPagedAsync(resolvedFilter);
   }
 
   get isLoading(): boolean {
@@ -75,95 +69,23 @@ export default class ProxyClientsPage extends Vue {
   async onPageIndexChanged() {
     await this.loadData();
   }
-
-  onSortHeaderClicked(type: ProxyClientsSortBy | string): void {
-    if (this.filter.sortBy == type) {
-      if (!this.filter.sortDescending) {
-        this.filter.sortBy = null;
-        this.filter.sortDescending = true;
-      } else {
-        this.filter.sortDescending = !this.filter.sortDescending;
-      }
-    } else {
-      this.filter.sortBy = type as ProxyClientsSortBy;
-      this.filter.sortDescending = true;
-    }
-
-    this.loadData();
-  }
-
-  getSortHeaderIcon(type: ProxyClientsSortBy | string): string {
-    if (this.filter.sortBy != type) return "";
-    else return this.filter.sortDescending ? "expand_less" : "expand_more";
-  }
 }
 </script>
 
 <template>
-  <div class="proxyclients-page">
+  <div class="client-list-component">
     <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 
     <div v-if="service.status.hasDoneAtLeastOnce">
-      <div class="flexbox center-vertical">
-        <p>Note: Clients are only created for proxies with authentication.</p>
-        <div class="spacer"></div>
-        <button-component
-          icon="refresh"
-          :disabled="isLoading"
-          :inProgress="isLoading"
-          title="Refresh"
-          iconOnly
-          secondary
-          @click="loadData"
-          class="mr-0"
-        ></button-component>
-      </div>
-
-      <div class="mb-2">
-        <expandable-component header="Filter">
-          <text-input-component
-            label=""
-            v-model:value="filter.filter"
-            placeholder="Search note, useragent and ip"
-            @keydown.enter="loadData"
-          />
-        </expandable-component>
-      </div>
-
-      <paging-component
-        class="pagination mb-1"
-        :count="totalItemCount"
-        :pageSize="filter.pageSize"
-        v-model:value="filter.pageIndex"
-        :disabled="isLoading"
-        :asIndex="true"
-        :hideIfSinglePage="true"
-        @change="onPageIndexChanged"
-      />
-
       <div class="table-wrapper">
         <table>
           <tr>
-            <th @click="onSortHeaderClicked('Note')">
-              Note<span class="material-icons sort-icon">{{ getSortHeaderIcon("Note") }}</span>
-            </th>
-            <th @click="onSortHeaderClicked('IP')">
-              IP<span class="material-icons sort-icon">{{ getSortHeaderIcon("IP") }}</span>
-            </th>
-            <th @click="onSortHeaderClicked('LastAccessed')" style="font-size: 12px">
-              Last access<span class="material-icons sort-icon">{{ getSortHeaderIcon("LastAccessed") }}</span>
-            </th>
-            <th @click="onSortHeaderClicked('LastAttemptedAccessed')" style="font-size: 12px">
-              Last attempted access<span class="material-icons sort-icon">{{
-                getSortHeaderIcon("LastAttemptedAccessed")
-              }}</span>
-            </th>
-            <th @click="onSortHeaderClicked('Status')">
-              Status<span class="material-icons sort-icon">{{ getSortHeaderIcon("Status") }}</span>
-            </th>
-            <th @click="onSortHeaderClicked('UserAgent')">
-              UserAgent<span class="material-icons sort-icon">{{ getSortHeaderIcon("UserAgent") }}</span>
-            </th>
+            <th>Note</th>
+            <th>IP</th>
+            <th style="font-size: 12px">Last access</th>
+            <th style="font-size: 12px">Last attempted access</th>
+            <th>Status</th>
+            <th>UserAgent</th>
           </tr>
           <tr
             v-for="client in currentPageItems"
@@ -209,7 +131,7 @@ export default class ProxyClientsPage extends Vue {
 </template>
 
 <style scoped lang="scss">
-.proxyclients-page {
+.client-list-component {
   padding-top: 20px;
 
   .table-wrapper {

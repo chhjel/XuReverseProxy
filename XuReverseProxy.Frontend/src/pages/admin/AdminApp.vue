@@ -46,7 +46,7 @@ export default class DashboardPage extends Vue {
   <div class="admin-app" :class="rootClasses">
     <admin-nav-menu />
     <div class="admin-app__content">
-      <router-view :options="options"></router-view>
+      <router-view :options="options" :key="$route.path"></router-view>
     </div>
   </div>
 </template>

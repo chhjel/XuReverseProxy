@@ -32,6 +32,14 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
                 || (x.IP != null && x.IP.ToLower().Contains(request.Filter.ToLower()))
             );
         }
+        if (!string.IsNullOrWhiteSpace(request.IP))
+        {
+            query = query.Where(x => x.IP != null && x.IP.ToLower() == request.IP.ToLower());
+        }
+        if (request.NotId != null)
+        {
+            query = query.Where(x => x.Id != request.NotId);
+        }
 
         var totalCount = await query.CountAsync();
 
@@ -57,7 +65,9 @@ public class ProxyClientIdentityController : EFCrudControllerBase<ProxyClientIde
         };
     }
     [GenerateFrontendModel]
-    public record ProxyClientIdentitiesPagedRequestModel(int PageIndex, int PageSize, ProxyClientsSortBy? SortBy = null, bool SortDescending = true, string? Filter = null);
+    public record ProxyClientIdentitiesPagedRequestModel(int PageIndex, int PageSize, 
+        ProxyClientsSortBy? SortBy = null, bool SortDescending = true, 
+        string? Filter = null, string? IP = null, Guid? NotId = null);
     [GenerateFrontendModel]
     public enum ProxyClientsSortBy { Created, LastAccessed, LastAttemptedAccessed, Note, IP, Status, UserAgent }
 
