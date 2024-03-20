@@ -20,6 +20,7 @@ import {
   PlaceholderGroupInfo,
   ProxyConditionsNotMetHtmlPlaceholders,
 } from "@utils/Constants";
+import HtmlTemplateEditorComponent from "@components/admin/templates/HtmlTemplateEditorComponent.vue";
 
 @Options({
   components: {
@@ -30,6 +31,7 @@ import {
     CodeInputComponent,
     ExpandableComponent,
     PlaceholderInfoComponent,
+    HtmlTemplateEditorComponent,
   },
 })
 export default class HtmlTemplatesPage extends Vue {
@@ -40,11 +42,6 @@ export default class HtmlTemplatesPage extends Vue {
 
   service: HtmlTemplatesService = new HtmlTemplatesService();
   templates: Array<HtmlTemplate> = [];
-
-  clientBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = ClientBlockedHtmlPlaceholders;
-  ipBlockedHtmlPlaceholders: Array<PlaceholderGroupInfo> = IPBlockedHtmlPlaceholders;
-  html404Placeholders: Array<PlaceholderGroupInfo> = Html404Placeholders;
-  proxyConditionsNotMetHtmlPlaceholders: Array<PlaceholderGroupInfo> = ProxyConditionsNotMetHtmlPlaceholders;
 
   async mounted() {
     const result = await this.service.GetAllAsync();
@@ -61,10 +58,6 @@ export default class HtmlTemplatesPage extends Vue {
     return this.service.status.inProgress;
   }
 
-  async saveTemplate(template: HtmlTemplate) {
-    await this.service.CreateOrUpdateAsync(template);
-  }
-
   getTemplateOrder(template: HtmlTemplate): number {
     let index = this.templateOrder.indexOf(template.type);
     if (index == -1) return 99;
@@ -77,26 +70,9 @@ export default class HtmlTemplatesPage extends Vue {
     HtmlTemplateType.ProxyConditionsNotMet,
   ];
 
-  getTemplateName(template: HtmlTemplate): string {
-    if (template.type == HtmlTemplateType.ClientBlocked) return "Client blocked response";
-    else if (template.type == HtmlTemplateType.IPBlocked) return "IP blocked response";
-    else if (template.type == HtmlTemplateType.ProxyConditionsNotMet) return "Proxy conditions not met response";
-    else if (template.type == HtmlTemplateType.ProxyNotFound) return "Proxy not found response";
-    else return template.type;
-  }
-
-  getPlaceholdersFor(type: HtmlTemplateType): Array<PlaceholderGroupInfo> {
-    if (type == HtmlTemplateType.ClientBlocked) return this.clientBlockedHtmlPlaceholders;
-    else if (type == HtmlTemplateType.IPBlocked) return this.ipBlockedHtmlPlaceholders;
-    else if (type == HtmlTemplateType.ProxyConditionsNotMet) return this.proxyConditionsNotMetHtmlPlaceholders;
-    else if (type == HtmlTemplateType.ProxyNotFound) return this.html404Placeholders;
-    else return [];
-  }
-
-  insertPlaceholder(val: string, type: HtmlTemplateType): void {
-    console.log(`todo: insert '${val}' into '${type}''`);
-    console.log(this.htmlEditors);
-    // this.notFoundHtmlEditor.insertText(val);
+  onTemplateUpdated(template: HtmlTemplate): void {
+    const index = this.templates.findIndex(x => x.id == template.id);
+    if (index != -1) this.templates[index] = template;
   }
 }
 </script>
@@ -109,32 +85,7 @@ export default class HtmlTemplatesPage extends Vue {
       <div v-if="templates.length == 0 && service.status.done">- No templates found -</div>
 
       <div v-for="template in templates" :key="template.id" class="template block block--dark mt-2">
-        <div class="block-title">{{ getTemplateName(template) }}</div>
-
-        <code-input-component
-          v-model:value="template.html"
-          language="html"
-          class="mt-2"
-          height="400px"
-          :readOnly="isLoading"
-          ref="htmlEditors"
-        />
-        <expandable-component header="Supported placeholders">
-          <placeholder-info-component
-            :placeholders="getPlaceholdersFor(template.type)"
-            @insertPlaceholder="(x) => insertPlaceholder(x, template.type)"
-          />
-        </expandable-component>
-
-        <text-input-component
-          label="Response code"
-          v-model:value="template.responseCode"
-          class="blocked-response-code-input mt-2"
-        />
-
-        <button-component primary @click="saveTemplate(template)" :disabled="isLoading" class="ml-0 mt-2"
-          >Save</button-component
-        >
+        <HtmlTemplateEditorComponent :value="template" :disabled="isLoading" @update:value="onTemplateUpdated(template)" />
       </div>
     </div>
   </div>
