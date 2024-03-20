@@ -5,6 +5,7 @@
 import { ProxyConfigMode } from '../../Enums/Core/ProxyConfigMode';
 import { ProxyAuthenticationData } from './ProxyAuthenticationData';
 import { ConditionData } from './ConditionData';
+import { HtmlTemplate } from './HtmlTemplate';
 
 export interface ProxyConfig
 {
@@ -25,4 +26,5 @@ export interface ProxyConfig
 	showConditionsNotMet: boolean;
 	authentications: ProxyAuthenticationData[];
 	proxyConditions: ConditionData[];
+	htmlTemplateOverrides: HtmlTemplate[];
 }

@@ -8,6 +8,7 @@ public class HtmlTemplate : IHasId
 {
     public Guid Id { get; set; }
     public HtmlTemplateType Type { get; set; }
+    public Guid? ProxyConfigId { get; set; }
     public int ResponseCode { get; set; }
     public string? Html { get; set; }
 

@@ -5,15 +5,27 @@ namespace XuReverseProxy.Core.Services;
 
 public interface IHtmlTemplateService
 {
-    Task<HtmlTemplate> GetHtmlTemplateAsync(HtmlTemplateType type);
+    Task<HtmlTemplate> GetHtmlTemplateAsync(HtmlTemplateType type, ProxyConfig? proxyConfig = null);
     Task<HtmlTemplate> UpdateHtmlTemplateAsync(HtmlTemplate template);
 }
 
 public class HtmlTemplateService(ApplicationDbContext dbContext) : IHtmlTemplateService
 {
-    public async Task<HtmlTemplate> GetHtmlTemplateAsync(HtmlTemplateType type)
+    public async Task<HtmlTemplate> GetHtmlTemplateAsync(HtmlTemplateType type, ProxyConfig? proxyConfig = null)
     {
-        var template = await GetHtmlTemplateFromDbAsync(type);
+        // Not asking for an override = use global
+        if (proxyConfig == null) return await GetGlobalHtmlTemplateAsync(type);
+
+        // Locate override if any
+        var templateOverride = await GetHtmlTemplateFromDbAsync(type, proxyConfig?.Id);
+        
+        // Use override with fallback to global
+        return templateOverride ?? await GetGlobalHtmlTemplateAsync(type);
+    }
+
+    private async Task<HtmlTemplate> GetGlobalHtmlTemplateAsync(HtmlTemplateType type)
+    {
+        var template = await GetHtmlTemplateFromDbAsync(type, null);
         if (template == null)
         {
             HtmlTemplate.HtmlTemplateDefaults.TryGetValue(type, out template);
@@ -44,8 +56,8 @@ public class HtmlTemplateService(ApplicationDbContext dbContext) : IHtmlTemplate
         return template;
     }
 
-    private async Task<HtmlTemplate?> GetHtmlTemplateFromDbAsync(HtmlTemplateType type)
+    private async Task<HtmlTemplate?> GetHtmlTemplateFromDbAsync(HtmlTemplateType type, Guid? proxyConfigId)
     {
-        return (await dbContext.GetWithCacheAsync(x => x.HtmlTemplates)).FirstOrDefault(x => x.Type == type);
+        return (await dbContext.GetWithCacheAsync(x => x.HtmlTemplates)).FirstOrDefault(x => x.Type == type && x.ProxyConfigId == proxyConfigId);
     }
 }

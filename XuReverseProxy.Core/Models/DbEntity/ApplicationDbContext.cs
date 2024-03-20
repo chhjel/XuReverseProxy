@@ -76,6 +76,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithOne()
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<ProxyConfig>()
+            .HasMany(e => e.HtmlTemplateOverrides)
+            .WithOne()
+            .HasForeignKey(e => e.ProxyConfigId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<ProxyAuthenticationData>()
             .HasMany(e => e.Conditions)
             .WithOne()
@@ -88,6 +94,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<RuntimeServerConfigItem>().HasIndex(x => x.Key);
         builder.Entity<GlobalVariable>().HasIndex(x => x.Name);
         builder.Entity<HtmlTemplate>().HasIndex(x => x.Type);
+        builder.Entity<HtmlTemplate>().HasIndex(x => x.ProxyConfigId);
     }
 
     public void InvalidateCacheFor<T>()

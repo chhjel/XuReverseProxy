@@ -52,7 +52,9 @@ export default class HtmlTemplatesPage extends Vue {
       console.error(result.message);
     }
 
-    this.templates = (result.data || []).sort((a, b) => SortBy(a, b, (x) => this.getTemplateOrder(x)));
+    this.templates = (result.data || [])
+      .filter(x => x.proxyConfigId == null)
+      .sort((a, b) => SortBy(a, b, (x) => this.getTemplateOrder(x)));
   }
 
   get isLoading(): boolean {

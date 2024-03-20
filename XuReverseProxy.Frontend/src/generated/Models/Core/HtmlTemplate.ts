@@ -8,6 +8,7 @@ export interface HtmlTemplate
 {
 	id: string;
 	type: HtmlTemplateType;
+	proxyConfigId: string;
 	responseCode: number;
 	html: string;
 	htmlTemplateDefaults: { [key in HtmlTemplateType]: HtmlTemplate };

@@ -29,6 +29,7 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
 
     public ICollection<ProxyAuthenticationData> Authentications { get; } = [];
     public ICollection<ConditionData> ProxyConditions { get; } = [];
+    public ICollection<HtmlTemplate> HtmlTemplateOverrides { get; } = [];
 
     public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
     {
