@@ -39,6 +39,7 @@ export default class IPDetailsComponent extends Vue {
   blockedIpNote: string | null = null;
   canUnblockIp: boolean = false;
   statuses: Array<LoadStatus> = [this.ipLookupService.status, this.ipBlockService.status];
+  clientListHasData: boolean = false;
 
   clientsListComponentFilter: ProxyClientIdentitiesPagedRequestModel | null = null;
 
@@ -212,9 +213,9 @@ export default class IPDetailsComponent extends Vue {
         </div>
 
         <!-- CLIENTS ON SAME IP -->
-        <div class="block mb-4" v-if="clientsListComponentFilter">
+        <div class="block mb-4" v-if="clientsListComponentFilter" v-show="clientListHasData">
           <div class="block-title">Other clients with same IP</div>
-          <clients-list-component :filter="clientsListComponentFilter" />
+          <clients-list-component :filter="clientsListComponentFilter" @hasdata="clientListHasData = true" />
         </div>
       </div>
     </div>

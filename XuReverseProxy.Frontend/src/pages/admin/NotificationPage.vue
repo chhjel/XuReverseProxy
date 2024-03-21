@@ -194,13 +194,13 @@ export default class NotificationPage extends Vue {
       </div>
 
       <div class="block mt-2 mb-2 pb-1" v-if="rule && (rule.lastNotifiedAtUtc || rule.lastNotifyResult)">
-        <div v-if="rule.lastNotifiedAtUtc">
+        <div v-if="rule.lastNotifiedAtUtc" class="flexbox center-vertical">
           Last notified at:
-          <code>{{ formatDate(rule.lastNotifiedAtUtc) }}</code>
+          <code class="pa-0 ml-1">{{ formatDate(rule.lastNotifiedAtUtc) }}</code>
         </div>
-        <div v-if="rule.lastNotifyResult">
+        <div v-if="rule.lastNotifyResult" class="flexbox center-vertical">
           Last notify result:
-          <code class="overflow-x-scroll">'{{ rule.lastNotifyResult }}'</code>
+          <code class="overflow-x-scroll pa-0 ml-1">'{{ rule.lastNotifyResult }}'</code>
         </div>
       </div>
 

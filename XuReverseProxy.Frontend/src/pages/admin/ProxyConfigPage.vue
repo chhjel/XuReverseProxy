@@ -288,7 +288,7 @@ export default class ProxyConfigPage extends Vue {
       </div>
 
       <!-- Auths -->
-      <div class="block mt-4 mb-5">
+      <div class="block mt-4">
         <div class="block-title">Required authentications</div>
         <div v-if="proxyConfig.authentications.length == 0">
           No authentications challenges configured - the proxy is open for all.
@@ -334,7 +334,7 @@ export default class ProxyConfigPage extends Vue {
       </div>
       
       <!-- Html template overrides -->
-      <div class="block mt-4">
+      <div class="block mt-4  mb-5">
         <div class="block-title">HTML template overrides</div>
         <div v-for="template in templateOverrides" :key="template.id" class="template block block--dark mt-2">
           <HtmlTemplateEditorComponent :value="template" :disabled="isLoading" :allowRemove="true"

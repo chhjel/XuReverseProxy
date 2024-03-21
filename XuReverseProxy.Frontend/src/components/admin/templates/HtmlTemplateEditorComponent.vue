@@ -180,8 +180,6 @@ export default class HtmlTemplateEditorComponent extends Vue {
 
 <style scoped lang="scss">
 .html-template-editor-component {
-  /* padding-top: 20px; */
-
   .title {
     font-size: 16px;
     color: var(--color--text-dark);

@@ -29,6 +29,7 @@ export default class ClientsListComponent extends Vue {
 
   async mounted() {
     await this.loadData();
+    if (this.currentPageData.totalItemCount > 0) this.$emit('hasdata');
   }
 
   async loadData() {
@@ -132,8 +133,6 @@ export default class ClientsListComponent extends Vue {
 
 <style scoped lang="scss">
 .client-list-component {
-  padding-top: 20px;
-
   .table-wrapper {
     overflow-x: auto;
   }
