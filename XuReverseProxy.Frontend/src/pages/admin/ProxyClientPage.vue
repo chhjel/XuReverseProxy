@@ -180,6 +180,18 @@ export default class ProxyClientPage extends Vue {
   formatDate(raw: Date | string): string {
     return DateFormats.defaultDateTime(raw);
   }
+
+  async regenClientChallenge(solved: SolvedClientData) {
+    if (!confirm(`Regenerate client challenge for "${solved.proxyConfig.name}" / "${this.createAuthSummary(solved.auth)}"? This will cause client to have to complete it again.`)) return;
+    
+    const result = await this.proxyAuthService.ResetChallengesForAuthenticationAsync({
+      authenticationId: solved.auth.id,
+      identityId: this.clientId,
+    });
+    if (result.success) {
+      this.clientAuthData = this.clientAuthData.filter(x => x.solvedData.id != solved.solvedData.id);
+    }
+  }
 }
 </script>
 
@@ -267,6 +279,8 @@ export default class ProxyClientPage extends Vue {
           <span v-if="solvedConfig?.solvedData?.solvedId != solvedConfig?.auth?.solvedId">
             - SolvedId was changed.</span
           >
+          <button-component @click="regenClientChallenge(solvedConfig)" small danger 
+            :disabled="isLoading" class="secondary">Revoke</button-component>
         </div>
       </div>
 
