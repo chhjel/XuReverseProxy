@@ -10,11 +10,13 @@ import { ProxyClientIdentitiesPagedRequestModel } from "@generated/Models/Web/Pr
 import { PaginatedResult } from "@generated/Models/Web/PaginatedResult";
 import PagingComponent from "@components/common/PagingComponent.vue";
 import { ProxyClientsSortBy } from "@generated/Enums/Web/ProxyClientsSortBy";
+import ButtonComponent from "@components/inputs/ButtonComponent.vue";
 
 @Options({
   components: {
     LoaderComponent,
     PagingComponent,
+    ButtonComponent,
   },
 })
 export default class ClientsListComponent extends Vue {
@@ -40,7 +42,8 @@ export default class ClientsListComponent extends Vue {
       sortBy: ProxyClientsSortBy.Created,
       sortDescending: true,
       ip: "",
-      notId: null
+      notId: null,
+      hasAccessToProxyConfigId: null
     };
     this.currentPageData = await this.service.GetPagedAsync(resolvedFilter);
   }
@@ -77,7 +80,22 @@ export default class ClientsListComponent extends Vue {
   <div class="client-list-component">
     <loader-component :status="service.status" v-if="!service.status.hasDoneAtLeastOnce || !service.status.success" />
 
+    <button-component
+          icon="refresh"
+          :disabled="isLoading"
+          :inProgress="isLoading"
+          title="Refresh"
+          iconOnly
+          secondary
+          @click="loadData"
+          class="refresh-button mr-0"
+        ></button-component>
+
     <div v-if="service.status.hasDoneAtLeastOnce">
+      <div class="flexbox center-vertical">
+        <div class="spacer"></div>
+      </div>
+
       <div class="table-wrapper">
         <table>
           <tr>
@@ -133,6 +151,15 @@ export default class ClientsListComponent extends Vue {
 
 <style scoped lang="scss">
 .client-list-component {
+  position: relative;
+
+  .refresh-button {
+    position: absolute;
+    top: -37px;
+    right: 0;
+    margin: 0;
+  }
+
   .table-wrapper {
     overflow-x: auto;
   }

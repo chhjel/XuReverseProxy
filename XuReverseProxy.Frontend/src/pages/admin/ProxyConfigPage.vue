@@ -26,6 +26,9 @@ import HtmlTemplateEditorComponent from "@components/admin/templates/HtmlTemplat
 import HtmlTemplatesService from "@services/HtmlTemplatesService";
 import { HtmlTemplate } from "@generated/Models/Core/HtmlTemplate";
 import { HtmlTemplateType } from "@generated/Enums/Core/HtmlTemplateType";
+import { ProxyClientIdentitiesPagedRequestModel } from "@generated/Models/Web/ProxyClientIdentitiesPagedRequestModel";
+import { ProxyClientsSortBy } from "@generated/Enums/Web/ProxyClientsSortBy";
+import ClientsListComponent from "@components/admin/ClientsListComponent.vue";
 
 @Options({
   components: {
@@ -40,6 +43,7 @@ import { HtmlTemplateType } from "@generated/Enums/Core/HtmlTemplateType";
     LoaderComponent,
     ConditionDatasEditor,
     HtmlTemplateEditorComponent,
+    ClientsListComponent,
   },
 })
 export default class ProxyConfigPage extends Vue {
@@ -59,9 +63,27 @@ export default class ProxyConfigPage extends Vue {
   templateOverrides: Array<HtmlTemplate> = [];
   allowedTemplateOverrideTypes: Array<HtmlTemplateType> = [HtmlTemplateType.ClientBlocked, HtmlTemplateType.ProxyConditionsNotMet];
 
+  clientsWithAccessListHasData: boolean = false;
+  clientsAwaitingAccessListHasData: boolean = false;
+  clientsWithAccessListComponentFilter: ProxyClientIdentitiesPagedRequestModel | null = null;
+
   async mounted() {
     await this.loadConfig();
     await this.loadTemplates();
+    this.initFilters();
+  }
+
+  initFilters(): void {
+    this.clientsWithAccessListComponentFilter = {
+      filter: null,
+      ip: null,
+      notId: null,
+      pageSize: 10,
+      pageIndex: 0,
+      sortBy: ProxyClientsSortBy.Created,
+      sortDescending: true,
+      hasAccessToProxyConfigId: this.proxyConfig?.id
+    };
   }
 
   async loadTemplates() {
@@ -334,7 +356,7 @@ export default class ProxyConfigPage extends Vue {
       </div>
       
       <!-- Html template overrides -->
-      <div class="block mt-4  mb-5">
+      <div class="block mt-4">
         <div class="block-title">HTML template overrides</div>
         <div v-for="template in templateOverrides" :key="template.id" class="template block block--dark mt-2">
           <HtmlTemplateEditorComponent :value="template" :disabled="isLoading" :allowRemove="true"
@@ -346,6 +368,14 @@ export default class ProxyConfigPage extends Vue {
           >Add new response override</button-component
         >
       </div>
+    
+      <!-- CLIENTS WITH ACCESS -->
+      <div class="block mt-4" v-if="clientsWithAccessListComponentFilter" v-show="clientsWithAccessListHasData">
+        <div class="block-title">Clients with access (including expired)</div>
+        <clients-list-component :filter="clientsWithAccessListComponentFilter" @hasdata="clientsWithAccessListHasData = true" />
+      </div>
+    
+      <div class="mb-5"></div>
 
       <!-- Auth Dialog -->
       <dialog-component v-model:value="authDialogVisible" max-width="800" persistent>

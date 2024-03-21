@@ -33,6 +33,23 @@ public class ProxyClientIdentityController(ApplicationDbContext context, IProxyC
             query = query.Where(x => x.Id != request.NotId);
         }
 
+        if (request.HasAccessToProxyConfigId != null)
+        {
+            var proxyAuthIds = _dbContext.ProxyAuthenticationDatas
+                .Where(x => x.ProxyConfigId == request.HasAccessToProxyConfigId.Value)
+                .Select(x => x.Id)
+                .ToHashSet();
+
+            // note: access might be expired, to improve later
+            query = query.Where(identity =>
+                proxyAuthIds.All(authId => 
+                    identity.SolvedChallenges.Any(d => 
+                        d.AuthenticationId == authId
+                    )
+                )
+            );
+        }
+
         var totalCount = await query.CountAsync();
 
         // Sort
@@ -59,7 +76,7 @@ public class ProxyClientIdentityController(ApplicationDbContext context, IProxyC
     [GenerateFrontendModel]
     public record ProxyClientIdentitiesPagedRequestModel(int PageIndex, int PageSize, 
         ProxyClientsSortBy? SortBy = null, bool SortDescending = true, 
-        string? Filter = null, string? IP = null, Guid? NotId = null);
+        string? Filter = null, string? IP = null, Guid? NotId = null, Guid? HasAccessToProxyConfigId = null);
     [GenerateFrontendModel]
     public enum ProxyClientsSortBy { Created, LastAccessed, LastAttemptedAccessed, Note, IP, Status, UserAgent }
 

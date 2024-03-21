@@ -39,7 +39,8 @@ export default class ProxyClientsPage extends Vue {
     sortBy: ProxyClientsSortBy.Created,
     sortDescending: true,
     ip: "",
-    notId: null
+    notId: null,
+    hasAccessToProxyConfigId: null
   };
 
   async mounted() {

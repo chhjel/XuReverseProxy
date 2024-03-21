@@ -62,7 +62,8 @@ export default class IPDetailsComponent extends Vue {
       sortBy: ProxyClientsSortBy.Created,
       sortDescending: true,
       ip: this.ip,
-      notId: this.relatedClientId
+      notId: this.relatedClientId,
+      hasAccessToProxyConfigId: null
     };
   }
 

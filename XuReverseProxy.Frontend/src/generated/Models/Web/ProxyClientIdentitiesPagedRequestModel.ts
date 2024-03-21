@@ -13,4 +13,5 @@ export interface ProxyClientIdentitiesPagedRequestModel
 	filter: string;
 	ip: string;
 	notId: string;
+	hasAccessToProxyConfigId: string;
 }
