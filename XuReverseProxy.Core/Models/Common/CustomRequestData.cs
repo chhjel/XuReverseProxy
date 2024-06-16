@@ -1,4 +1,5 @@
-﻿using XuReverseProxy.Core.Attributes;
+﻿using System.Text;
+using XuReverseProxy.Core.Attributes;
 
 namespace XuReverseProxy.Core.Models.Common;
 
@@ -21,15 +22,25 @@ public class CustomRequestData
         if (!string.IsNullOrWhiteSpace(RequestMethod)) method = new HttpMethod(RequestMethod);
 
         var request = new HttpRequestMessage(method, url);
+        
+        var headerLines = Headers?.Split('\n').Where(x => x.Contains(':')).Select(x => x.Trim());
+        var contentTypeLine =
+            headerLines?.FirstOrDefault(x => x.StartsWith("content-type", StringComparison.OrdinalIgnoreCase));
+        string contentType = null;
+        if (!string.IsNullOrWhiteSpace(contentTypeLine))
+        {
+            headerLines = headerLines?.Where(x => x != contentTypeLine);
+            contentType = contentTypeLine.Split(':', 2)[1].Trim();
+        }
 
         // Body
         if (!string.IsNullOrWhiteSpace(Body))
         {
-            request.Content = new StringContent(Body);
+            if (contentType == null) request.Content = new StringContent(Body);
+            else request.Content = new StringContent(Body, Encoding.UTF8, contentType);
         }
 
         // Headers
-        var headerLines = Headers?.Split('\n').Where(x => x.Contains(':')).Select(x => x.Trim());
         if (headerLines?.Any() == true)
         {
             foreach (var line in headerLines)

@@ -91,9 +91,13 @@ public class NotificationService(ApplicationDbContext dbContext, IMemoryCache me
             var body = await placeholderResolver!.ResolvePlaceholdersAsync(rule.WebHookBody, transformer: null, placeholders: placeholders, placeholderProviders: placeholderProviders);
             var headers = await placeholderResolver!.ResolvePlaceholdersAsync(rule.WebHookHeaders, transformer: null, placeholders: placeholders, placeholderProviders: placeholderProviders);
 
+            method = string.IsNullOrWhiteSpace(rule.WebHookMethod)
+                ? HttpMethod.Get.Method
+                : new HttpMethod(rule.WebHookMethod).Method;
+            
             var requestData = new CustomRequestData
             {
-                RequestMethod = string.IsNullOrWhiteSpace(rule.WebHookMethod) ? HttpMethod.Get.Method : new HttpMethod(rule.WebHookMethod).Method,
+                RequestMethod = method,
                 Url = url,
                 Body = body,
                 Headers = headers
