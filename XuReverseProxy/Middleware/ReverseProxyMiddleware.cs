@@ -119,7 +119,7 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         if (clientIdentity?.Blocked == true)
         {
             var clientBlockedTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ClientBlocked, proxyConfig);
-            var html = (await placeholderResolver.ResolvePlaceholdersAsync(clientBlockedTemplate.Html, transformer: null, placeholders: null, clientIdentity));
+            var html = (await placeholderResolver.ResolvePlaceholdersAsync(clientBlockedTemplate.Html, defaultTransformer: null, placeholders: null, clientIdentity));
             await SetResponseAsync(context, html, clientBlockedTemplate.ResponseCode);
             return;
         }
@@ -129,7 +129,7 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         if (!conditionChecker.ConditionsPassed(proxyConfig.ProxyConditions, conditionContext))
         {
             var conditionsNotMetTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ProxyConditionsNotMet, proxyConfig);
-            var html = (await placeholderResolver.ResolvePlaceholdersAsync(conditionsNotMetTemplate.Html, transformer: null, placeholders: null, clientIdentity));
+            var html = (await placeholderResolver.ResolvePlaceholdersAsync(conditionsNotMetTemplate.Html, defaultTransformer: null, placeholders: null, clientIdentity));
             await SetResponseAsync(context, html, conditionsNotMetTemplate.ResponseCode);
             return;
         }

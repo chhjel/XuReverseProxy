@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Web;
+using XuReverseProxy.Core.Abstractions;
 using XuReverseProxy.Core.Attributes;
 using XuReverseProxy.Core.Models.Common;
 using XuReverseProxy.Core.ProxyAuthentication.Attributes;
@@ -81,15 +82,18 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
 
     private async Task<TrySendOTPResponseModel> SendOTPCodeAsync(ProxyChallengeInvokeContext context, string code)
     {
+        if (string.IsNullOrWhiteSpace(RequestData?.Url)) return new TrySendOTPResponseModel(false, "WebHook not configured");
+        
         var httpClient = context.GetService<IHttpClientFactory>().CreateClient();
-
-        var url = RequestData?.Url?.Replace("{{code}}", code);
-        var placeholderResolver = context.GetService<IPlaceholderResolver>();
-        url = await placeholderResolver.ResolvePlaceholdersAsync(url, transformer: HttpUtility.UrlEncode, placeholders: null, context.ClientIdentity, context.ProxyConfig, context.AuthenticationData);
 
         try
         {
-            var httpRequestMessage = RequestData?.CreateRequest(url);
+            var placeholders = new Dictionary<string, string?> { { "code", code } };
+            var placeholderProviders = new IProvidesPlaceholders?[] { context.ClientIdentity, context.ProxyConfig, context.AuthenticationData };
+            var placeholderResolver = context.GetService<IPlaceholderResolver>();
+            await RequestData.ResolvePlaceholdersAsync(placeholderResolver, placeholders, placeholderProviders);
+            
+            var httpRequestMessage = RequestData.CreateRequest();
             if (httpRequestMessage == null) return new(false, "Webhook not configured.");
 
             await httpClient.SendAsync(httpRequestMessage);
@@ -98,7 +102,7 @@ public class ProxyChallengeTypeOTP : ProxyChallengeTypeBase
         catch (Exception ex)
         {
             var logger = context.GetService<ILogger<ProxyChallengeTypeOTP>>();
-            logger.LogError(ex, "Failed to send OTP webhook to '{url}'", url);
+            logger.LogError(ex, "Failed to send OTP webhook to '{url}'", RequestData.Url);
             var error =
 #if DEBUG
                 $"Something failed while attempting to send OTP-code. {ex.Message}";

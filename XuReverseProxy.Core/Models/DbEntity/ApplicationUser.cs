@@ -11,11 +11,10 @@ public class ApplicationUser : IdentityUser, IProvidesPlaceholders
 
     public bool TOTPEnabled => !string.IsNullOrWhiteSpace(TOTPSecretKey);
 
-    public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
+    public void ProvidePlaceholders(Dictionary<string, string?> values)
     {
-        return template
-            .Replace("{{User.Id}}", transformer(Id), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{User.Username}}", transformer(UserName), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{User.IP}}", transformer(LastConnectedFromIP), StringComparison.OrdinalIgnoreCase);
+        values["User.Id"] = Id;
+        values["User.Username"] = UserName;
+        values["User.IP"] = LastConnectedFromIP;
     }
 }

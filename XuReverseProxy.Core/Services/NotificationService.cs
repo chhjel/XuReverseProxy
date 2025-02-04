@@ -78,40 +78,34 @@ public class NotificationService(ApplicationDbContext dbContext, IMemoryCache me
     {
         if (string.IsNullOrWhiteSpace(rule.WebHookUrl)) return;
 
-        string? url = rule.WebHookUrl;
-        string method = HttpMethod.Get.Method;
-        string result = string.Empty;
+        string? result = string.Empty;
+        CustomRequestData? requestData = null;
         try
         {
             var httpClientFactory = serviceScope.ServiceProvider.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
             var httpClient = httpClientFactory!.CreateClient();
 
-            var placeholderResolver = serviceScope.ServiceProvider.GetService(typeof(IPlaceholderResolver)) as IPlaceholderResolver;
-            url = await placeholderResolver!.ResolvePlaceholdersAsync(url, transformer: HttpUtility.UrlEncode, placeholders: placeholders, placeholderProviders: placeholderProviders);
-            var body = await placeholderResolver!.ResolvePlaceholdersAsync(rule.WebHookBody, transformer: null, placeholders: placeholders, placeholderProviders: placeholderProviders);
-            var headers = await placeholderResolver!.ResolvePlaceholdersAsync(rule.WebHookHeaders, transformer: null, placeholders: placeholders, placeholderProviders: placeholderProviders);
-
-            method = string.IsNullOrWhiteSpace(rule.WebHookMethod)
-                ? HttpMethod.Get.Method
-                : new HttpMethod(rule.WebHookMethod).Method;
-            
-            var requestData = new CustomRequestData
+            requestData = new CustomRequestData
             {
-                RequestMethod = method,
-                Url = url,
-                Body = body,
-                Headers = headers
+                Url = rule.WebHookUrl,
+                RequestMethod = rule.WebHookMethod,
+                Headers = rule.WebHookHeaders,
+                Body = rule.WebHookBody,
             };
+            
+            var placeholderResolver = serviceScope.ServiceProvider.GetService(typeof(IPlaceholderResolver)) as IPlaceholderResolver;
+            await requestData.ResolvePlaceholdersAsync(placeholderResolver!, placeholders, placeholderProviders);
 
-            var httpRequestMessage = requestData?.CreateRequest();
+            var httpRequestMessage = requestData.CreateRequest();
             if (httpRequestMessage == null) return;
+            
             await httpClient.SendAsync(httpRequestMessage);
-            result = $"Sent {method} request to '{url}'.";
+            result = $"Sent {requestData.RequestMethod} request to '{requestData.Url}'.";
         }
         catch (Exception ex)
         {
-            result = $"Exception while attempting to send {method} request to '{url}': {ex}";
-            logger.LogError(ex, "Failed to send webhook notification to '{url}'", url);
+            result = $"Exception while attempting to send {requestData?.RequestMethod ?? rule.WebHookMethod} request to '{requestData?.Url ?? rule.WebHookUrl}': {ex}";
+            logger.LogError(ex, "Failed to send webhook notification to '{url}'", requestData?.Url ?? rule.WebHookUrl);
         }
         
         var localRule = dbContext.NotificationRules.First(x => x.Id == rule.Id);

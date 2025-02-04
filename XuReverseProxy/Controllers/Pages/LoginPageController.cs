@@ -17,8 +17,12 @@ using XuReverseProxy.Models.ViewModels.Pages;
 namespace XuReverseProxy.Controllers.Pages;
 
 [Route("auth/login/[action]")]
-public class LoginPageController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
-    IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext dbContext, INotificationService notificationService) : Controller
+public class LoginPageController(
+    UserManager<ApplicationUser> userManager,
+    SignInManager<ApplicationUser> signInManager,
+    IOptionsMonitor<ServerConfig> serverConfig,
+    ApplicationDbContext dbContext,
+    INotificationService notificationService) : Controller
 {
     [HttpGet("/auth/login")]
     public IActionResult Index([FromQuery] string? @return = null, [FromQuery] string? e = null)
@@ -46,7 +50,9 @@ public class LoginPageController(UserManager<ApplicationUser> userManager, SignI
                 ServerName = serverConfig.CurrentValue.Name,
                 ReturnUrl = @return,
                 ErrorCode = e,
-                IsRestrictedToLocalhost = serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext),
+                IsRestrictedToLocalhost =
+                    serverConfig.CurrentValue.Security.RestrictAdminToLocalhost &&
+                    !TKRequestUtils.IsLocalRequest(Request.HttpContext),
                 AllowCreateAdmin = allowCreateAdmin,
                 FreshTotpSecret = allowCreateAdmin ? TotpUtils.GenerateNewKey() : null
             }
@@ -61,7 +67,8 @@ public class LoginPageController(UserManager<ApplicationUser> userManager, SignI
         await AuthUtils.RandomAuthDelay();
 
         if (!ModelState.IsValid) return BadRequest();
-        else if (serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
+        else if (serverConfig.CurrentValue.Security.RestrictAdminToLocalhost &&
+                 !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
 
         IActionResult createResult(bool success, string? redirect = null, string? error = null)
             => Json(new LoginResponse { Success = success, Redirect = redirect, Error = error });
@@ -88,10 +95,12 @@ public class LoginPageController(UserManager<ApplicationUser> userManager, SignI
     {
         if (!ModelState.IsValid) return BadRequest();
         else if (userManager.Users.Any()) return createResult(false, error: "An admin account already exists.");
-        else if (serverConfig.CurrentValue.Security.RestrictAdminToLocalhost && !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
+        else if (serverConfig.CurrentValue.Security.RestrictAdminToLocalhost &&
+                 !TKRequestUtils.IsLocalRequest(Request.HttpContext)) return createResult(false);
 
         var enableTotp = !string.IsNullOrWhiteSpace(request.TOTPSecret);
-        if (enableTotp && !TotpUtils.ValidateCode(request.TOTPSecret, request.TOTPCode)) return createResult(false, error: "Invalid TOTP code");
+        if (enableTotp && !TotpUtils.ValidateCode(request.TOTPSecret, request.TOTPCode))
+            return createResult(false, error: "Invalid TOTP code");
 
         IActionResult createResult(bool success, string? redirect = null, string? error = null)
             => Json(new CreateAccountResponse { Success = success, Redirect = redirect, Error = error });
@@ -124,7 +133,10 @@ public class LoginPageController(UserManager<ApplicationUser> userManager, SignI
 
         static ApplicationUserRecoveryCode createNewRecoveryCode(ApplicationUser user)
         {
-            return new ApplicationUserRecoveryCode { UserId = user.Id, RecoveryCode = $"{Guid.NewGuid()}-{Guid.NewGuid()}-{Guid.NewGuid()}" };
+            return new ApplicationUserRecoveryCode
+            {
+                UserId = user.Id, RecoveryCode = $"{Guid.NewGuid()}-{Guid.NewGuid()}-{Guid.NewGuid()}"
+            };
         }
     }
 
@@ -151,6 +163,7 @@ public class LoginPageController(UserManager<ApplicationUser> userManager, SignI
         => RedirectToAction(nameof(Login), new { @return = @return ?? "/", e = "denied" });
 
     #region Helpers
+
     private async Task<(bool success, string? error)> TryLoginUser(string username, string password, string? totpCode)
     {
         const string loginErrorMessage = "Invalid username, password or TOTP code.";
@@ -164,7 +177,8 @@ public class LoginPageController(UserManager<ApplicationUser> userManager, SignI
         var usernamePasswordOk = await userManager.CheckPasswordAsync(user, password);
         if (usernamePasswordOk && user.TOTPEnabled)
         {
-            if (!TotpUtils.ValidateCode(user.TOTPSecretKey, totpCode)) return (success: false, error: loginErrorMessage);
+            if (!TotpUtils.ValidateCode(user.TOTPSecretKey, totpCode))
+                return (success: false, error: loginErrorMessage);
 
             // Update security timestamp before logging in to invalidate any other sessions
             if (serverConfig.CurrentValue.Security.InvalidateAllSessionsOnAdminLogin)
@@ -183,16 +197,19 @@ public class LoginPageController(UserManager<ApplicationUser> userManager, SignI
         var ipData = TKIPAddressUtils.ParseIP(rawIp, acceptLocalhostString: true);
         appUser.LastConnectedFromIP = ipData.IP;
 
-        dbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(Request.HttpContext, $"Logged in from '{ipData?.IP}'.")
-            .TrySetAdminUserId(appUser.Id));
+        dbContext.AdminAuditLogEntries.Add(
+            new AdminAuditLogEntry(Request.HttpContext, $"Logged in from '{ipData?.IP}'.")
+                .TrySetAdminUserId(appUser.Id));
 
         await dbContext.SaveChangesAsync();
 
         return (success: true, error: null);
     }
+
     #endregion
 
     #region Request models
+
     [GenerateFrontendModel]
     public class LoginRequest : IProvidesPlaceholders
     {
@@ -202,10 +219,9 @@ public class LoginPageController(UserManager<ApplicationUser> userManager, SignI
         public string? RecoveryCode { get; set; }
         public string? ReturnPath { get; set; }
 
-        public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
+        public void ProvidePlaceholders(Dictionary<string, string?> values)
         {
-            return template
-                .Replace("{{Username}}", transformer(Username), StringComparison.OrdinalIgnoreCase);
+            values["Username"] = Username;
         }
     }
 
@@ -233,5 +249,6 @@ public class LoginPageController(UserManager<ApplicationUser> userManager, SignI
         public string? Redirect { get; internal set; }
         public string? Error { get; internal set; }
     }
+
     #endregion
 }

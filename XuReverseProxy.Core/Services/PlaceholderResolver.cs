@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using System.Text.RegularExpressions;
+using System.Web;
 using XuReverseProxy.Core.Abstractions;
 using XuReverseProxy.Core.Models.DbEntity;
 
@@ -6,99 +8,127 @@ namespace XuReverseProxy.Core.Services;
 
 public interface IPlaceholderResolver
 {
-    Task<string?> ResolvePlaceholdersAsync(string? template, Func<string?, string?>? transformer = null,
+    Task<string?> ResolvePlaceholdersAsync(string? template, Func<string?, string?>? defaultTransformer = null,
         Dictionary<string, string?>? placeholders = null, params IProvidesPlaceholders?[] placeholderProviders);
 }
 
-public class PlaceholderResolver(ApplicationDbContext dbContext) : IPlaceholderResolver
+public partial class PlaceholderResolver(ApplicationDbContext dbContext) : IPlaceholderResolver
 {
     private static readonly CultureInfo _placeholderLocale = CultureInfo.CreateSpecificCulture("en");
+    private static readonly Regex _placeholderRegex = PlaceholderRegex();
 
     public async Task<string?> ResolvePlaceholdersAsync(string? template,
-        Func<string?, string?>? transformer = null,
+        Func<string?, string?>? defaultTransformer = null,
         Dictionary<string, string?>? placeholders = null,
         params IProvidesPlaceholders?[] placeholderProviders)
     {
-        template = await ResolvePlaceholdersInternalAsync(template, transformer, placeholders, placeholderProviders, iterationCounter: 0);
+        template = await ResolvePlaceholdersInternalAsync(template, defaultTransformer, placeholders,
+            placeholderProviders);
         return template;
     }
 
     private async Task<string?> ResolvePlaceholdersInternalAsync(string? template,
-        Func<string?, string?>? transformer,
+        Func<string?, string?>? defaultTransformer,
         Dictionary<string, string?>? placeholders,
-        IProvidesPlaceholders?[] placeholderProviders,
-        int iterationCounter)
+        IProvidesPlaceholders?[] placeholderProviders)
     {
         if (string.IsNullOrWhiteSpace(template)) return template;
-        var originalTemplate = template;
+        defaultTransformer ??= v => v ?? string.Empty;
 
-        transformer ??= v => v ?? string.Empty;
+        var placeholdersInTemplate = ExtractPlaceholderData(template);
+        if (placeholdersInTemplate.Count == 0) return template;
 
-        // Given dict
-        template = ResolveDictionaryPlaceholders(template, transformer, placeholders);
-
-        // Global variables
-        template = await ResolveGlobalVariablesAsync(template, transformer)!;
-
-        // Common
-        template = ResolveCommonPlaceholders(template, transformer)!;
-
-        // Given providers
-        foreach (var placeholderProvider in placeholderProviders!)
+        // Build placeholder dict
+        var dict = new Dictionary<string, string?>(placeholders ?? []);
+        SetCommonPlaceholders(dict);
+        await SetGlobalVariablesAsync(dict);
+        if (placeholderProviders != null)
         {
-            if (placeholderProvider != null) template = placeholderProvider.ResolvePlaceholders(template, transformer);
+            foreach (var placeholderProvider in placeholderProviders)
+            {
+                placeholderProvider?.ProvidePlaceholders(dict);
+            }
         }
 
-        if (iterationCounter < 3 && template != originalTemplate)
+        for (int i = 0; i < 3; i++)
         {
-            template = await ResolvePlaceholdersInternalAsync(template, transformer, placeholders, placeholderProviders, iterationCounter++);
-        }
-
-        return template;
-    }
-
-    private string? ResolveDictionaryPlaceholders(string? template, Func<string?, string?>? transformer, Dictionary<string, string?>? placeholders)
-    {
-        if (placeholders == null || string.IsNullOrWhiteSpace(template)) return template;
-        string transform(string val) => transformer?.Invoke(val) ?? val;
-
-        foreach (var placeholder in placeholders)
-        {
-            var value = placeholder.Value == null ? string.Empty : transform(placeholder.Value);
-            template = template?.Replace($"{{{{{placeholder.Key}}}}}", value, StringComparison.OrdinalIgnoreCase);
+            var before = template;
+            template = ResolveDictionaryPlaceholders(template, defaultTransformer, dict, placeholdersInTemplate);
+            if (template == before) break;
+            placeholdersInTemplate = ExtractPlaceholderData(template);
         }
 
         return template;
     }
 
-    private string? ResolveCommonPlaceholders(string? template, Func<string?, string?>? transformer = null)
+    private List<PlaceholderData> ExtractPlaceholderData(string? template)
     {
-        if (string.IsNullOrWhiteSpace(template)) return template;
-        string transform(string val) => transformer?.Invoke(val) ?? val;
+        if (string.IsNullOrWhiteSpace(template)) return [];
 
-        return template
-            ?.Replace("{{weekday}}", transform(DateTime.Now.DayOfWeek.ToString()), StringComparison.OrdinalIgnoreCase)
-            ?.Replace("{{monthName}}", transform(DateTime.Now.ToString("MMMM", _placeholderLocale)), StringComparison.OrdinalIgnoreCase)
-            ?.Replace("{{dayOfMonth}}", transform(DateTime.Now.Day.ToString(_placeholderLocale)), StringComparison.OrdinalIgnoreCase)
-            ?.Replace("{{hour}}", transform(DateTime.Now.Hour.ToString(_placeholderLocale)), StringComparison.OrdinalIgnoreCase)
-            ?.Replace("{{minute}}", transform(DateTime.Now.Minute.ToString(_placeholderLocale)), StringComparison.OrdinalIgnoreCase)
-            ?.Replace("{{month}}", transform(DateTime.Now.Month.ToString(_placeholderLocale)), StringComparison.OrdinalIgnoreCase)
-            ?.Replace("{{year}}", transform(DateTime.Now.Year.ToString(_placeholderLocale)), StringComparison.OrdinalIgnoreCase)
-            ?.Replace("{{guid}}", transform(Guid.NewGuid().ToString()), StringComparison.OrdinalIgnoreCase);
+        var datas = new Dictionary<string, PlaceholderData>();
+        foreach (var match in _placeholderRegex.Matches(template).OfType<Match>())
+        {
+            var data = new PlaceholderData(match.Groups[0].Value, match.Groups["name"].Value,
+                match.Groups["transform"].Value);
+            datas[data.Raw] = data;
+        }
+
+        return datas.Values.ToList();
     }
 
-    private async Task<string?> ResolveGlobalVariablesAsync(string? template, Func<string?, string?>? transformer)
+    private record PlaceholderData(string Raw, string Name, string? TransformerId);
+
+    private string? ResolveDictionaryPlaceholders(string? template, Func<string?, string?>? defaultTransformer,
+        Dictionary<string, string?>? values, List<PlaceholderData> placeholdersInTemplate)
     {
-        if (string.IsNullOrWhiteSpace(template)) return template;
-        string transform(string val) => transformer?.Invoke(val) ?? val;
+        if (values == null || string.IsNullOrWhiteSpace(template)) return template;
+
+        foreach (var placeholder in placeholdersInTemplate)
+        {
+            if (!values.TryGetValue(placeholder.Name, out string? value)) continue;
+            value = TransformValue(value, defaultTransformer, placeholder.TransformerId);
+            template = template?.Replace(placeholder.Raw, value, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return template;
+    }
+
+    private void SetCommonPlaceholders(Dictionary<string, string?> items)
+    {
+        items["weekday"] = DateTime.Now.DayOfWeek.ToString();
+        items["monthName"] = DateTime.Now.ToString("MMMM", _placeholderLocale);
+        items["dayOfMonth"] = DateTime.Now.Day.ToString(_placeholderLocale);
+        items["hour"] = DateTime.Now.Hour.ToString(_placeholderLocale);
+        items["minute"] = DateTime.Now.Minute.ToString(_placeholderLocale);
+        items["month"] = DateTime.Now.Month.ToString(_placeholderLocale);
+        items["year"] = DateTime.Now.Year.ToString(_placeholderLocale);
+        items["guid"] = Guid.NewGuid().ToString();
+    }
+
+    private async Task SetGlobalVariablesAsync(Dictionary<string, string?> items)
+    {
+        if (dbContext == null) return;
 
         var globalVars = await dbContext.GetWithCacheAsync(x => x.GlobalVariables);
         foreach (var gvar in globalVars)
         {
-            if (string.IsNullOrWhiteSpace(gvar.Name)) continue;
-            template = template?.Replace($"{{{{{gvar.Name}}}}}", gvar.Value == null ? string.Empty : transform(gvar.Value), StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(gvar.Name) || gvar.Value == null) continue;
+            items[gvar.Name] = gvar.Value;
         }
-
-        return template;
     }
+
+    private string? TransformValue(string? value, Func<string?, string?>? transformer, string? transformerId)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return value;
+
+        if (transformerId == "url-encode") value = HttpUtility.UrlEncode(value);
+        else if (transformerId == "json-string")
+            value = value.Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r");
+        else if (transformer != null && transformerId != "raw") return transformer(value);
+
+        return value;
+    }
+
+    [GeneratedRegex(@"{{(?<name>\w*):?(?<transform>[\w-]+)?}}")]
+    private static partial Regex PlaceholderRegex();
 }

@@ -9,7 +9,9 @@ public class ProxyClientIdentity : IProvidesPlaceholders, IHasId
     public Guid Id { get; set; }
 
     public string? IP { get; set; }
+
     public string? UserAgent { get; set; }
+
     //public string? Fingerprint { get; set; }
     public string? Note { get; set; }
 
@@ -25,13 +27,12 @@ public class ProxyClientIdentity : IProvidesPlaceholders, IHasId
     public ICollection<ProxyClientIdentitySolvedChallengeData> SolvedChallenges { get; } = [];
     public ICollection<ProxyClientIdentityData> Data { get; } = [];
 
-    public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
+    public void ProvidePlaceholders(Dictionary<string, string?> values)
     {
-        return template
-            .Replace("{{Client.Id}}", transformer(Id.ToString()), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{Client.IP}}", transformer(IP), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{Client.Note}}", transformer(Note), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{Client.UserAgent}}", transformer(UserAgent), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{Client.BlockedMessage}}", transformer(BlockedMessage), StringComparison.OrdinalIgnoreCase);
+        values["Client.Id"] = Id.ToString();
+        values["Client.IP"] = IP;
+        values["Client.Note"] = Note;
+        values["Client.UserAgent"] = UserAgent;
+        values["Client.BlockedMessage"] = BlockedMessage;
     }
 }

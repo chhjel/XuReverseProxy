@@ -31,16 +31,15 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
     public ICollection<ConditionData> ProxyConditions { get; } = [];
     public ICollection<HtmlTemplate> HtmlTemplateOverrides { get; } = [];
 
-    public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
+    public void ProvidePlaceholders(Dictionary<string, string?> values)
     {
-        return template
-            .Replace("{{ProxyConfig.Id}}", transformer(Id.ToString()), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{ProxyConfig.Name}}", transformer(Name), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{ProxyConfig.Subdomain}}", transformer(Subdomain), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{ProxyConfig.Port}}", transformer(Port?.ToString()), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{ProxyConfig.ChallengeTitle}}", transformer(ChallengeTitle), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{ProxyConfig.ChallengeDescription}}", transformer(ChallengeDescription), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{ProxyConfig.DestinationPrefix}}", transformer(DestinationPrefix), StringComparison.OrdinalIgnoreCase);
+        values["ProxyConfig.Id"] = Id.ToString();
+        values["ProxyConfig.Name"] = Name;
+        values["ProxyConfig.Subdomain"] = Subdomain;
+        values["ProxyConfig.Port"] = Port?.ToString();
+        values["ProxyConfig.ChallengeTitle"] = ChallengeTitle;
+        values["ProxyConfig.ChallengeDescription"] = ChallengeDescription;
+        values["ProxyConfig.DestinationPrefix"] = DestinationPrefix;
     }
 }
 

@@ -1,5 +1,8 @@
 ﻿using System.Text;
+using System.Web;
+using XuReverseProxy.Core.Abstractions;
 using XuReverseProxy.Core.Attributes;
+using XuReverseProxy.Core.Services;
 
 namespace XuReverseProxy.Core.Models.Common;
 
@@ -10,6 +13,14 @@ public class CustomRequestData
     public string? Url { get; set; }
     public string? Headers { get; set; }
     public string? Body { get; set; }
+
+    public async Task ResolvePlaceholdersAsync(IPlaceholderResolver placeholderResolver, Dictionary<string, string?>? placeholders = null, params IProvidesPlaceholders?[] placeholderProviders)
+    {
+        Url = await placeholderResolver.ResolvePlaceholdersAsync(Url, defaultTransformer: HttpUtility.UrlEncode, placeholders: placeholders, placeholderProviders: placeholderProviders);
+        RequestMethod = await placeholderResolver!.ResolvePlaceholdersAsync(RequestMethod, defaultTransformer: null, placeholders: placeholders, placeholderProviders: placeholderProviders);
+        Headers = await placeholderResolver!.ResolvePlaceholdersAsync(Headers, defaultTransformer: null, placeholders: placeholders, placeholderProviders: placeholderProviders);
+        Body = await placeholderResolver!.ResolvePlaceholdersAsync(Body, defaultTransformer: null, placeholders: placeholders, placeholderProviders: placeholderProviders);
+    }
 
     public HttpRequestMessage? CreateRequest(string? url = null)
     {

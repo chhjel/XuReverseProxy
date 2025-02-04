@@ -34,8 +34,8 @@ public class ProxyChallengeTypeLogin : ProxyChallengeTypeBase
         await AuthUtils.RandomAuthDelay();
 
         var placeholderResolver = context.GetService<IPlaceholderResolver>();
-        var expectedUsername = await placeholderResolver.ResolvePlaceholdersAsync(Username, transformer: null, placeholders: null, context.ClientIdentity, context.ProxyConfig);
-        var expectedPassword = await placeholderResolver.ResolvePlaceholdersAsync(Password, transformer: null, placeholders: null, context.ClientIdentity, context.ProxyConfig);
+        var expectedUsername = await placeholderResolver.ResolvePlaceholdersAsync(Username, defaultTransformer: null, placeholders: null, context.ClientIdentity, context.ProxyConfig);
+        var expectedPassword = await placeholderResolver.ResolvePlaceholdersAsync(Password, defaultTransformer: null, placeholders: null, context.ClientIdentity, context.ProxyConfig);
 
         var solved = request.Username?.Equals(expectedUsername, StringComparison.InvariantCulture) == true
                && request.Password?.Equals(expectedPassword, StringComparison.InvariantCulture) == true;

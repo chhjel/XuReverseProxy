@@ -10,8 +10,7 @@ public class ProxyAuthenticationData : IHasId, IProvidesPlaceholders
 {
     public Guid Id { get; set; }
     public Guid ProxyConfigId { get; set; }
-    [JsonIgnore]
-    public ProxyConfig ProxyConfig { get; set; } = null!;
+    [JsonIgnore] public ProxyConfig ProxyConfig { get; set; } = null!;
     public int Order { get; set; }
 
     /// <summary>
@@ -30,10 +29,9 @@ public class ProxyAuthenticationData : IHasId, IProvidesPlaceholders
     public TimeSpan? SolvedDuration { get; set; }
     public ICollection<ConditionData> Conditions { get; } = [];
 
-    public string ResolvePlaceholders(string template, Func<string?, string?> transformer)
+    public void ProvidePlaceholders(Dictionary<string, string?> values)
     {
-        return template
-            .Replace("{{Auth.Id}}", transformer(Id.ToString()), StringComparison.OrdinalIgnoreCase)
-            .Replace("{{Auth.ChallengeTypeId}}", transformer(ChallengeTypeId), StringComparison.OrdinalIgnoreCase);
+        values["Auth.Id"] = Id.ToString();
+        values["Auth.ChallengeTypeId"] = ChallengeTypeId;
     }
 }
