@@ -76,8 +76,13 @@ public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
         {
             var serverConfig = context.GetService<IOptionsMonitor<ServerConfig>>();
             var approvalUrl = $"{serverConfig.CurrentValue.Domain.GetFullAdminDomain()}/proxyAuth/approve/{context.ClientIdentity.Id}/{context.ProxyConfig.Id}/{context.AuthenticationData.Id}/{context.SolvedId}";
+            var approvalApiUrl = $"{serverConfig.CurrentValue.Domain.GetFullAdminDomain()}/proxyAuth/approve/{context.ClientIdentity.Id}/{context.AuthenticationData.Id}/{context.SolvedId}";
 
-            var placeholders = new Dictionary<string, string?> { { "url", approvalUrl } };
+            var placeholders = new Dictionary<string, string?>
+            {
+                { "url", approvalUrl },
+                { "approvalApiUrl", approvalApiUrl }
+            };
             var placeholderProviders = new IProvidesPlaceholders?[] { context.ClientIdentity, context.ProxyConfig, context.AuthenticationData };
             var placeholderResolver = context.GetService<IPlaceholderResolver>();
             await RequestData.ResolvePlaceholdersAsync(placeholderResolver, placeholders, placeholderProviders);

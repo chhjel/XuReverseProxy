@@ -32,7 +32,11 @@ export default class ProxyChallengeTypeManualApprovalEditor extends Vue {
   placeholdersExtra: Array<PlaceholderInfo> = [
     {
       name: "url",
-      description: "The generated, escaped url of the page where you can approve the request.",
+      description: "The generated url of the page where you can approve the request.",
+    },
+    {
+      name: "approvalApiUrl",
+      description: "The generated url of the endpoint that can be used to manage the request.",
     },
   ];
   placeholders: Array<PlaceholderGroupInfo> = ManualApprovalUrlPlaceholders;
