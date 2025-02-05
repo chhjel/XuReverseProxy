@@ -86,7 +86,8 @@ public class ProxyChallengeTypeManualApproval : ProxyChallengeTypeBase
             if (httpRequestMessage == null) return new(false, "Webhook not configured.");
 
             var httpClient = context.GetService<IHttpClientFactory>().CreateClient();
-            await httpClient.SendAsync(httpRequestMessage);
+            var response = await httpClient.SendAsync(httpRequestMessage);
+            response.EnsureSuccessStatusCode();
 
             await context.SetDataAsync(DataKeyRequested, "true");
             await context.SetDataAsync(DataKeyRequestedAt, DateTime.UtcNow.Ticks.ToString());

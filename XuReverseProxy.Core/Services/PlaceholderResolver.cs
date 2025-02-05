@@ -129,6 +129,6 @@ public partial class PlaceholderResolver(ApplicationDbContext dbContext) : IPlac
         return value;
     }
 
-    [GeneratedRegex(@"{{(?<name>[\w\-\.]*):?(?<transform>[\w-]+)?}}")]
+    [GeneratedRegex(@"{{(?<name>[\w\-\._]*):?(?<transform>[\w-]+)?}}")]
     private static partial Regex PlaceholderRegex();
 }
