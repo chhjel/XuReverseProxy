@@ -149,6 +149,13 @@ export default class ProxyConfigEditor extends Vue {
           v-model:value="localValue.stripUpstreamSourceTraces"
           class="mt-2 mb-2"
         />
+        <checkbox-component
+          label="Use original host header."
+          offLabel="Use downstream target as host header."
+          :disabled="disabled"
+          v-model:value="localValue.useOriginalHost"
+          class="mt-2 mb-2"
+        />
       </div>
     </div>
 

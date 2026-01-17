@@ -455,6 +455,7 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
 
         context.Items[nameof(ProxyConfig.StripUpstreamSourceTraces)] = proxyConfig.StripUpstreamSourceTraces;
         context.Items[nameof(ProxyConfig.RewriteDownstreamOrigin)] = proxyConfig.RewriteDownstreamOrigin;
+        context.Items[nameof(ProxyConfig.UseOriginalHost)] = proxyConfig.UseOriginalHost;
 
         var httpClient = new HttpMessageInvoker(socksHandler);
         var error = await forwarder.SendAsync(context, destinationPrefix, httpClient, requestOptions, transformer);

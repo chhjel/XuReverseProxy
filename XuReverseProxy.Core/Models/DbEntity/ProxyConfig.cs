@@ -24,6 +24,7 @@ public class ProxyConfig : IHasId, IProvidesPlaceholders
 
     public bool RewriteDownstreamOrigin { get; set; }
     public bool StripUpstreamSourceTraces { get; set; }
+    public bool UseOriginalHost { get; set; }
 
     public bool ShowConditionsNotMet { get; set; }
 

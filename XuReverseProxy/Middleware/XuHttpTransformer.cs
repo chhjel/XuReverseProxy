@@ -25,6 +25,7 @@ internal class XuHttpTransformer : HttpTransformer
     {
         var stripSourceTraces = httpContext.Items[nameof(ProxyConfig.StripUpstreamSourceTraces)] is bool strip && strip;
         var rewriteOrigin = httpContext.Items[nameof(ProxyConfig.RewriteDownstreamOrigin)] is bool rewriteOrgn && rewriteOrgn;
+        var useOriginalHost = httpContext.Items[nameof(ProxyConfig.UseOriginalHost)] is bool orgHost && orgHost;
 
         if (rewriteOrigin && !string.IsNullOrWhiteSpace(httpContext.Request.Headers.Origin))
         {
@@ -43,7 +44,8 @@ internal class XuHttpTransformer : HttpTransformer
         }
 
         await _defaultTransformer.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
-
+        
+        if (useOriginalHost) proxyRequest.Headers.Host = httpContext.Request.Host.Value;
         if (stripSourceTraces) RemoveSourceHeaders(proxyRequest.Headers);
     }
 
