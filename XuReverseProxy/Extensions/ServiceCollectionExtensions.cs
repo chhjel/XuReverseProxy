@@ -75,8 +75,11 @@ public static class ServiceCollectionExtensions
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
             // Respect downstream reverse proxy headers
-            ForwardedHeaders = ForwardedHeaders.XForwardedProto,
-            RequireHeaderSymmetry = false
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    
+            // Allow any rev proxy in front of this
+            KnownNetworks = { }, 
+            KnownProxies = { }
         });
         app.UseHttpsRedirection();
         app.UseStaticFiles();
