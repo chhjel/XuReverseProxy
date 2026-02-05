@@ -77,6 +77,9 @@ public static class ServiceCollectionExtensions
             // Respect downstream reverse proxy headers
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
     
+            // Trust ingress
+            ForwardLimit = null,
+            
             // Allow any rev proxy in front of this
             KnownNetworks = { }, 
             KnownProxies = { }

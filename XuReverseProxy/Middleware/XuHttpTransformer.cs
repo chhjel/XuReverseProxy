@@ -24,7 +24,8 @@ internal class XuHttpTransformer : HttpTransformer
         string destinationPrefix, CancellationToken cancellationToken)
     {
         var stripSourceTraces = httpContext.Items[nameof(ProxyConfig.StripUpstreamSourceTraces)] is bool strip && strip;
-        var rewriteOrigin = httpContext.Items[nameof(ProxyConfig.RewriteDownstreamOrigin)] is bool rewriteOrgn && rewriteOrgn;
+        var rewriteOrigin = httpContext.Items[nameof(ProxyConfig.RewriteDownstreamOrigin)] is bool rewriteOrgn &&
+                            rewriteOrgn;
         var useOriginalHost = httpContext.Items[nameof(ProxyConfig.UseOriginalHost)] is bool orgHost && orgHost;
 
         if (rewriteOrigin && !string.IsNullOrWhiteSpace(httpContext.Request.Headers.Origin))
@@ -43,10 +44,20 @@ internal class XuHttpTransformer : HttpTransformer
             httpContext.Request.Headers.Cookie = RemoveInternalCookies(httpContext.Request.Headers.Cookie);
         }
 
-        await _defaultTransformer.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
-        
+        await _defaultTransformer.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix,
+            cancellationToken);
+
         if (useOriginalHost) proxyRequest.Headers.Host = httpContext.Request.Host.Value;
+
         if (stripSourceTraces) RemoveSourceHeaders(proxyRequest.Headers);
+        else
+        {
+            var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString();
+            if (remoteIp != null)
+            {
+                proxyRequest.Headers.TryAddWithoutValidation("X-Forwarded-For", remoteIp);
+            }
+        }
     }
 
     private void RemoveSourceHeaders(HttpRequestHeaders headers)
@@ -60,12 +71,12 @@ internal class XuHttpTransformer : HttpTransformer
         }
     }
 
-    private static readonly HashSet<string> _internalCookieNames = new(new[] {
-            ProxyClientIdentityService.ClientIdCookieName,
-            ServiceCollectionExtensions.AuthCookieName,
-            ServiceCollectionExtensions.IdentityCookieName,
-            ServiceCollectionExtensions.AntiForgeryCookieName
-        });
+    private static readonly HashSet<string> _internalCookieNames = new(new[]
+    {
+        ProxyClientIdentityService.ClientIdCookieName, ServiceCollectionExtensions.AuthCookieName,
+        ServiceCollectionExtensions.IdentityCookieName, ServiceCollectionExtensions.AntiForgeryCookieName
+    });
+
     private static string? RemoveInternalCookies(string? rawCookieHeader)
     {
         if (string.IsNullOrWhiteSpace(rawCookieHeader)) return rawCookieHeader;
