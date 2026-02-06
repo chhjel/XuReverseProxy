@@ -70,7 +70,8 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         // Prevent forwarding admin interface
         if ($"{subdomain}" == $"{serverConfig.CurrentValue.Domain.AdminSubdomain}")
         {
-            await HandleAdminDomainRequestAsync(context, serverConfig, applicationDbContext, runtimeServerConfig, userManager, signInManager, notificationService, ipData);
+            await HandleAdminDomainRequestAsync(context, serverConfig, applicationDbContext, runtimeServerConfig,
+                userManager, signInManager, notificationService, ipData);
             return;
         }
         // Check killswitch
@@ -118,8 +119,10 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         // Check blocked
         if (clientIdentity?.Blocked == true)
         {
-            var clientBlockedTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ClientBlocked, proxyConfig);
-            var html = (await placeholderResolver.ResolvePlaceholdersAsync(clientBlockedTemplate.Html, defaultTransformer: null, placeholders: null, clientIdentity));
+            var clientBlockedTemplate =
+                await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ClientBlocked, proxyConfig);
+            var html = (await placeholderResolver.ResolvePlaceholdersAsync(clientBlockedTemplate.Html,
+                defaultTransformer: null, placeholders: null, clientIdentity));
             await SetResponseAsync(context, html, clientBlockedTemplate.ResponseCode);
             return;
         }
@@ -128,8 +131,10 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         var conditionContext = conditionChecker.CreateContext();
         if (!conditionChecker.ConditionsPassed(proxyConfig.ProxyConditions, conditionContext))
         {
-            var conditionsNotMetTemplate = await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ProxyConditionsNotMet, proxyConfig);
-            var html = (await placeholderResolver.ResolvePlaceholdersAsync(conditionsNotMetTemplate.Html, defaultTransformer: null, placeholders: null, clientIdentity));
+            var conditionsNotMetTemplate =
+                await htmlTemplateService.GetHtmlTemplateAsync(HtmlTemplateType.ProxyConditionsNotMet, proxyConfig);
+            var html = (await placeholderResolver.ResolvePlaceholdersAsync(conditionsNotMetTemplate.Html,
+                defaultTransformer: null, placeholders: null, clientIdentity));
             await SetResponseAsync(context, html, conditionsNotMetTemplate.ResponseCode);
             return;
         }
@@ -138,29 +143,32 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         var allowedCacheKey = $"__client_allowed_{proxyConfig.Id}_{clientIdentity?.Id}";
         if (memoryCache.TryGetValue(allowedCacheKey, out _))
         {
-            await ForwardRequestAsync(context, forwarder, serverConfig, proxyClientIdentityService, notificationService, proxyConfig, clientIdentity);
+            await ForwardRequestAsync(context, forwarder, serverConfig, proxyClientIdentityService, notificationService,
+                proxyConfig, clientIdentity);
             return;
         }
 
         // Process authentications if any
         if (requiresAuthentication && clientIdentity != null)
         {
-            var handled = await TryHandleProxyAuthAPIAsync(context, authChallengeFactory, proxyClientIdentityService, applicationDbContext,
+            var handled = await TryHandleProxyAuthAPIAsync(context, authChallengeFactory, proxyClientIdentityService,
+                applicationDbContext,
                 serviceProvider, proxyConfig, clientIdentity, proxyChallengeService);
             if (handled) return;
 
             var allChallengesSolved = true;
             var pageModel = new ProxyChallengePageFrontendModel()
             {
-                Title = proxyConfig.ChallengeTitle ?? string.Empty,
-                Description = proxyConfig.ChallengeDescription
+                Title = proxyConfig.ChallengeTitle ?? string.Empty, Description = proxyConfig.ChallengeDescription
             };
             foreach (var auth in authentications)
             {
-                var authResult = await ProcessAuthenticationCheckAsync(auth, clientIdentity, proxyConfig, context, pageModel, applicationDbContext,
+                var authResult = await ProcessAuthenticationCheckAsync(auth, clientIdentity, proxyConfig, context,
+                    pageModel, applicationDbContext,
                     authChallengeFactory, serviceProvider, proxyChallengeService, conditionContext);
                 if (authResult == AuthCheckResult.NotSolved) allChallengesSolved = false;
             }
+
             pageModel.ChallengeModels = pageModel.ChallengeModels.OrderBy(x => x.Order).ToList();
 
             // Show challenge page if everything isnt solved yet
@@ -173,17 +181,17 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
 
         // Allowed => update cache & forward
         memoryCache.Set(allowedCacheKey, true, DateTimeOffset.Now + TimeSpan.FromSeconds(5));
-        await ForwardRequestAsync(context, forwarder, serverConfig, proxyClientIdentityService, notificationService, proxyConfig, clientIdentity);
+        await ForwardRequestAsync(context, forwarder, serverConfig, proxyClientIdentityService, notificationService,
+            proxyConfig, clientIdentity);
     }
 
-    private static async Task ForwardRequestAsync(HttpContext context, IHttpForwarder forwarder, 
+    private static async Task ForwardRequestAsync(HttpContext context, IHttpForwarder forwarder,
         IOptionsMonitor<ServerConfig> serverConfig, IProxyClientIdentityService proxyClientIdentityService,
         INotificationService notificationService, ProxyConfig proxyConfig, ProxyClientIdentity? clientIdentity)
     {
         await notificationService.TryNotifyEvent(NotificationTrigger.ClientRequest,
-            new Dictionary<string, string?> {
-                    { "Url", context.Request.GetDisplayUrl() }
-            }, clientIdentity, proxyConfig);
+            new Dictionary<string, string?> { { "Url", context.Request.GetDisplayUrl() } }, clientIdentity,
+            proxyConfig);
 
         if (clientIdentity != null) await proxyClientIdentityService.TryUpdateLastAccessedAtAsync(clientIdentity.Id);
         if (proxyConfig.Mode == ProxyConfigMode.Forward)
@@ -196,8 +204,10 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         }
     }
 
-    private async Task HandleAdminDomainRequestAsync(HttpContext context, IOptionsMonitor<ServerConfig> serverConfig, ApplicationDbContext applicationDbContext,
-        RuntimeServerConfig runtimeServerConfig, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
+    private async Task HandleAdminDomainRequestAsync(HttpContext context, IOptionsMonitor<ServerConfig> serverConfig,
+        ApplicationDbContext applicationDbContext,
+        RuntimeServerConfig runtimeServerConfig, UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
         INotificationService notificationService, TKIPData? ipData)
     {
         if (!context.Items.ContainsKey("IsAdminPage")) context.Items.Add("IsAdminPage", true);
@@ -206,7 +216,8 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         ApplicationUser? adminUser = null;
         if (serverConfig.CurrentValue.Security.BindAdminCookieToIP)
         {
-            (var ipChanged, adminUser) = await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager, signInManager, runtimeServerConfig, notificationService);
+            (var ipChanged, adminUser) = await CheckForChangedUserIP(context, applicationDbContext, ipData, userManager,
+                signInManager, runtimeServerConfig, notificationService);
             if (ipChanged)
             {
                 context.Response.Clear();
@@ -227,43 +238,44 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         if (context.User.Identity?.IsAuthenticated == true)
         {
             await notificationService.TryNotifyEvent(NotificationTrigger.AdminRequests,
-                new Dictionary<string, string?> {
-                        { "Url", context.Request.GetDisplayUrl() }
-                }, adminUser);
+                new Dictionary<string, string?> { { "Url", context.Request.GetDisplayUrl() } }, adminUser);
         }
 
         await nextMiddleware(context);
     }
 
-    private static async Task<(bool ipChanged, ApplicationUser? user)> CheckForChangedUserIP(HttpContext context, ApplicationDbContext applicationDbContext, TKIPData? ipData,
-        UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RuntimeServerConfig serverConfig, INotificationService notificationService)
+    private static async Task<(bool ipChanged, ApplicationUser? user)> CheckForChangedUserIP(HttpContext context,
+        ApplicationDbContext applicationDbContext, TKIPData? ipData,
+        UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
+        RuntimeServerConfig serverConfig, INotificationService notificationService)
     {
         // Don't logout on manual approval page if it doesnt require admin auth
         if (!serverConfig.EnableManualApprovalPageAuthentication)
         {
             var isIgnored = context.Request.Path.ToString().StartsWith("/dist/", StringComparison.OrdinalIgnoreCase)
-                || context.Request.Path.ToString().Equals("/favicon.ico", StringComparison.OrdinalIgnoreCase)
-                || context.Request.Path.ToString().StartsWith("/proxyAuth/approve/", StringComparison.OrdinalIgnoreCase);
+                            || context.Request.Path.ToString()
+                                .Equals("/favicon.ico", StringComparison.OrdinalIgnoreCase)
+                            || context.Request.Path.ToString().StartsWith("/proxyAuth/approve/",
+                                StringComparison.OrdinalIgnoreCase);
             if (isIgnored) return (false, null);
         }
 
         var userId = context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return (false, null);
 
-        if ((await applicationDbContext.Users.FirstOrDefaultAsync(x => x.Id == userId)) is not ApplicationUser user) return (false, null);
+        if ((await applicationDbContext.Users.FirstOrDefaultAsync(x => x.Id == userId)) is not ApplicationUser user)
+            return (false, null);
         if (ipData != null && user.LastConnectedFromIP == ipData.IP) return (false, user);
 
         await userManager.UpdateSecurityStampAsync(user);
         await signInManager.SignOutAsync();
 
-        applicationDbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(context, $"Session IP changed from '{user.LastConnectedFromIP}' to '{ipData?.IP}' causing all user sessions to be terminated."));
+        applicationDbContext.AdminAuditLogEntries.Add(new AdminAuditLogEntry(context,
+            $"Session IP changed from '{user.LastConnectedFromIP}' to '{ipData?.IP}' causing all user sessions to be terminated."));
         await applicationDbContext.SaveChangesAsync();
 
-        await notificationService.TryNotifyEvent(NotificationTrigger.AdminSessionIPChanged, 
-            new Dictionary<string, string?> {
-                { "OldIP", user.LastConnectedFromIP },
-                { "NewIP", ipData?.IP }
-            },
+        await notificationService.TryNotifyEvent(NotificationTrigger.AdminSessionIPChanged,
+            new Dictionary<string, string?> { { "OldIP", user.LastConnectedFromIP }, { "NewIP", ipData?.IP } },
             user);
 
         return (true, user);
@@ -276,9 +288,13 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         ConditionsNotMet,
         Invalid
     }
-    private static async Task<AuthCheckResult> ProcessAuthenticationCheckAsync(ProxyAuthenticationData auth, ProxyClientIdentity clientIdentity,
-        ProxyConfig proxyConfig, HttpContext context, ProxyChallengePageFrontendModel pageModel, ApplicationDbContext applicationDbContext,
-        IProxyAuthenticationChallengeFactory authChallengeFactory, IServiceProvider serviceProvider, IProxyChallengeService proxyChallengeService,
+
+    private static async Task<AuthCheckResult> ProcessAuthenticationCheckAsync(ProxyAuthenticationData auth,
+        ProxyClientIdentity clientIdentity,
+        ProxyConfig proxyConfig, HttpContext context, ProxyChallengePageFrontendModel pageModel,
+        ApplicationDbContext applicationDbContext,
+        IProxyAuthenticationChallengeFactory authChallengeFactory, IServiceProvider serviceProvider,
+        IProxyChallengeService proxyChallengeService,
         ConditionContext conditionContext)
     {
         var conditionsPassed = await proxyChallengeService.ChallengeRequirementPassedAsync(auth.Id, conditionContext);
@@ -292,19 +308,24 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
                 if (!challengeData.All(c => c.Passed))
                 {
                     pageModel.AuthsWithUnfulfilledConditions.Add(new(auth.ChallengeTypeId!,
-                        challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Group, x.Summary, x.Passed)).ToList()));
+                        challengeData.Select(x =>
+                                new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Group, x.Summary, x.Passed))
+                            .ToList()));
                 }
             }
+
             return AuthCheckResult.ConditionsNotMet;
         }
 
-        var challenge = authChallengeFactory.CreateProxyAuthenticationChallenge(auth.ChallengeTypeId, auth.ChallengeJson);
+        var challenge =
+            authChallengeFactory.CreateProxyAuthenticationChallenge(auth.ChallengeTypeId, auth.ChallengeJson);
 
         // Auth type not found => skip
         if (challenge == null)
             return AuthCheckResult.Invalid;
 
-        var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig, clientIdentity, applicationDbContext, serviceProvider, proxyChallengeService);
+        var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig, clientIdentity,
+            applicationDbContext, serviceProvider, proxyChallengeService);
 
         // Check if challenge is auto-solved on load
         var isAutoSolved = await challenge.AutoCheckSolvedOnLoadAsync(challengeContext);
@@ -323,15 +344,20 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
             challengeData ??= await proxyChallengeService.GetChallengeRequirementDataAsync(auth.Id, conditionContext);
             pageModel.ChallengeModels.Add(
                 new(auth.Id, auth.ChallengeTypeId!, auth.Order, solved, frontendModel,
-                    challengeData.Select(x => new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Group, x.Summary, x.Passed)).ToList()));
+                    challengeData.Select(x =>
+                            new ProxyChallengePageFrontendModel.AuthCondition(x.Type, x.Group, x.Summary, x.Passed))
+                        .ToList()));
         }
 
         return solved ? AuthCheckResult.Solved : AuthCheckResult.NotSolved;
     }
 
     #region Proxy auth challenge api
-    private static async Task<bool> TryHandleProxyAuthAPIAsync(HttpContext context, IProxyAuthenticationChallengeFactory authChallengeFactory,
-        IProxyClientIdentityService proxyClientIdentityService, ApplicationDbContext applicationDbContext, IServiceProvider serviceProvider,
+
+    private static async Task<bool> TryHandleProxyAuthAPIAsync(HttpContext context,
+        IProxyAuthenticationChallengeFactory authChallengeFactory,
+        IProxyClientIdentityService proxyClientIdentityService, ApplicationDbContext applicationDbContext,
+        IServiceProvider serviceProvider,
         ProxyConfig? proxyConfig, ProxyClientIdentity? clientIdentity, IProxyChallengeService proxyChallengeService)
     {
         if (proxyConfig == null || clientIdentity == null) return false;
@@ -347,7 +373,8 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         var methodName = pathSegments[1];
         if (!Guid.TryParse(pathSegments[2], out var authId)) return false;
 
-        var auth = proxyConfig?.Authentications?.FirstOrDefault(x => x.Id == authId && x.ChallengeTypeId == challengeTypeId);
+        var auth = proxyConfig?.Authentications?.FirstOrDefault(x =>
+            x.Id == authId && x.ChallengeTypeId == challengeTypeId);
         if (auth == null) return false;
 
         var challenge = authChallengeFactory.CreateProxyAuthenticationChallenge(challengeTypeId, auth.ChallengeJson);
@@ -358,8 +385,10 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
 #endif
 
         var jsonPayload = await context.Request.ReadBodyAsStringAsync();
-        var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig!, clientIdentity, applicationDbContext, serviceProvider, proxyChallengeService);
-        var result = await InvokableProxyAuthMethodUtils.InvokeMethodAsync(challenge, methodName, jsonPayload, challengeContext);
+        var challengeContext = new ProxyChallengeInvokeContext(context, auth, proxyConfig!, clientIdentity,
+            applicationDbContext, serviceProvider, proxyChallengeService);
+        var result =
+            await InvokableProxyAuthMethodUtils.InvokeMethodAsync(challenge, methodName, jsonPayload, challengeContext);
         await ReturnJsonAsync(context, result);
 
         return true;
@@ -371,9 +400,11 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         var json = data == null ? string.Empty : JsonSerializer.Serialize(data, JsonConfig.DefaultOptions);
         await context.Response.WriteAsync(json);
     }
+
     #endregion
 
     #region Proxy auth challenge view
+
     private static async Task ShowAuthChallengeAsync(HttpContext context, ProxyChallengePageFrontendModel pageModel)
     {
         context.Response.StatusCode = StatusCodes.Status200OK;
@@ -404,6 +435,7 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
 </body>
 </html>";
     }
+
     #endregion
 
     private static readonly Guid _internalEndpointGuid = Guid.NewGuid();
@@ -423,45 +455,69 @@ public class ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         return false;
     }
 
-    private static async Task SetResponseAsync(HttpContext context, string? html, int statusCode = StatusCodes.Status200OK)
+    private static async Task SetResponseAsync(HttpContext context, string? html,
+        int statusCode = StatusCodes.Status200OK)
     {
         context.Response.StatusCode = statusCode;
         await context.Response.WriteAsync(html ?? string.Empty);
     }
 
-    private static async Task ForwardRequestAsync(HttpContext context, IHttpForwarder forwarder, ProxyConfig proxyConfig, ServerConfig serverConfig)
+    private static async Task ForwardRequestAsync(HttpContext context, IHttpForwarder forwarder,
+        ProxyConfig proxyConfig, ServerConfig serverConfig)
     {
         var destinationPrefix = proxyConfig.DestinationPrefix;
         if (string.IsNullOrWhiteSpace(destinationPrefix)) return;
 
         var transformer = XuHttpTransformer.Instance;
-        var requestOptions = new ForwarderRequestConfig { ActivityTimeout = TimeSpan.FromSeconds(100) };
-
-        var socksHandler = new SocketsHttpHandler()
+        var requestOptions = new ForwarderRequestConfig
         {
-            UseProxy = false,
-            AllowAutoRedirect = false,
-            AutomaticDecompression = DecompressionMethods.None,
-            UseCookies = false,
-            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current)
+            ActivityTimeout = TimeSpan.FromSeconds(100), AllowResponseBuffering = false
         };
-        if (!serverConfig.Security.ValidateUpstreamCertificateIssues)
-        {
-            socksHandler.SslOptions = new()
-            {
-                RemoteCertificateValidationCallback = (object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors) => true
-            };
-        }
 
         context.Items[nameof(ProxyConfig.StripUpstreamSourceTraces)] = proxyConfig.StripUpstreamSourceTraces;
         context.Items[nameof(ProxyConfig.RewriteDownstreamOrigin)] = proxyConfig.RewriteDownstreamOrigin;
         context.Items[nameof(ProxyConfig.UseOriginalHost)] = proxyConfig.UseOriginalHost;
 
-        var httpClient = new HttpMessageInvoker(socksHandler);
-        var error = await forwarder.SendAsync(context, destinationPrefix, httpClient, requestOptions, transformer);
+        var invoker = GetInvoker(serverConfig.Security.ValidateUpstreamCertificateIssues);
+        var error = await forwarder.SendAsync(context, destinationPrefix, invoker, requestOptions, transformer);
         if (error != ForwarderError.None)
         {
             // todo: handle?
         }
+    }
+
+    private static HttpMessageInvoker? _invokeCache;
+    private static readonly object _invokeCacheLock = new();
+
+    private static HttpMessageInvoker GetInvoker(bool validateCertificate)
+    {
+        lock (_invokeCacheLock)
+        {
+            return _invokeCache ??= CreateInvoker(validateCertificate);
+        }
+    }
+
+    private static HttpMessageInvoker CreateInvoker(bool validateCertificate)
+    {
+        SocketsHttpHandler handler = new()
+        {
+            UseProxy = false,
+            AllowAutoRedirect = false,
+            AutomaticDecompression = DecompressionMethods.None,
+            UseCookies = false,
+            ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current),
+
+            // Config for long-lived streams
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(10),
+            PooledConnectionLifetime = TimeSpan.FromMinutes(60),
+            ConnectTimeout = TimeSpan.FromSeconds(15),
+        };
+
+        if (!validateCertificate)
+        {
+            handler.SslOptions = new() { RemoteCertificateValidationCallback = (_, _, _, _) => true };
+        }
+
+        return new(handler);
     }
 }
