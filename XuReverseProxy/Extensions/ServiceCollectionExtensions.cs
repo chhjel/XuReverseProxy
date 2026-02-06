@@ -16,7 +16,8 @@ namespace XuReverseProxy.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddReverseProxy(this IServiceCollection services, ConfigurationManager configuration, IWebHostEnvironment _)
+    public static IServiceCollection AddReverseProxy(this IServiceCollection services,
+        ConfigurationManager configuration, IWebHostEnvironment _)
     {
         // Config
         services.Configure<ServerConfig>(configuration.GetSection("ServerConfig"));
@@ -55,6 +56,7 @@ public static class ServiceCollectionExtensions
             // Ensure we have rows for all settings
             scope.ServiceProvider.GetService<RuntimeServerConfig>()?.EnsureDatabaseRows();
         }
+
         return app;
     }
 
@@ -76,12 +78,12 @@ public static class ServiceCollectionExtensions
         {
             // Respect downstream reverse proxy headers
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-    
+
             // Trust ingress
             ForwardLimit = null,
-            
+
             // Allow any rev proxy in front of this
-            KnownNetworks = { }, 
+            KnownNetworks = { },
             KnownProxies = { }
         });
         app.UseHttpsRedirection();
@@ -99,7 +101,9 @@ public static class ServiceCollectionExtensions
     public const string IdentityCookieName = "___xurp_identity";
     public const string AuthCookieName = "___xurp_auth";
     public const string AntiForgeryCookieName = "___xurp_antiforgery";
-    public static void AddCoreServices(this IServiceCollection services, ConfigurationManager configurationManager, IWebHostEnvironment environment)
+
+    public static void AddCoreServices(this IServiceCollection services, ConfigurationManager configurationManager,
+        IWebHostEnvironment environment)
     {
         if (environment.IsDevelopment())
         {
@@ -131,10 +135,14 @@ public static class ServiceCollectionExtensions
             // Validate security timestamps for when we invalidate admin sessions due to ip change (if enabled).
             options.ValidationInterval = TimeSpan.FromSeconds(1);
         });
-        if (!long.TryParse(configurationManager[$"ServerConfig:Security:{nameof(ServerConfig.SecurityConfig.AdminCookieLifetimeInMinutes)}"], out long adminCookieLifetimeMinutes))
+        if (!long.TryParse(
+                configurationManager[
+                    $"ServerConfig:Security:{nameof(ServerConfig.SecurityConfig.AdminCookieLifetimeInMinutes)}"],
+                out long adminCookieLifetimeMinutes))
         {
             adminCookieLifetimeMinutes = (long)TimeSpan.FromDays(3).TotalMinutes;
         }
+
         services.ConfigureApplicationCookie(options =>
         {
             options.Cookie.Name = IdentityCookieName;
@@ -154,11 +162,9 @@ public static class ServiceCollectionExtensions
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
                 options =>
                 {
-                    options.Cookie = new CookieBuilder() { 
-                        Name = AuthCookieName,
-                        HttpOnly = true,
-                        IsEssential = true,
-                        SameSite = SameSiteMode.Lax
+                    options.Cookie = new CookieBuilder()
+                    {
+                        Name = AuthCookieName, HttpOnly = true, IsEssential = true, SameSite = SameSiteMode.Lax
                     };
                     options.LoginPath = new PathString("/auth/login");
                     options.AccessDeniedPath = new PathString("/auth/denied");
@@ -176,7 +182,8 @@ public static class ServiceCollectionExtensions
             options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
         }).AddJsonOptions(options => JsonConfig.ApplyDefaultOptions(options.JsonSerializerOptions));
         services.AddMvc();
-        services.AddAntiforgery(options => {
+        services.AddAntiforgery(options =>
+        {
             options.Cookie.Name = AntiForgeryCookieName;
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;

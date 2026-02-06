@@ -23,6 +23,7 @@ export interface ProxyConfig
 	staticHTML: string;
 	rewriteDownstreamOrigin: boolean;
 	stripUpstreamSourceTraces: boolean;
+	useOriginalHost: boolean;
 	showConditionsNotMet: boolean;
 	authentications: ProxyAuthenticationData[];
 	proxyConditions: ConditionData[];

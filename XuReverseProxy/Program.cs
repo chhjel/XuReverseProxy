@@ -1,3 +1,4 @@
+using Sentry.Extensibility;
 using XuReverseProxy.Core.Logging;
 using XuReverseProxy.Extensions;
 
@@ -39,6 +40,7 @@ namespace XuReverseProxy
             builder.WebHost.UseSentry(x =>
             {
                 x.AddExceptionFilterForType<OperationCanceledException>();
+                x.MaxRequestBodySize = RequestSize.None;
             });
         }
     }
